@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Administrador de Parqueo | ParkinGo Enterprise</title>
+
+  <!-- Typography & Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Icons (FontAwesome 6) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom Dashboard Stylesheet -->
+  <link rel="stylesheet" href="css/dashboard.css">
+
+  <style>
+    /* Croquis Grid & Custom Parking Admin Enhancements */
+    .croquis-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .slot-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 150px;
+      transition: all var(--transition-normal);
+      box-shadow: var(--card-shadow);
+      position: relative;
+    }
+
+    .slot-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--glow-shadow);
+      border-color: var(--border-highlight);
+    }
+
+    .slot-status-disponible { border-top: 4px solid #22C55E; }
+    .slot-status-ocupado { border-top: 4px solid #475569; }
+    .slot-status-mora { border-top: 4px solid #EF4444; background: #FEF2F2; }
+    .slot-status-reservado { border-top: 4px solid #3B82F6; }
+    .slot-status-ev { border-top: 4px solid #F59E0B; }
+    .slot-status-vip { border-top: 4px solid #8B5CF6; }
+    .slot-status-inhabilitado { border-top: 4px solid #94A3B8; opacity: 0.6; }
+
+    .slot-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .slot-code { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--text-main); }
+    .slot-plate { font-weight: 800; font-size: 1.05rem; color: var(--accent-emerald); letter-spacing: 0.5px; margin: 0.2rem 0; }
+    .slot-empty { font-size: 0.8rem; color: var(--text-dim); font-weight: 600; padding: 0.4rem 0; }
+    .slot-driver { font-size: 0.75rem; color: var(--text-muted); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+    .slot-time { font-size: 0.72rem; color: var(--text-dim); }
+    .slot-mora-tag { font-size: 0.72rem; color: var(--accent-rose); font-weight: 700; margin-top: 0.2rem; }
+
+    .croquis-filter-btn {
+      padding: 0.4rem 0.85rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.15s ease;
+    }
+
+    .croquis-filter-btn.active {
+      background: var(--accent-emerald);
+      color: #FFFFFF;
+      border-color: var(--accent-emerald);
+      box-shadow: 0 2px 6px rgba(0, 109, 54, 0.2);
+    }
+
+    /* Modal Overrides & Custom Dialogs */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .modal-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 540px;
+      box-shadow: var(--modal-shadow);
+      border: 1px solid var(--border-subtle);
+      overflow: hidden;
+    }
+
+    .modal-header-custom {
+      padding: 1.1rem 1.5rem;
+      background: #063D25;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-body-custom {
+      padding: 1.5rem;
+    }
+
+    .modal-footer-custom {
+      padding: 1rem 1.5rem;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+
+    <!-- ==========================================================================
+         SIDEBAR NAVIGATION (Dark Forest Green - Retractable)
+         ========================================================================== -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo-brand" title="Volver a ParkinGo Landing">
+          <div class="logo-icon"><i class="fa-solid fa-square-parking"></i></div>
+          <div class="logo-text">
+            <span>PARKCONTROL</span>
+            <span>ADMIN PARQUEO</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Operaciones de Parqueo</div>
+
+        <a class="nav-item active" data-view="caseta" title="Terminal Operativa de Caseta (Monitoreo)">
+          <i class="fa-solid fa-cash-register"></i>
+          <span>Terminal Caseta</span>
+        </a>
+
+        <a class="nav-item" data-view="registro-entrada" title="Formulario de Registro de Entrada & Salida">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          <span>Registro Entrada / Salida</span>
+        </a>
+
+        <a class="nav-item" data-view="croquis" title="Croquis & Monitoreo 24/7">
+          <i class="fa-solid fa-border-all"></i>
+          <span>Croquis & Plazas</span>
+          <span class="badge badge-success" style="margin-left:auto; font-size:0.7rem;">24</span>
+        </a>
+
+        <a class="nav-item" data-view="reservas" title="Gestión de Reservas y Abonados">
+          <i class="fa-solid fa-calendar-check"></i>
+          <span>Reservas & Abonados</span>
+        </a>
+
+        <a class="nav-item" data-view="mora" title="Control de Mora y Lista Negra">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>Mora & Lista Negra</span>
+          <span class="badge badge-danger" style="margin-left:auto; font-size:0.7rem;">2</span>
+        </a>
+
+        <a class="nav-item" data-view="configuracion" title="Tarifas & Parámetros Operativos">
+          <i class="fa-solid fa-sliders"></i>
+          <span>Tarifas & Reglas</span>
+        </a>
+
+        <a class="nav-item" data-view="reportes" title="Analíticas & Reseñas de Conductores">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Analíticas & Reseñas</span>
+        </a>
+
+        <a class="nav-item" data-view="operadores" title="Gestión de Operadores de Garita">
+          <i class="fa-solid fa-users-gear"></i>
+          <span>Operadores Parqueo</span>
+          <span class="badge badge-info" style="margin-left:auto; font-size:0.7rem;" id="badge-count-operadores">3</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile-badge">
+          <div class="user-avatar" style="background:#006D36; color:#FFF; font-weight:700;">JP</div>
+          <div class="user-info">
+            <span class="user-name">Juan Pérez</span>
+            <span class="user-role">Dueño / Operador Unificado</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==========================================================================
+         MAIN WRAPPER & TOPBAR
+         ========================================================================== -->
+    <div class="main-wrapper">
+
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="toggle-sidebar-btn" id="toggle-sidebar" title="Alternar Menú Sidebar">
+            <i class="fa-solid fa-bars-staggered"></i>
+          </button>
+          <div class="page-title-display">
+            <h1 id="current-page-title">Terminal Operativa de Caseta</h1>
+            <span class="page-breadcrumb" id="current-page-breadcrumb">ParkinGo Equipetrol / Terminal Caseta</span>
+          </div>
+        </div>
+
+        <div class="command-search-box" onclick="document.getElementById('express-plate-input')?.focus()"
+          title="Buscar vehículo por placa o ticket">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <span>Buscar vehículo por placa o ticket...</span>
+          <kbd>⌘K</kbd>
+        </div>
+
+        <div class="topbar-right">
+          <select class="org-selector" title="Seleccionar Sucursal de Parqueo">
+            <option>Sucursal Equipetrol (SCZ)</option>
+            <option>Sucursal Centro Histórico (LPZ)</option>
+          </select>
+
+          <div class="live-occupancy-badge">
+            <div class="pulse-dot"></div>
+            <span>Ocupación: <strong>17/24 (70.8%)</strong></span>
+          </div>
+
+          <button class="btn btn-primary btn-sm" onclick="openExpressEntryModal()" title="Registrar nuevo ingreso" style="height:34px; white-space:nowrap; flex-shrink:0;">
+            <i class="fa-solid fa-plus"></i> Nuevo Check-in
+          </button>
+
+          <a href="parking-operator.html"
+            style="text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; padding:0 0.75rem; height:34px; border-radius:4px; background:rgba(37,99,235,0.08); color:#2563EB; border:1px solid rgba(37,99,235,0.25); font-size:0.78rem; font-weight:600; white-space:nowrap; flex-shrink:0; transition:all 0.15s ease;"
+            title="Ir a la Terminal Operativa del Operador de Garita"
+            onmouseover="this.style.background='rgba(37,99,235,0.18)'"
+            onmouseout="this.style.background='rgba(37,99,235,0.08)'">
+            <i class="fa-solid fa-id-card-clip"></i>
+            <span>Modo Operador</span>
+          </a>
+
+          <a href="parking-driver.html"
+            style="text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; padding:0 0.75rem; height:34px; border-radius:4px; background:rgba(16,185,129,0.1); color:#059669; border:1px solid rgba(16,185,129,0.3); font-size:0.78rem; font-weight:600; white-space:nowrap; flex-shrink:0; transition:all 0.15s ease;"
+            title="Ir al Portal Web del Conductor"
+            onmouseover="this.style.background='rgba(16,185,129,0.2)'"
+            onmouseout="this.style.background='rgba(16,185,129,0.1)'">
+            <i class="fa-solid fa-car-side"></i>
+            <span>Portal Conductor</span>
+          </a>
+
+          <a href="dashboard.html"
+            style="text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; padding:0 0.75rem; height:34px; border-radius:4px; background:rgba(0,109,54,0.08); color:#006D36; border:1px solid rgba(0,109,54,0.25); font-size:0.78rem; font-weight:600; white-space:nowrap; flex-shrink:0; transition:all 0.15s ease;"
+            title="Ir al Dashboard del Administrador General"
+            onmouseover="this.style.background='rgba(0,109,54,0.18)'"
+            onmouseout="this.style.background='rgba(0,109,54,0.08)'">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Admin General</span>
+          </a>
+        </div>
+      </header>
+
+      <!-- SYSTEM ALERT BANNER -->
+      <div class="enterprise-alert-bar">
+        <div style="display:flex; align-items:center; gap:0.5rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+          <i class="fa-solid fa-circle-check text-emerald"></i>
+          <span><strong>SUCURSAL OPERATIVA:</strong> ParkinGo Equipetrol - 24 Plazas Activas | <strong>Barrera Automatizada IoT Conectada</strong></span>
+        </div>
+        <div style="white-space:nowrap; flex-shrink:0; display:flex; align-items:center; gap:0.35rem;">
+          <i class="fa-solid fa-clock"></i> Hora local: <strong id="live-clock">11:27:35 a.m.</strong>
+        </div>
+      </div>
+
+      <!-- ==========================================================================
+           MAIN CONTENT CANVAS & VIEWS
+           ========================================================================== -->
+      <main class="content-canvas">
+        <!-- VIEW 1: TERMINAL OPERATIVA DE CASETA (MONITOREO & BITÁCORA) -->
+        <div class="dashboard-view active" id="view-caseta">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2>Terminal Operativa de Caseta</h2>
+              <p>Monitoreo en tiempo real de vehículos adentro, sensores IoT y bitácora de garita.</p>
+            </div>
+            <div class="view-actions" style="display:flex; gap:0.6rem;">
+              <button class="btn btn-success" onclick="switchToView('registro-entrada'); switchCasetaMode('entrada');">
+                <i class="fa-solid fa-right-to-bracket"></i> 📥 Registrar Entrada (Check-In)
+              </button>
+              <button class="btn btn-primary" onclick="switchToView('registro-entrada'); switchCasetaMode('salida');">
+                <i class="fa-solid fa-right-from-bracket"></i> 📤 Registrar Salida & Cobro
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Cards -->
+          <div class="stat-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-bottom:1.5rem;">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Plazas Libres</span>
+                <div class="stat-icon icon-emerald"><i class="fa-solid fa-square-parking"></i></div>
+              </div>
+              <div class="stat-value" id="kpi-plazas-libres">7 <span style="font-size:0.85rem; color:var(--text-muted); font-weight:500;">/ 24</span></div>
+              <div class="stat-footer text-emerald"><i class="fa-solid fa-circle-check"></i> <span id="kpi-porcentaje-disponible">29.2%</span> disponible</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Vehículos Adentro</span>
+                <div class="stat-icon icon-blue"><i class="fa-solid fa-car"></i></div>
+              </div>
+              <div class="stat-value" id="kpi-vehiculos-adentro">17</div>
+              <div class="stat-footer text-muted"><i class="fa-solid fa-sensor"></i> Sensores IoT Activos</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Movimientos Registrados</span>
+                <div class="stat-icon icon-amber"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+              </div>
+              <div class="stat-value" id="kpi-movimientos-total">4</div>
+              <div class="stat-footer text-emerald"><i class="fa-solid fa-list-check"></i> Tabla movimientos</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Ingreso Estimado Hoy</span>
+                <div class="stat-icon icon-purple"><i class="fa-solid fa-money-bill-wave"></i></div>
+              </div>
+              <div class="stat-value" id="kpi-ingreso-estimado">Bs. 1,480.00</div>
+              <div class="stat-footer text-emerald"><i class="fa-solid fa-shield-check"></i> Facturación en regla</div>
+            </div>
+          </div>
+
+          <!-- BANNER DE ACCESO RÁPIDO A REGISTRO -->
+          <div style="background:var(--bg-card); padding:1.1rem 1.35rem; border-radius:var(--radius-lg); border:1px solid var(--border-subtle); border-left:5px solid var(--accent-emerald); margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; box-shadow:var(--card-shadow);">
+            <div>
+              <h4 style="margin:0; font-size:1.05rem; color:var(--text-main); display:flex; align-items:center; gap:0.5rem;">
+                <i class="fa-solid fa-door-open text-emerald"></i> Operación Rápida de Registro de Garita
+              </h4>
+              <p style="font-size:0.82rem; color:var(--text-muted); margin:0.25rem 0 0 0;">Acceda al módulo dedicado para procesar el ingreso por boleta de reserva o registrar salida con facturación.</p>
+            </div>
+            <div style="display:flex; gap:0.65rem;">
+              <button class="btn btn-success" onclick="switchToView('registro-entrada'); switchCasetaMode('entrada');" style="font-weight:700; padding:0.6rem 1.1rem;">
+                <i class="fa-solid fa-plus"></i> Abrir Registro de Entrada
+              </button>
+              <button class="btn btn-primary" onclick="switchToView('registro-entrada'); switchCasetaMode('salida');" style="font-weight:700; padding:0.6rem 1.1rem;">
+                <i class="fa-solid fa-receipt"></i> Abrir Registro de Salida
+              </button>
+            </div>
+          </div>
+
+          <!-- HISTORIAL BITÁCORA DE MOVIMIENTOS EN CASETA (ENTRADAS Y SALIDAS) -->
+          <div class="data-card" style="margin-bottom:1.5rem;">
+            <div class="card-header-actions" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+              <div>
+                <h3 style="font-size:1.05rem; margin:0; display:flex; align-items:center; gap:0.5rem;">
+                  <i class="fa-solid fa-list-ul text-emerald"></i> Bitácora de Movimientos de Garita (Tabla 'movimientos')
+                </h3>
+                <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Registro cronológico persistido en base de datos con timestamps u operador ID.</p>
+              </div>
+              <button class="btn btn-sm btn-outline-dark" onclick="renderMovimientosTable()">
+                <i class="fa-solid fa-rotate"></i> Actualizar Bitácora
+              </button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>ID Movimiento</th>
+                    <th>Tipo</th>
+                    <th>Fecha & Hora</th>
+                    <th>Vehículo / Placa</th>
+                    <th>Conductor / Titular</th>
+                    <th>Plaza Asignada</th>
+                    <th>Operador Caseta</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="table-movimientos-caseta">
+                  <!-- Rendered dynamically by parking-admin.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Active Parkings Table -->
+          <div class="data-card">
+            <div class="card-header-actions" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+              <div>
+                <h3 style="font-size:1.05rem; margin:0;">Vehículos Actualmente Estacionados</h3>
+                <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Listado de unidades ocupando plazas con temporizador en vivo.</p>
+              </div>
+              <button class="btn btn-sm btn-outline-dark" onclick="renderActiveVehiclesTable()">
+                <i class="fa-solid fa-rotate"></i> Actualizar Listado
+              </button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Placa</th>
+                    <th>Conductor / Titular</th>
+                    <th>Plaza</th>
+                    <th>Hora Ingreso</th>
+                    <th>Estado Tolerancia</th>
+                    <th>Acciones Operativas</th>
+                  </tr>
+                </thead>
+                <tbody id="table-active-vehicles">
+                  <!-- Rendered dynamically by parking-admin.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 1.B: MÓDULO OPERATIVO DEDICADO DE REGISTRO (ENTRADAS Y SALIDAS) -->
+        <div class="dashboard-view" id="view-registro-entrada">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2 style="font-size:1.4rem; display:flex; align-items:center; gap:0.6rem;">
+                <i class="fa-solid fa-right-to-bracket text-emerald"></i> Módulo Operativo de Registro de Entrada & Salida
+              </h2>
+              <p style="margin-top:0.2rem;">Formulario empresarial para procesar <strong>Check-In por Boleta de Reserva</strong> y <strong>Check-Out con Cobro & Facturación en Garita</strong>.</p>
+            </div>
+            <div class="view-actions">
+              <button class="btn btn-secondary" onclick="switchToView('caseta')" style="border-radius:6px; font-weight:700;">
+                <i class="fa-solid fa-arrow-left"></i> Volver a Terminal Caseta (Monitoreo)
+              </button>
+            </div>
+          </div>
+
+          <!-- CASETA MODE SWITCHER (ENTERPRISE SEGMENTED CONTROL BAR) -->
+          <div class="caseta-mode-bar" style="display:flex; justify-content:space-between; align-items:center; background:#FFFFFF; padding:0.85rem 1.35rem; border-radius:var(--radius-md); border:1px solid var(--border-subtle); margin-bottom:1.5rem; box-shadow:var(--card-shadow); flex-wrap:wrap; gap:0.85rem;">
+            <div style="display:flex; align-items:center; gap:0.85rem;">
+              <span style="font-size:0.8rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.6px;"><i class="fa-solid fa-sliders text-emerald"></i> Operación Activa:</span>
+              <div class="btn-group" style="display:inline-flex; background:#F1F4F0; padding:4px; border-radius:8px; border:1px solid var(--border-subtle);">
+                <button class="btn btn-sm active" id="btn-mode-tab-entrada" onclick="switchCasetaMode('entrada')" style="border-radius:6px; padding:0.55rem 1.35rem; font-weight:700; font-size:0.85rem;">
+                  <i class="fa-solid fa-right-to-bracket text-emerald"></i> 📥 Registrar Entrada (Check-In)
+                </button>
+                <button class="btn btn-sm" id="btn-mode-tab-salida" onclick="switchCasetaMode('salida')" style="border-radius:6px; padding:0.55rem 1.35rem; font-weight:700; font-size:0.85rem;">
+                  <i class="fa-solid fa-right-from-bracket text-blue"></i> 📤 Registrar Salida & Cobro
+                </button>
+                <button class="btn btn-sm" id="btn-mode-tab-dual" onclick="switchCasetaMode('dual')" style="border-radius:6px; padding:0.55rem 1.35rem; font-weight:700; font-size:0.85rem;">
+                  <i class="fa-solid fa-columns"></i> 📖 Vista Dual Lado a Lado
+                </button>
+              </div>
+            </div>
+            <div style="font-size:0.8rem; color:var(--text-muted); display:flex; align-items:center; gap:0.6rem; background:rgba(0,109,54,0.06); padding:0.45rem 0.85rem; border-radius:20px; border:1px solid rgba(0,109,54,0.18);">
+              <span class="pulse-dot"></span>
+              <strong style="color:var(--accent-emerald);">Garita Equipetrol IoT</strong> — Conectada 24/7 (ANPR Enabled)
+            </div>
+          </div>
+
+          <!-- PANEL 1: REGISTRAR ENTRADA (CHECK-IN) -->
+          <div id="caseta-panel-entrada" class="caseta-panel active" style="margin-bottom:1.75rem;">
+            <div class="data-card" style="border-top:4px solid var(--accent-emerald); padding:1.6rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.35rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.95rem;">
+                <div>
+                  <h3 style="font-size:1.25rem; margin:0; color:var(--accent-emerald); display:flex; align-items:center; gap:0.6rem;">
+                    <i class="fa-solid fa-right-to-bracket" style="font-size:1.3rem;"></i> Terminal de Registro de Entrada (Check-In)
+                  </h3>
+                  <p style="font-size:0.82rem; color:var(--text-muted); margin:0.25rem 0 0 0;">Importación automática por Boleta de Reserva, asignación holgada de plaza y apertura de barrera.</p>
+                </div>
+                <span class="badge badge-success" style="font-size:0.8rem; padding:0.45rem 0.85rem;"><i class="fa-solid fa-sensor"></i> Sensores de Masa OK</span>
+              </div>
+
+              <!-- 2-Column Spacious Grid -->
+              <div style="display:grid; grid-template-columns: 1.25fr 0.75fr; gap:1.75rem; align-items:start;">
+                <!-- Columna 1: Formulario Entrada -->
+                <form id="form-caseta-entrada" onsubmit="handleInlineCheckIn(event)">
+
+                  <!-- PASO 1: SELECCIONAR BOLETA DE RESERVA -->
+                  <div style="background:#F7F8F4; padding:1.15rem; border-radius:8px; border:1.5px solid var(--accent-emerald); margin-bottom:1.35rem; box-shadow:0 2px 6px rgba(0,109,54,0.06);">
+                    <label style="font-weight:800; font-size:0.88rem; display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem; color:var(--accent-emerald);">
+                      <span><i class="fa-solid fa-ticket" style="font-size:1.1rem;"></i> Paso 1: Seleccionar Boleta de Reserva Previa (Tabla 'reservaciones') *</span>
+                      <span class="badge badge-success" style="font-size:0.7rem;">BD PostgreSQL 14+</span>
+                    </label>
+                    <select id="caseta-entrada-boleta" class="org-selector" style="width:100%; padding:0.8rem; font-size:0.95rem; font-weight:700; border:1px solid var(--border-strong); background:#FFF; border-radius:6px;" onchange="handleSelectBoletaReserva(this.value)">
+                      <!-- Options populated by populateBoletasSelect() in parking-admin.js -->
+                    </select>
+                    <div id="boleta-status-info" style="font-size:0.78rem; margin-top:0.5rem; color:var(--text-muted); display:flex; align-items:center; gap:0.45rem; background:rgba(0,109,54,0.05); padding:0.45rem 0.75rem; border-radius:4px;">
+                      <i class="fa-solid fa-circle-info text-emerald"></i> Seleccione una boleta de reserva para importar automáticamente la placa, titular y plaza asignada.
+                    </div>
+                  </div>
+
+                  <!-- PASO 2: DATOS DEL VEHÍCULO Y ASIGNACIÓN -->
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.15rem; margin-bottom:1.15rem;">
+                    <div>
+                      <label style="font-weight:700; font-size:0.82rem; display:block; margin-bottom:0.45rem; color:var(--text-main);">
+                        <i class="fa-solid fa-id-card text-emerald"></i> Placa del Vehículo *
+                      </label>
+                      <input type="text" id="caseta-entrada-placa" placeholder="Ej. 7892-KLL" required style="width:100%; padding:0.75rem 0.95rem; text-transform:uppercase; font-size:1.2rem; font-weight:800; letter-spacing:1.8px; border-radius:6px; border:1px solid var(--border-strong); background:#FFF; color:var(--accent-emerald);">
+                    </div>
+                    <div>
+                      <label style="font-weight:700; font-size:0.82rem; display:block; margin-bottom:0.45rem; color:var(--text-main);">
+                        <i class="fa-solid fa-user text-emerald"></i> Conductor / Titular
+                      </label>
+                      <input type="text" id="caseta-entrada-conductor" placeholder="Nombre completo u ocasional" style="width:100%; padding:0.75rem 0.95rem; font-size:0.95rem; border-radius:6px; border:1px solid var(--border-subtle); background:#FFF;">
+                    </div>
+                  </div>
+
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.15rem; margin-bottom:1.15rem;">
+                    <div>
+                      <label style="font-weight:700; font-size:0.82rem; display:block; margin-bottom:0.45rem; color:var(--text-main);">
+                        <i class="fa-solid fa-car-side text-emerald"></i> Tipo de Vehículo
+                      </label>
+                      <select id="caseta-entrada-tipo" class="org-selector" style="width:100%; padding:0.75rem; font-size:0.92rem; border-radius:6px;">
+                        <option value="estandar">Estándar / Sedán Compacto</option>
+                        <option value="suv">SUV / Camioneta Grande</option>
+                        <option value="ev">Eléctrico (Carga EV)</option>
+                        <option value="moto">Motocicleta</option>
+                        <option value="pmr">PMR (Movilidad Reducida)</option>
+                        <option value="vip">VIP Techado Premium</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style="font-weight:700; font-size:0.82rem; display:block; margin-bottom:0.45rem; color:var(--text-main);">
+                        <i class="fa-solid fa-clock text-emerald"></i> Modo de Ocupación
+                      </label>
+                      <select id="caseta-entrada-modalidad" class="org-selector" style="width:100%; padding:0.75rem; font-size:0.92rem; border-radius:6px;" onchange="populateCasetaPlazaSelect()">
+                        <option value="Por Hora">Por Hora (Rotativo standard)</option>
+                        <option value="Por Dia">Por Día (Pase 24 horas)</option>
+                        <option value="Mensual">Mensual (Abonado fijo)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style="margin-bottom:1.6rem;">
+                    <label style="font-weight:700; font-size:0.82rem; display:block; margin-bottom:0.45rem; color:var(--text-main);">
+                      <i class="fa-solid fa-square-parking text-emerald"></i> Plaza Disponible Recomendada *
+                    </label>
+                    <select id="caseta-entrada-plaza" class="org-selector" style="width:100%; padding:0.75rem; font-weight:800; font-size:1rem; border-color:var(--accent-emerald); border-radius:6px;">
+                      <!-- Options filled dynamically -->
+                    </select>
+                  </div>
+
+                  <button type="submit" class="btn btn-success w-100" style="padding:1rem; font-weight:800; font-size:1.05rem; letter-spacing:0.5px; border-radius:6px; box-shadow:var(--glow-shadow);">
+                    <i class="fa-solid fa-door-open" style="font-size:1.25rem;"></i> REGISTRAR ENTRADA & ABRIR BARRERA
+                  </button>
+                </form>
+
+                <!-- Columna 2: Monitor & Atajos Garita -->
+                <div style="background:#F0FDF4; border:1px solid #BBF7D0; padding:1.35rem; border-radius:8px; box-shadow:0 2px 8px rgba(0,109,54,0.04);">
+                  <h4 style="margin:0 0 0.85rem 0; color:#166534; font-size:0.95rem; display:flex; align-items:center; gap:0.45rem;">
+                    <i class="fa-solid fa-shield-halved"></i> Monitor de Barrera de Ingreso (ANPR)
+                  </h4>
+
+                  <div style="background:#FFF; padding:0.95rem; border-radius:6px; border:1px solid #DCFCE7; margin-bottom:1.15rem;">
+                    <div style="font-size:0.75rem; text-transform:uppercase; font-weight:700; color:#15803D; letter-spacing:0.5px;">Estado de Garita:</div>
+                    <div style="font-size:1.15rem; font-weight:800; color:#166534; margin-top:0.25rem; display:flex; align-items:center; gap:0.4rem;">
+                      <span class="pulse-dot"></span> BARRERA CERRADA (LISTA)
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.3rem;">Bucle magnético activo · ANPR Cámara Cam-01 OK</div>
+                  </div>
+
+                  <div style="margin-bottom:1.15rem;">
+                    <label style="font-size:0.78rem; font-weight:700; color:#166534; display:block; margin-bottom:0.45rem;">💡 Pruebas Rápidas de Placas (Autocompletado):</label>
+                    <div style="display:flex; flex-wrap:wrap; gap:0.45rem;">
+                      <button type="button" class="btn btn-sm btn-outline-dark" onclick="fillTestCheckIn('7892-KLL', 'Carlos Mendoza')" style="font-size:0.78rem; font-weight:700;">7892-KLL</button>
+                      <button type="button" class="btn btn-sm btn-outline-dark" onclick="fillTestCheckIn('4512-XYZ', 'Mario Gómez')" style="font-size:0.78rem; font-weight:700;">4512-XYZ</button>
+                      <button type="button" class="btn btn-sm btn-outline-dark" onclick="fillTestCheckIn('9911-EVX', 'Gabriel Paz')" style="font-size:0.78rem; font-weight:700;">9911-EVX</button>
+                      <button type="button" class="btn btn-sm btn-danger" onclick="fillTestCheckIn('8833-BBB', 'Jorge Valda')" style="font-size:0.78rem; font-weight:700;" title="Probar bloqueo por Lista Negra">8833-BBB ⚠️</button>
+                    </div>
+                  </div>
+
+                  <div style="font-size:0.75rem; color:#15803D; background:rgba(22,101,52,0.06); padding:0.7rem; border-radius:6px; border:1px solid rgba(22,101,52,0.15);">
+                    <i class="fa-solid fa-database"></i> Al registrar la entrada se persistirá la fila en la tabla <code>movimientos</code> con operador ID.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANEL 2: REGISTRAR SALIDA (CHECK-OUT) -->
+          <div id="caseta-panel-salida" class="caseta-panel" style="display:none; margin-bottom:1.75rem;">
+            <div class="data-card" style="border-top:4px solid var(--accent-blue); padding:1.6rem; background:#FFFFFF;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.35rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.95rem;">
+                <div>
+                  <h3 style="font-size:1.25rem; margin:0; color:var(--accent-blue); display:flex; align-items:center; gap:0.6rem;">
+                    <i class="fa-solid fa-right-from-bracket" style="font-size:1.3rem;"></i> Terminal de Salida, Cobro & Facturación (Check-Out)
+                  </h3>
+                  <p style="font-size:0.82rem; color:var(--text-muted); margin:0.25rem 0 0 0;">Liquidación en tiempo real de la estadía, cálculo de recargo por mora y emisión de recibos con facturación.</p>
+                </div>
+                <span class="badge badge-info" style="font-size:0.8rem; padding:0.45rem 0.85rem;"><i class="fa-solid fa-receipt"></i> Módulo Cobro Garita</span>
+              </div>
+
+              <!-- 2-Column Spacious Grid -->
+              <div style="display:grid; grid-template-columns: 1.1fr 0.9fr; gap:1.75rem; align-items:start;">
+                <!-- Columna 1: Buscador y Configuración -->
+                <form id="form-caseta-salida" onsubmit="handleInlineCheckOut(event)">
+                  <div style="background:#EFF6FF; padding:1.15rem; border-radius:8px; border:1.5px solid #93C5FD; margin-bottom:1.35rem; box-shadow:0 2px 6px rgba(37,99,235,0.06);">
+                    <label style="font-weight:800; font-size:0.88rem; display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem; color:#1E40AF;">
+                      <span><i class="fa-solid fa-magnifying-glass" style="font-size:1.05rem;"></i> Paso 1: Ingrese Placa o Token QR de Reserva *</span>
+                      <span class="badge badge-info" style="font-size:0.7rem;">ANPR Live Match</span>
+                    </label>
+                    <div style="display:flex; gap:0.65rem;">
+                      <input type="text" id="caseta-salida-placa" placeholder="Ej. 7892-KLL o QR-PARK-8821-X9" style="flex:1; padding:0.8rem 0.95rem; text-transform:uppercase; font-size:1.2rem; font-weight:800; letter-spacing:1.8px; border-radius:6px; border:1px solid #BFDBFE; background:#FFF; color:#1E40AF;">
+                      <button type="button" class="btn btn-primary" onclick="lookupSalidaVehicle()" style="padding:0.8rem 1.4rem; font-weight:700; border-radius:6px; background:#2563EB;">
+                        <i class="fa-solid fa-calculator"></i> Consultar
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.15rem; margin-bottom:1.6rem;">
+                    <div>
+                      <label style="font-weight:700; font-size:0.82rem; display:block; margin-bottom:0.45rem; color:var(--text-main);">
+                        <i class="fa-solid fa-wallet text-blue"></i> Método de Pago
+                      </label>
+                      <select id="caseta-salida-metodo" class="org-selector" style="width:100%; padding:0.75rem; font-size:0.92rem; border-radius:6px; background:#FFF;">
+                        <option value="Efectivo">💵 Efectivo en Ventanilla</option>
+                        <option value="QR Banco FIE">📱 QR Banco FIE / Transferencia</option>
+                        <option value="Tarjeta Visa/Mastercard">💳 Tarjeta Débito / Crédito</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style="font-weight:700; font-size:0.82rem; display:block; margin-bottom:0.45rem; color:var(--text-main);">
+                        <i class="fa-solid fa-file-invoice text-blue"></i> NIT / C.I. (Facturación)
+                      </label>
+                      <input type="text" id="caseta-salida-nit" placeholder="Ej. 1029384701" value="1029384701" style="width:100%; padding:0.75rem; font-size:0.92rem; border-radius:6px; border:1px solid var(--border-subtle); background:#FFF;">
+                    </div>
+                  </div>
+
+                  <button type="submit" class="btn btn-primary w-100" id="btn-caseta-salida-submit" disabled style="padding:1rem; font-weight:800; font-size:1.05rem; letter-spacing:0.5px; border-radius:6px; background:var(--accent-blue); box-shadow:0 3px 10px rgba(37,99,235,0.2);">
+                    <i class="fa-solid fa-receipt" style="font-size:1.25rem;"></i> REGISTRAR SALIDA & EMITIR RECIBO
+                  </button>
+                </form>
+
+                <!-- Columna 2: Preview Calculadora Cobro Enterprise -->
+                <div style="background:#F8FAFC; border:1px solid #E2E8F0; padding:1.35rem; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+                  <h4 style="margin:0 0 0.85rem 0; color:#1E293B; font-size:0.95rem; display:flex; align-items:center; justify-content:space-between;">
+                    <span style="display:flex; align-items:center; gap:0.45rem;"><i class="fa-solid fa-cash-register text-blue"></i> Desglose de Liquidación de Estadía</span>
+                    <span class="badge badge-info" style="font-size:0.68rem;">Tarifario v2026</span>
+                  </h4>
+
+                  <div id="caseta-salida-preview" style="background:#FFF; padding:1.25rem; border-radius:6px; border:1px solid #E2E8F0; min-height:185px; display:flex; flex-direction:column; justify-content:center;">
+                    <div style="color:var(--text-muted); text-align:center; padding:1rem;">
+                      <i class="fa-solid fa-car-side" style="font-size:2.4rem; color:#93C5FD; margin-bottom:0.6rem;"></i><br>
+                      Ingrese una placa o QR arriba y presione <strong>Consultar</strong> para desplegar la tarifa y tiempo transcurrido.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- VIEW 2: CROQUIS INTERACTIVO DE PLAZAS -->
+        <div class="dashboard-view" id="view-croquis">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2>Croquis Interactivo & Monitoreo de Plazas</h2>
+              <p>Mapa bidimensional con clasificación por **Modo de Ocupación** y **Categorías de Plaza**.</p>
+            </div>
+          </div>
+
+          <!-- Occupation Modes Summary Cards -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:0.85rem; margin-bottom:1.25rem;">
+            <div style="background:var(--bg-card); padding:0.85rem 1rem; border-radius:var(--radius-md); border:1px solid var(--border-subtle); border-left:4px solid #006D36;">
+              <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">⏱️ Por Hora (Rotativo)</div>
+              <div style="font-size:1.1rem; font-weight:800; color:var(--text-main);" id="count-mode-hora">13 plazas (54%)</div>
+              <span style="font-size:0.7rem; color:var(--text-muted);">Cobro por hora / Fracción rotativa</span>
+            </div>
+
+            <div style="background:var(--bg-card); padding:0.85rem 1rem; border-radius:var(--radius-md); border:1px solid var(--border-subtle); border-left:4px solid #2563EB;">
+              <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">📅 Por Día (Estadía 24h)</div>
+              <div style="font-size:1.1rem; font-weight:800; color:var(--text-main);" id="count-mode-dia">5 plazas (21%)</div>
+              <span style="font-size:0.7rem; color:var(--text-muted);">Pase diario / Tarifa fija</span>
+            </div>
+
+            <div style="background:var(--bg-card); padding:0.85rem 1rem; border-radius:var(--radius-md); border:1px solid var(--border-subtle); border-left:4px solid #8B5CF6;">
+              <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">👑 Mensual (Abonados)</div>
+              <div style="font-size:1.1rem; font-weight:800; color:var(--text-main);" id="count-mode-mensual">6 plazas (25%)</div>
+              <span style="font-size:0.7rem; color:var(--text-muted);">Plazas reservadas / Membresía fija</span>
+            </div>
+          </div>
+
+          <!-- Multi-Criteria Filters Toolbar -->
+          <div style="background:var(--bg-card); padding:1rem 1.25rem; border-radius:var(--radius-md); border:1px solid var(--border-subtle); margin-bottom:1.25rem; display:flex; flex-direction:column; gap:0.85rem;">
+            
+            <!-- Row 1: Mode Filter -->
+            <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+              <span style="font-size:0.78rem; font-weight:700; color:var(--text-main); min-width:140px;">
+                <i class="fa-solid fa-layer-group text-emerald"></i> Modo de Ocupación:
+              </span>
+              <button class="croquis-filter-btn filter-mode-btn active" data-mode="todos">Todos los Modos</button>
+              <button class="croquis-filter-btn filter-mode-btn" data-mode="hora">⏱️ Por Hora (Rotativo)</button>
+              <button class="croquis-filter-btn filter-mode-btn" data-mode="dia">📅 Por Día (24h)</button>
+              <button class="croquis-filter-btn filter-mode-btn" data-mode="mensual">👑 Mensual (Abonados)</button>
+            </div>
+
+            <div style="border-top:1px dashed var(--border-subtle);"></div>
+
+            <!-- Row 2: Category Filter -->
+            <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+              <span style="font-size:0.78rem; font-weight:700; color:var(--text-main); min-width:140px;">
+                <i class="fa-solid fa-shapes text-emerald"></i> Categoría / Tamaño:
+              </span>
+              <button class="croquis-filter-btn filter-category-btn active" data-category="todas">Todas las Categorías</button>
+              <button class="croquis-filter-btn filter-category-btn" data-category="estandar">🚗 Estándar (Sedán)</button>
+              <button class="croquis-filter-btn filter-category-btn" data-category="suv">🚙 SUV & Camionetas</button>
+              <button class="croquis-filter-btn filter-category-btn" data-category="ev">⚡ Carga EV</button>
+              <button class="croquis-filter-btn filter-category-btn" data-category="pmr">♿ Movilidad Reducida</button>
+              <button class="croquis-filter-btn filter-category-btn" data-category="vip">👑 VIP Techado</button>
+              <button class="croquis-filter-btn filter-category-btn" data-category="moto">🏍️ Motos</button>
+            </div>
+
+            <div style="border-top:1px dashed var(--border-subtle);"></div>
+
+            <!-- Row 3: Status Filter -->
+            <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+              <span style="font-size:0.78rem; font-weight:700; color:var(--text-main); min-width:140px;">
+                <i class="fa-solid fa-traffic-light text-emerald"></i> Estado Operativo:
+              </span>
+              <button class="croquis-filter-btn filter-status-btn active" data-status="todos">Todos los Estados</button>
+              <button class="croquis-filter-btn filter-status-btn" data-status="disponible"><i class="fa-solid fa-circle text-emerald"></i> Disponibles</button>
+              <button class="croquis-filter-btn filter-status-btn" data-status="ocupado"><i class="fa-solid fa-circle style='color:#475569'"></i> Ocupados</button>
+              <button class="croquis-filter-btn filter-status-btn" data-status="mora"><i class="fa-solid fa-circle text-rose"></i> En Mora</button>
+              <button class="croquis-filter-btn filter-status-btn" data-status="reservado"><i class="fa-solid fa-circle text-blue"></i> Reservados</button>
+            </div>
+
+          </div>
+
+          <!-- Croquis Grid -->
+          <div class="croquis-grid" id="croquis-grid-container">
+            <!-- Rendered dynamically by parking-admin.js -->
+          </div>
+        </div>
+
+        <!-- VIEW 3: RESERVAS & ABONADOS -->
+        <div class="dashboard-view" id="view-reservas">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2>Reservas & Abonados Mensuales</h2>
+              <p>Control de clientes frecuentes y citas programadas desde la app móvil.</p>
+            </div>
+          </div>
+
+          <div class="data-card" style="margin-bottom:1.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+              <h3 style="font-size:1.05rem; margin:0;"><i class="fa-solid fa-calendar-days text-emerald"></i> Gestión de Reservaciones & Detalle_reservacion (DB Schema)</h3>
+              <button class="btn btn-sm btn-primary" onclick="openExpressEntryModal()" title="Simular Registro de Entrada con Reserva">
+                <i class="fa-solid fa-plus"></i> Nueva Reserva
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Token QR / ID</th>
+                    <th>Vehículo / Placa</th>
+                    <th>Cliente (Titular)</th>
+                    <th>Espacio Asignado</th>
+                    <th>Inicio Programado</th>
+                    <th>Monto Total</th>
+                    <th>Estado Reserva</th>
+                    <th>Acciones DB</th>
+                  </tr>
+                </thead>
+                <tbody id="table-reservations">
+                  <!-- Rendered dynamically by parking-admin.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 4: MORA & LISTA NEGRA -->
+        <div class="dashboard-view" id="view-mora">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2>Control de Mora & Lista Negra de Seguridad</h2>
+              <p>Gestión de excesos de tiempo y vehículos con restricción de ingreso automatizado en garita.</p>
+            </div>
+            <div class="view-actions">
+              <button class="btn btn-danger" onclick="triggerBlacklistWarning({plate:'8833-BBB', driver:'Jorge Valda', reason:'Daño a barrera e historial de no pago', date:'2026-08-14'})">
+                <i class="fa-solid fa-shield-cat"></i> Simular Alerta de Placa Bloqueada
+              </button>
+            </div>
+          </div>
+
+          <!-- Vehículos Excedidos Table -->
+          <div class="data-card" style="margin-bottom:1.5rem;">
+            <h3 style="font-size:1.05rem; margin-bottom:1rem; color:var(--accent-rose); display:flex; align-items:center; gap:0.5rem;">
+              <i class="fa-solid fa-triangle-exclamation"></i> Vehículos Excedidos en Tiempo & Recargos Activos
+            </h3>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Placa</th>
+                    <th>Conductor</th>
+                    <th>Plaza</th>
+                    <th>Hora Ingreso</th>
+                    <th>Tiempo Excedido</th>
+                    <th>Recargo Generado</th>
+                    <th>Acción Operativa</th>
+                  </tr>
+                </thead>
+                <tbody id="table-mora-list">
+                  <!-- Rendered dynamically by parking-admin.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Lista Negra de Seguridad DB Table -->
+          <div class="data-card" style="border-top:4px solid var(--accent-rose);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+              <div>
+                <h3 style="font-size:1.05rem; margin:0; color:#B91C1C; display:flex; align-items:center; gap:0.5rem;">
+                  <i class="fa-solid fa-shield-halved"></i> Registros en Lista Negra (Bloqueo Automático por Placa ANPR)
+                </h3>
+                <p style="font-size:0.78rem; color:var(--text-muted); margin:0.2rem 0 0 0;">Vehículos cuyo acceso es denegado inmediatamente por el software de garita.</p>
+              </div>
+              <span class="badge badge-danger"><i class="fa-solid fa-lock"></i> 2 Placas Bloqueadas</span>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Placa Vehículo</th>
+                    <th>Titular / Conductor</th>
+                    <th>Motivo Restricción</th>
+                    <th>Fecha Registro</th>
+                    <th>Estado Acceso</th>
+                    <th>Acción Guardia</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong style="color:var(--accent-rose); font-size:1rem; letter-spacing:1px;">8833-BBB</strong></td>
+                    <td>Jorge Valda</td>
+                    <td>Daño a barrera e historial de no pago recurrente</td>
+                    <td>14 Ago 2026</td>
+                    <td><span class="badge badge-danger">DENEGADO</span></td>
+                    <td>
+                      <button class="btn btn-sm btn-outline" onclick="triggerBlacklistWarning({plate:'8833-BBB', driver:'Jorge Valda', reason:'Daño a barrera e historial de no pago', date:'2026-08-14'})">
+                        <i class="fa-solid fa-eye"></i> Inspeccionar Ficha
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong style="color:var(--accent-rose); font-size:1rem; letter-spacing:1px;">4422-POL</strong></td>
+                    <td>Ramiro Suárez</td>
+                    <td>Intento de salida sin cancelación de estadía</td>
+                    <td>02 Jul 2026</td>
+                    <td><span class="badge badge-danger">DENEGADO</span></td>
+                    <td>
+                      <button class="btn btn-sm btn-outline" onclick="triggerBlacklistWarning({plate:'4422-POL', driver:'Ramiro Suárez', reason:'Intento de salida sin cancelación de estadía', date:'2026-07-02'})">
+                        <i class="fa-solid fa-eye"></i> Inspeccionar Ficha
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 5: CONFIGURACIÓN Y TARIFAS -->
+        <div class="dashboard-view" id="view-configuracion">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2>Tarifas & Parámetros Operativos del Parqueo</h2>
+              <p>Gestión completa CRUD de la tabla **`tarifas`** de PostgreSQL y reglas de gracia/mora.</p>
+            </div>
+            <div class="view-actions">
+              <button class="btn btn-primary" onclick="openCreateTariffModal()">
+                <i class="fa-solid fa-plus"></i> Crear Nueva Tarifa
+              </button>
+            </div>
+          </div>
+
+          <!-- Tariffs List Table (Tabla 'tarifas' DB) -->
+          <div class="data-card" style="margin-bottom:1.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+              <h3 style="font-size:1.05rem; margin:0;"><i class="fa-solid fa-tags text-emerald"></i> Listado de Tarifas Registradas (Tabla `tarifas` DB)</h3>
+              <button class="btn btn-sm btn-outline-dark" onclick="renderTariffsTable()">
+                <i class="fa-solid fa-rotate"></i> Actualizar Lista
+              </button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Descripción de Tarifa</th>
+                    <th>Modalidad</th>
+                    <th>Monto (Bs.)</th>
+                    <th>Fecha Inicio</th>
+                    <th>Estado DB</th>
+                    <th>Acciones CRUD</th>
+                  </tr>
+                </thead>
+                <tbody id="table-tariffs-list">
+                  <!-- Rendered dynamically by parking-admin.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Operational Parameters Card -->
+          <div class="data-card" style="max-width:750px;">
+            <h3 style="font-size:1.05rem; margin-bottom:1rem;"><i class="fa-solid fa-sliders text-emerald"></i> Parámetros Operativos y Tolerancia</h3>
+            <form id="form-tariff-settings">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+                <div>
+                  <label style="font-weight:600; font-size:0.82rem; display:block; margin-bottom:0.4rem;">Tolerancia de Gracia Sin Cobro (Minutos)</label>
+                  <input type="number" id="tariff-grace" class="btn-outline-dark" style="width:100%; padding:0.5rem; border-radius:4px; border:1px solid var(--border-subtle);" value="15">
+                </div>
+
+                <div>
+                  <label style="font-weight:600; font-size:0.82rem; display:block; margin-bottom:0.4rem;">Multiplicador de Mora por Exceso</label>
+                  <input type="number" id="tariff-overtime-mult" class="btn-outline-dark" style="width:100%; padding:0.5rem; border-radius:4px; border:1px solid var(--border-subtle);" value="1.5" step="0.1">
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar Parámetros Operativos
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- VIEW 6: ANALÍTICAS & RESEÑAS -->
+        <div class="dashboard-view" id="view-reportes">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2>Analíticas & Reseñas de Conductores</h2>
+              <p>Métricas operativas de afluencia, facturación diaria y feedback de clientes.</p>
+            </div>
+          </div>
+
+          <!-- Executive KPI Row -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-bottom:1.5rem;">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Promedio Estadía</span>
+                <div class="stat-icon icon-emerald"><i class="fa-solid fa-stopwatch"></i></div>
+              </div>
+              <div class="stat-value">2.4 <span style="font-size:0.85rem; color:var(--text-muted);">hrs</span></div>
+              <div class="stat-footer text-emerald"><i class="fa-solid fa-chart-line"></i> Rotación óptima</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Ticket Promedio</span>
+                <div class="stat-icon icon-emerald"><i class="fa-solid fa-ticket"></i></div>
+              </div>
+              <div class="stat-value">Bs. 18.50</div>
+              <div class="stat-footer text-emerald"><i class="fa-solid fa-arrow-up"></i> +12% esta semana</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Satisfacción Cliente</span>
+                <div class="stat-icon icon-emerald"><i class="fa-solid fa-star" style="color:#F59E0B;"></i></div>
+              </div>
+              <div class="stat-value">4.8 / 5.0</div>
+              <div class="stat-footer text-emerald"><i class="fa-solid fa-face-smile"></i> 142 valoraciones</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Ocupación Máxima</span>
+                <div class="stat-icon icon-emerald"><i class="fa-solid fa-fire"></i></div>
+              </div>
+              <div class="stat-value">91.6%</div>
+              <div class="stat-footer text-muted"><i class="fa-solid fa-clock"></i> Pico a las 14:30</div>
+            </div>
+          </div>
+
+          <!-- Charts Row -->
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.5rem;">
+            <div class="data-card">
+              <h3 style="font-size:1rem; margin-bottom:1rem;"><i class="fa-solid fa-chart-bar text-emerald"></i> Horas Pico de Ocupación</h3>
+              <div style="height:240px;"><canvas id="chartPeakHours"></canvas></div>
+            </div>
+
+            <div class="data-card">
+              <h3 style="font-size:1rem; margin-bottom:1rem;"><i class="fa-solid fa-chart-line text-emerald"></i> Ingresos Semanales (Bs.)</h3>
+              <div style="height:240px;"><canvas id="chartWeeklyRevenue"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Reseñas de Clientes Card -->
+          <div class="data-card">
+            <h3 style="font-size:1.05rem; margin-bottom:1rem;"><i class="fa-solid fa-comments text-emerald"></i> Opiniones y Feedback Reciente de Conductores</h3>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:1rem;">
+              <div style="background:var(--bg-primary); padding:1rem; border-radius:6px; border:1px solid var(--border-subtle);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                  <strong style="font-size:0.9rem;">Carlos Mendoza</strong>
+                  <span style="color:#F59E0B; font-size:0.85rem;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></span>
+                </div>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 0.4rem 0;">"Excelente garita automatizada, abrieron la barrera al instante con la reserva."</p>
+                <span style="font-size:0.7rem; color:var(--text-dim);">Ayer, 18:20 hs · Plaza A2 (Rotativo)</span>
+              </div>
+
+              <div style="background:var(--bg-primary); padding:1rem; border-radius:6px; border:1px solid var(--border-subtle);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                  <strong style="font-size:0.9rem;">Gabriel Paz</strong>
+                  <span style="color:#F59E0B; font-size:0.85rem;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i></span>
+                </div>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 0.4rem 0;">"Súper cómodo el punto de carga EV en Plaza E1, todo bien señalizado."</p>
+                <span style="font-size:0.7rem; color:var(--text-dim);">Hace 3 días · Plaza E1 (Carga EV)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 7: GESTIÓN DE OPERADORES DE PARQUEO -->
+        <div class="dashboard-view" id="view-operadores">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2><i class="fa-solid fa-users-gear text-emerald"></i> Gestión de Operadores de Parqueo</h2>
+              <p>Administre el personal registrado, controle accesos a caseta, turnos asignados y credenciales de ingreso.</p>
+            </div>
+            <div class="view-actions">
+              <button class="btn btn-primary" onclick="openOperatorFormModal()">
+                <i class="fa-solid fa-user-plus"></i> Registrar Nuevo Operador
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Grid (4 Columnas) -->
+          <div class="kpi-grid">
+            <div class="card kpi-card" style="border-left-color: #006D36;">
+              <div class="kpi-header">
+                <span class="kpi-title">Total Operadores</span>
+                <div class="kpi-icon" style="background:#DCFCE7; color:#15803D;"><i class="fa-solid fa-id-card-clip"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value text-emerald" id="op-stat-total">3</div>
+                <div class="kpi-subtext">Personal autorizado en garita</div>
+              </div>
+            </div>
+
+            <div class="card kpi-card" style="border-left-color: #2563EB;">
+              <div class="kpi-header">
+                <span class="kpi-title">En Turno Activo</span>
+                <div class="kpi-icon" style="background:#DBEAFE; color:#1D4ED8;"><i class="fa-solid fa-user-check"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value text-blue" id="op-stat-active">1</div>
+                <div class="kpi-subtext">Operador en Caseta Norte</div>
+              </div>
+            </div>
+
+            <div class="card kpi-card" style="border-left-color: #F59E0B;">
+              <div class="kpi-header">
+                <span class="kpi-title">Turnos Asignados</span>
+                <div class="kpi-icon" style="background:#FEF3C7; color:#D97706;"><i class="fa-solid fa-business-time"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="op-stat-shifts">3 / día</div>
+                <div class="kpi-subtext">Mañana, Tarde y Noche</div>
+              </div>
+            </div>
+
+            <div class="card kpi-card" style="border-left-color: #10B981;">
+              <div class="kpi-header">
+                <span class="kpi-title">Operaciones Hoy</span>
+                <div class="kpi-icon" style="background:#D1FAE5; color:#059669;"><i class="fa-solid fa-calculator"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value text-emerald" id="op-stat-ops">42</div>
+                <div class="kpi-subtext">Movimientos procesados en turno</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card de Filtros & Buscador -->
+          <div class="card" style="margin-bottom: 1.25rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
+              <div class="search-input-wrapper" style="max-width:400px;">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="op-search-input" class="form-control" placeholder="Buscar operador por nombre, CI, teléfono o garita..." oninput="renderOperatorsTable()">
+              </div>
+
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <span style="font-weight:600; font-size:0.8rem; color:var(--text-muted);">Estado:</span>
+                <select id="op-status-filter" class="form-select" onchange="renderOperatorsTable()">
+                  <option value="all">Todos los Operadores</option>
+                  <option value="activo">Solo Activos</option>
+                  <option value="en-sitio">En Turno Ahora</option>
+                  <option value="inactivo">Inactivos</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabla de Operadores -->
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>OPERADOR</th>
+                  <th>IDENTIFICACIÓN / CONTACTO</th>
+                  <th>GARITA ASIGNADA</th>
+                  <th>TURNO Y HORARIO</th>
+                  <th>CREDENCIAL DE ACCESO</th>
+                  <th>ESTADO</th>
+                  <th>ACCIONES DE ADMINISTRADOR</th>
+                </tr>
+              </thead>
+              <tbody id="operators-table-body">
+                <!-- Dynamic content rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODALS & DIALOGS
+       ========================================================================== -->
+
+  <!-- Modal 1: Entrada Express -->
+  <div class="modal-overlay" id="modalExpressEntry">
+    <div class="modal-card">
+      <div class="modal-header-custom">
+        <h3 style="margin:0; font-size:1.1rem;"><i class="fa-solid fa-cash-register"></i> Registrar Entrada Express</h3>
+        <button onclick="closeModal('modalExpressEntry')" style="background:none; border:none; color:#FFF; font-size:1.2rem; cursor:pointer;">&times;</button>
+      </div>
+      <div class="modal-body-custom">
+        <form onsubmit="processExpressCheckIn(event)">
+          <div style="margin-bottom:1rem;">
+            <label style="font-weight:600; font-size:0.82rem; display:block; margin-bottom:0.4rem;">Placa del Vehículo</label>
+            <input type="text" id="express-plate-input" placeholder="Ej. 7892-KLL" required style="width:100%; padding:0.6rem; text-transform:uppercase; border-radius:4px; border:1px solid var(--border-subtle); font-size:1.1rem; font-weight:800; letter-spacing:1px;">
+          </div>
+
+          <div style="margin-bottom:1rem;">
+            <label style="font-weight:600; font-size:0.82rem; display:block; margin-bottom:0.4rem;">Conductor / Titular (Opcional)</label>
+            <input type="text" id="express-driver-input" placeholder="Nombre del conductor" style="width:100%; padding:0.5rem; border-radius:4px; border:1px solid var(--border-subtle);">
+          </div>
+
+          <div style="margin-bottom:1.5rem;">
+            <label style="font-weight:600; font-size:0.82rem; display:block; margin-bottom:0.4rem;">Asignar Plaza Disponible</label>
+            <select id="express-slot-select" style="width:100%; padding:0.5rem; border-radius:4px; border:1px solid var(--border-subtle);">
+              <!-- Options rendered by parking-admin.js -->
+            </select>
+          </div>
+
+          <div class="modal-footer-custom" style="padding:0; background:none; border:none;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modalExpressEntry')">Cancelar</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Emitir Ticket & Abrir Barrera</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Check-Out & Recibo -->
+  <div class="modal-overlay" id="modalCheckOut">
+    <div class="modal-card" style="border-top:4px solid var(--accent-blue);">
+      <div class="modal-header-custom" style="background:#0F172A;">
+        <h3 style="margin:0; font-size:1.15rem; color:#FFF; display:flex; align-items:center; gap:0.5rem;">
+          <i class="fa-solid fa-receipt text-blue"></i> Procesar Salida & Liquidación Ticket
+        </h3>
+        <button onclick="closeModal('modalCheckOut')" style="background:none; border:none; color:#94A3B8; font-size:1.3rem; cursor:pointer;">&times;</button>
+      </div>
+      <div class="modal-body-custom" style="padding:1.5rem;">
+        <div style="background:#F8FAFC; padding:1.15rem; border-radius:8px; margin-bottom:1.3rem; border:1px solid #E2E8F0; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+            <span style="font-weight:700; color:var(--text-muted); font-size:0.82rem;">PLACA VEHÍCULO:</span>
+            <strong id="checkout-plate" style="font-size:1.25rem; color:var(--accent-blue); letter-spacing:1.5px;">---</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; font-size:0.85rem;">
+            <span style="color:var(--text-muted);">Conductor / Titular:</span>
+            <span id="checkout-driver" style="font-weight:700;">---</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; font-size:0.85rem;">
+            <span style="color:var(--text-muted);">Plaza Ocupada:</span>
+            <span id="checkout-slot" class="badge badge-dark">---</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; font-size:0.85rem;">
+            <span style="color:var(--text-muted);">Hora de Ingreso:</span>
+            <span id="checkout-entry" style="font-weight:600;">---</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem;">
+            <span style="color:var(--text-muted);">Tiempo de Estadía:</span>
+            <strong id="checkout-time" style="color:var(--text-main);">---</strong>
+          </div>
+        </div>
+
+        <div style="border-top:2px dashed #E2E8F0; padding-top:1.1rem; margin-bottom:1.6rem;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:0.45rem; font-size:0.88rem;">
+            <span>Subtotal Estadía Base:</span>
+            <span id="checkout-base" style="font-weight:700;">Bs. 0.00</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:0.45rem; font-size:0.88rem; color:var(--accent-rose);">
+            <span>Recargo por Mora Excedida:</span>
+            <span id="checkout-penalty" style="font-weight:700;">Bs. 0.00</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:1.3rem; font-weight:800; color:var(--text-main); margin-top:0.9rem; background:#EFF6FF; padding:0.85rem 1rem; border-radius:6px; border:1px solid #BFDBFE;">
+            <span style="color:#1E40AF; font-size:1.05rem;">TOTAL A COBRAR:</span>
+            <span id="checkout-total" style="color:var(--accent-blue); font-size:1.4rem;">Bs. 0.00</span>
+          </div>
+        </div>
+
+        <div class="modal-footer-custom" style="padding:0; background:none; border:none; display:flex; gap:0.6rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modalCheckOut')" style="padding:0.75rem 1.25rem; font-weight:700;">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="btn-confirm-checkout" style="flex:1; padding:0.75rem 1.25rem; font-weight:800; background:var(--accent-blue);">
+            <i class="fa-solid fa-print"></i> Registrar Cobro & Abrir Barrera
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Slot Detail Drawer -->
+  <div class="modal-overlay" id="modalSlotDetail">
+    <div class="modal-card" style="max-width:500px;">
+      <div class="modal-header-custom">
+        <h3 style="margin:0; font-size:1.1rem;"><i class="fa-solid fa-circle-info"></i> Detalle de Plaza</h3>
+        <button onclick="closeModal('modalSlotDetail')" style="background:none; border:none; color:#FFF; font-size:1.2rem; cursor:pointer;">&times;</button>
+      </div>
+      <div class="modal-body-custom" id="slot-detail-content">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Blacklist Alert Warning -->
+  <div class="modal-overlay" id="modalBlacklistAlert">
+    <div class="modal-card" style="border:2px solid var(--accent-rose);">
+      <div class="modal-header-custom" style="background:var(--accent-rose);">
+        <h3 style="margin:0; font-size:1.1rem;"><i class="fa-solid fa-shield-cat"></i> ¡ALERTA DE SEGURIDAD - LISTA NEGRA!</h3>
+        <button onclick="closeModal('modalBlacklistAlert')" style="background:none; border:none; color:#FFF; font-size:1.2rem; cursor:pointer;">&times;</button>
+      </div>
+      <div class="modal-body-custom">
+        <div style="background:#FEF2F2; color:#991B1B; padding:1rem; border-radius:6px; margin-bottom:1rem; font-size:0.88rem; border:1px solid #FCA5A5;">
+          <strong>⚠️ INGRESO BLOQUEADO AUTOMÁTICAMENTE</strong><br>
+          Esta placa tiene una restricción activa en la plataforma de ParkinGo.
+        </div>
+
+        <table class="data-table" style="width:100%; margin-bottom:1.5rem;">
+          <tbody>
+            <tr><th>Placa Bloqueada</th><td><strong id="blacklist-alert-plate" style="color:var(--accent-rose); font-size:1.1rem;">---</strong></td></tr>
+            <tr><th>Titular Registrado</th><td id="blacklist-alert-driver">---</td></tr>
+            <tr><th>Motivo de Bloqueo</th><td id="blacklist-alert-reason">---</td></tr>
+            <tr><th>Fecha de Registro</th><td id="blacklist-alert-date">---</td></tr>
+          </tbody>
+        </table>
+
+        <div class="modal-footer-custom" style="padding:0; background:none; border:none;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modalBlacklistAlert')">Denegar Acceso</button>
+          <button type="button" class="btn btn-danger" onclick="closeModal('modalBlacklistAlert'); showToast('⚠️ Notificación enviada a la central de seguridad', 'warning')">
+            <i class="fa-solid fa-bullhorn"></i> Reportar a Guardia
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5: Reservaciones & Detalle_reservacion ER Inspector -->
+  <div class="modal-overlay" id="modalReservationDetail">
+    <div class="modal-card" style="max-width:650px;">
+      <div class="modal-header-custom" style="background:#063D25;">
+        <h3 style="margin:0; font-size:1.1rem;"><i class="fa-solid fa-list-check"></i> Detalle de Reservación (BD Schema)</h3>
+        <button onclick="closeModal('modalReservationDetail')" style="background:none; border:none; color:#FFF; font-size:1.2rem; cursor:pointer;">&times;</button>
+      </div>
+      <div class="modal-body-custom" id="reservation-detail-content">
+        <!-- Rendered dynamically by parking-admin.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 6: Formulario Crear / Editar Tarifa (Tabla 'tarifas' DB) -->
+  <div class="modal-overlay" id="modalTariffForm">
+    <div class="modal-card" style="max-width:500px;">
+      <div class="modal-header-custom" style="background:#063D25;">
+        <h3 style="margin:0; font-size:1.1rem;" id="modal-tariff-title"><i class="fa-solid fa-pen-to-square"></i> Editar Tarifa (Tabla tarifas)</h3>
+        <button onclick="closeModal('modalTariffForm')" style="background:none; border:none; color:#FFF; font-size:1.2rem; cursor:pointer;">&times;</button>
+      </div>
+      <div class="modal-body-custom">
+        <form onsubmit="saveTariff(event)">
+          <input type="hidden" id="edit-tariff-id">
+
+          <div style="margin-bottom:1rem;">
+            <label style="font-weight:600; font-size:0.82rem; display:block; margin-bottom:0.4rem;">Descripción de la Tarifa (descripcion)</label>
+            <input type="text" id="edit-tariff-descripcion" placeholder="Ej. Tarifa Nocturna SUV" required style="width:100%; padding:0.5rem; border-radius:4px; border:1px solid var(--border-subtle);">
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; margin-bottom:1rem;">
+            <div>
+              <label style="font-weight:600; font-size:0.82rem; display:block; margin-bottom:0.4rem;">Modalidad (modalidad)</label>
+              <select id="edit-tariff-modalidad" class="org-selector" style="width:100%;">
+                <option value="Por Hora">Por Hora</option>
+                <option value="Por Dia">Por Dia</option>
+                <option value="Mensual">Mensual</option>
+              </select>
+            </div>
+
+            <div>
+              <label style="font-weight:600; font-size:0.82rem; display:block; margin-bottom:0.4rem;">Monto (Bs.) (monto)</label>
+              <input type="number" id="edit-tariff-monto" step="0.50" min="0" required style="width:100%; padding:0.5rem; border-radius:4px; border:1px solid var(--border-subtle); font-weight:700; color:var(--accent-emerald);">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; margin-bottom:1.5rem;">
+            <div>
+              <label style="font-weight:600; font-size:0.82rem; display:block; margin-bottom:0.4rem;">Fecha Inicio (fecha_inicio)</label>
+              <input type="date" id="edit-tariff-fecha-inicio" required style="width:100%; padding:0.5rem; border-radius:4px; border:1px solid var(--border-subtle);">
+            </div>
+
+            <div>
+              <label style="font-weight:600; font-size:0.82rem; display:block; margin-bottom:0.4rem;">Estado (estado)</label>
+              <select id="edit-tariff-estado" class="org-selector" style="width:100%;">
+                <option value="activo">activo</option>
+                <option value="inactivo">inactivo</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-footer-custom" style="padding:0; background:none; border:none;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modalTariffForm')">Cancelar</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar Tarifa en DB</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 7: Ticket / Recibo Comprobante de Movimiento -->
+  <div class="modal-overlay" id="modalPrintTicket">
+    <div class="modal-card" style="max-width:450px; background:#FFF; color:#1E293B;">
+      <div class="modal-header-custom" style="background:#0F172A;">
+        <h3 style="margin:0; font-size:1.1rem; color:#FFF;"><i class="fa-solid fa-print"></i> Comprobante de Garita</h3>
+        <button onclick="closeModal('modalPrintTicket')" style="background:none; border:none; color:#FFF; font-size:1.2rem; cursor:pointer;">&times;</button>
+      </div>
+      <div class="modal-body-custom" id="ticket-modal-body" style="font-family:monospace; font-size:0.85rem; padding:1.25rem;">
+        <!-- Filled dynamically by parking-admin.js -->
+      </div>
+      <div class="modal-footer-custom" style="background:#F8FAFC;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalPrintTicket')">Cerrar</button>
+        <button type="button" class="btn btn-primary" onclick="window.print(); closeModal('modalPrintTicket')"><i class="fa-solid fa-print"></i> Imprimir Ticket</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 8: Registrar / Editar Operador de Parqueo -->
+  <div class="modal-overlay" id="modalOperatorForm">
+    <div class="modal-card" style="max-width:540px;">
+      <div class="modal-header-custom" style="background:#063D25;">
+        <h3 style="margin:0; font-size:1.1rem; color:#FFF;" id="operator-modal-title"><i class="fa-solid fa-user-plus"></i> Registrar Nuevo Operador</h3>
+        <button onclick="closeModal('modalOperatorForm')" style="background:none; border:none; color:#FFF; font-size:1.2rem; cursor:pointer;">&times;</button>
+      </div>
+      <form id="operator-form" onsubmit="handleOperatorFormSubmit(event)">
+        <input type="hidden" id="edit-operator-id" value="">
+        <div class="modal-body-custom">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; margin-bottom:1rem;">
+            <div>
+              <label style="font-weight:600; font-size:0.82rem; display:block; margin-bottom:0.4rem;">Nombre Completo <span style="color:red;">*</span></label>
+              <input type="text" id="op-input-name" required placeholder="Ej. Carlos Mendoza" class="form-control form-control-no-icon">
+            </div>
+            <div>
+              <label style="font-weight:600; font-size:0.82rem; display:block; margin-bottom:0.4rem;">Cédula de Identidad (CI) <span style="color:red;">*</span></label>
+              <input type="text" id="op-input-ci" required placeholder="Ej. 7849120 SC" class="form-control form-control-no-icon">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; margin-bottom:1rem;">
+            <div>
+              <label style="font-weight:600; font-size:0.82rem; display:block; margin-bottom:0.4rem;">Teléfono de Contacto <span style="color:red;">*</span></label>
+              <input type="text" id="op-input-phone" required placeholder="Ej. 77123456" class="form-control form-control-no-icon">
+            </div>
+            <div>
+              <label style="font-weight:600; font-size:0.82rem; display:block; margin-bottom:0.4rem;">Correo de Usuario (Login) <span style="color:red;">*</span></label>
+              <input type="email" id="op-input-email" required placeholder="carlos.mendoza@parkingo.bo" class="form-control form-control-no-icon">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; margin-bottom:1rem;">
+            <div>
+              <label style="font-weight:600; font-size:0.82rem; display:block; margin-bottom:0.4rem;">Garita Asignada</label>
+              <select id="op-input-garita" class="form-select" style="width:100%;">
+                <option value="Caseta Principal Norte">Caseta Principal Norte</option>
+                <option value="Caseta Acceso Sur">Caseta Acceso Sur</option>
+                <option value="Garita Nivel Subterráneo">Garita Nivel Subterráneo</option>
+              </select>
+            </div>
+
+            <div>
+              <label style="font-weight:600; font-size:0.82rem; display:block; margin-bottom:0.4rem;">Turno Horario</label>
+              <select id="op-input-shift" class="form-select" style="width:100%;">
+                <option value="Turno Mañana (07:00 - 15:00)">Turno Mañana (07:00 - 15:00)</option>
+                <option value="Turno Tarde (15:00 - 23:00)">Turno Tarde (15:00 - 23:00)</option>
+                <option value="Turno Noche (23:00 - 07:00)">Turno Noche (23:00 - 07:00)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; margin-bottom:1.2rem;">
+            <div>
+              <label style="font-weight:600; font-size:0.82rem; display:block; margin-bottom:0.4rem;">Estado del Operador</label>
+              <select id="op-input-status" class="form-select" style="width:100%;">
+                <option value="activo">Activo</option>
+                <option value="en-sitio">En Turno Ahora</option>
+                <option value="inactivo">Inactivo / Licencia</option>
+              </select>
+            </div>
+
+            <div>
+              <label style="font-weight:600; font-size:0.82rem; display:block; margin-bottom:0.4rem;">Contraseña Temporal</label>
+              <input type="password" id="op-input-pass" placeholder="••••••••" class="form-control form-control-no-icon">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer-custom" style="background:#F8FAFC;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modalOperatorForm')">Cancelar</button>
+          <button type="submit" class="btn btn-primary" style="background:#006D36;"><i class="fa-solid fa-floppy-disk"></i> Guardar Operador</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 9: Reporte de Desempeño por Operador y Parqueo -->
+  <div class="modal-overlay" id="modalOperatorReport">
+    <div class="modal-card" style="max-width:680px;">
+      <div class="modal-header-custom" style="background:#063D25;">
+        <h3 style="margin:0; font-size:1.1rem; color:#FFF;"><i class="fa-solid fa-chart-line"></i> Reporte Individual por Operador</h3>
+        <button onclick="closeModal('modalOperatorReport')" style="background:none; border:none; color:#FFF; font-size:1.2rem; cursor:pointer;">&times;</button>
+      </div>
+      <div class="modal-body-custom">
+        <!-- Filtros de selección de Parqueo, Operador y Período -->
+        <div style="background:#F8FAFC; border:1px solid #E2E8F0; padding:0.9rem; border-radius:6px; margin-bottom:1.2rem; display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.75rem;">
+          <div>
+            <label style="font-size:0.75rem; font-weight:700; color:#475569; display:block; margin-bottom:0.3rem;">1. Parqueo / Sucursal:</label>
+            <select id="report-select-parqueo" class="form-select" style="width:100%; font-size:0.8rem;" onchange="updateOperatorReportFromSelectors()">
+              <option value="101" selected>ParkinGo Equipetrol Central</option>
+              <option value="102">Sucursal Centro Histórico</option>
+              <option value="103">Parqueo San Martín</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size:0.75rem; font-weight:700; color:#475569; display:block; margin-bottom:0.3rem;">2. Operador Asignado:</label>
+            <select id="report-select-operator" class="form-select" style="width:100%; font-size:0.8rem;" onchange="updateOperatorReportFromSelectors()">
+              <!-- Filled dynamically -->
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size:0.75rem; font-weight:700; color:#475569; display:block; margin-bottom:0.3rem;">3. Período:</label>
+            <select id="report-select-period" class="form-select" style="width:100%; font-size:0.8rem;" onchange="updateOperatorReportFromSelectors()">
+              <option value="today" selected>Turno de Hoy</option>
+              <option value="week">Esta Semana</option>
+              <option value="month">Este Mes</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Dynamic Report Body Container -->
+        <div id="operator-report-content">
+          <!-- Filled dynamically by js/parking-admin.js -->
+        </div>
+      </div>
+
+      <div class="modal-footer-custom" style="background:#F8FAFC; border-top:1px solid #CBD5E1;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalOperatorReport')">Cerrar</button>
+        <button type="button" class="btn btn-primary" onclick="window.print();" style="background:#006D36;">
+          <i class="fa-solid fa-print"></i> Imprimir Reporte
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Controller -->
+  <script src="js/parking-admin.js"></script>
+</body>
+
+</html>

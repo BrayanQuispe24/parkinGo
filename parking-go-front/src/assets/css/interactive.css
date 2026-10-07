@@ -1,0 +1,969 @@
+/* ==========================================
+   ParkinGo - Interactive Modules & Croquis del Parqueo (Technical Scale)
+   Sidebar, Web Admin Dashboard, Parking Spot Layout Grid & Modals
+   ========================================== */
+
+/* Leaflet Map Interactive Layout (Structured 6px Radius) */
+.map-wrapper {
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+
+.map-controls-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.2rem;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.map-filters {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.filter-btn {
+    padding: 0.4rem 0.8rem;
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.filter-btn.active,
+.filter-btn:hover {
+    background: var(--color-primary);
+    color: #ffffff;
+    border-color: var(--color-primary);
+}
+
+.map-search-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--color-background);
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+}
+
+.map-search-inline select {
+    background: transparent;
+    border: none;
+    color: var(--color-text-primary);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    outline: none;
+    cursor: pointer;
+}
+
+.map-search-inline select option {
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+}
+
+.map-container-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    height: 480px;
+}
+
+.map-canvas {
+    width: 100%;
+    height: 100%;
+    background: var(--color-background);
+    z-index: 1;
+}
+
+.map-side-panel {
+    background: var(--color-surface);
+    border-left: 1px solid var(--color-border);
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.side-panel-header {
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 0.85rem;
+}
+
+.side-panel-header h3 {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+    color: var(--color-text-primary);
+}
+
+.badge-type {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.18rem 0.5rem;
+    border-radius: var(--radius-sm);
+    background: rgba(0, 109, 54, 0.1);
+    color: var(--color-primary);
+}
+
+.empty-state-map {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--color-text-secondary);
+}
+
+.empty-state-map i {
+    font-size: 2rem;
+    color: var(--color-primary);
+    margin-bottom: 0.75rem;
+}
+
+/* Leaflet Popup Styling */
+.leaflet-popup-content-wrapper {
+    background: var(--color-surface) !important;
+    color: var(--color-text-primary) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: var(--shadow-md) !important;
+}
+
+.leaflet-popup-tip {
+    background: var(--color-surface) !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+    color: var(--color-text-secondary) !important;
+}
+
+.map-popup-card h4 {
+    font-size: 0.92rem;
+    margin-bottom: 0.2rem;
+    color: var(--color-text-primary);
+}
+
+.map-popup-card p {
+    font-size: 0.76rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.45rem;
+}
+
+.map-popup-price {
+    font-weight: 700;
+    color: var(--color-primary);
+    font-size: 0.82rem;
+    margin-bottom: 0.6rem;
+}
+
+/* Sidebar Specifications: Background #0F2A43, Normal Text #CBD5E1, Active Text #FFFFFF, Structured 4px Items */
+.saas-sidebar {
+    width: 230px;
+    background: var(--color-sidebar-bg);
+    color: var(--color-sidebar-text);
+    padding: 1rem 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.sidebar-header {
+    padding: 0.4rem 0.6rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #ffffff;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.sidebar-menu {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.55rem 0.75rem;
+    color: var(--color-sidebar-text);
+    font-size: 0.82rem;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.sidebar-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}
+
+.sidebar-link.active {
+    background: var(--color-sidebar-active-bg);
+    color: var(--color-sidebar-text-active);
+    border-left: 3px solid var(--color-sidebar-active-border);
+    font-weight: 700;
+    border-radius: var(--radius-xs) var(--radius-sm) var(--radius-sm) var(--radius-xs);
+}
+
+.sidebar-link i {
+    font-size: 0.95rem;
+    width: 18px;
+}
+
+/* Topbar Specifications inside Dashboard Mockup */
+.saas-dash-topbar {
+    background: var(--color-topbar-bg);
+    border-bottom: 1px solid var(--color-topbar-border);
+    padding: 0.7rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--color-topbar-text);
+    font-size: 0.82rem;
+}
+
+.saas-dash-title {
+    font-weight: 700;
+    color: var(--color-topbar-text);
+}
+
+.saas-dash-sub {
+    color: var(--color-topbar-text-sub);
+    font-size: 0.75rem;
+}
+
+/* Croquis del Parqueo Specifications (4px Spot Boxes, 2px Status Tags, 6px Container) */
+.croquis-container {
+    background: var(--croquis-bg);
+    border: 1px solid var(--croquis-grid);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    margin-top: 1.2rem;
+}
+
+.croquis-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+}
+
+.croquis-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.croquis-legend {
+    display: flex;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--color-text-secondary);
+}
+
+.legend-color {
+    width: 10px;
+    height: 10px;
+    border-radius: var(--radius-xs);
+}
+
+.legend-color.available { background: var(--croquis-available); }
+.legend-color.occupied { background: var(--croquis-occupied); }
+.legend-color.reserved { background: var(--croquis-reserved); }
+.legend-color.out-of-service { background: var(--croquis-out-of-service); }
+.legend-color.selected { background: var(--croquis-selected); }
+.legend-color.disabled { background: var(--croquis-disabled); }
+
+.croquis-layout-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.65rem;
+    background: var(--croquis-bg);
+    padding: 0.85rem;
+    border: 1px dashed var(--croquis-grid);
+    border-radius: var(--radius-sm);
+}
+
+.croquis-street-lane {
+    grid-column: 1 / -1;
+    background: var(--croquis-street);
+    color: #ffffff;
+    text-align: center;
+    padding: 0.35rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    border-radius: var(--radius-xs);
+    margin: 0.3rem 0;
+}
+
+.parking-spot-box {
+    background: var(--color-surface);
+    border: 2px solid var(--croquis-grid);
+    border-radius: var(--radius-sm);
+    padding: 0.65rem 0.4rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.18rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.parking-spot-box:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow);
+}
+
+.spot-id {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: var(--color-text-primary);
+}
+
+.spot-status-text {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.12rem 0.3rem;
+    border-radius: var(--radius-xs);
+    color: #ffffff;
+}
+
+.spot-rate-tag {
+    font-size: 0.65rem;
+    color: var(--color-text-secondary);
+}
+
+/* Spot State Classes for Croquis */
+.parking-spot-box.spot-available {
+    border-color: var(--croquis-available);
+}
+.parking-spot-box.spot-available .spot-status-text {
+    background: var(--croquis-available);
+}
+
+.parking-spot-box.spot-occupied {
+    border-color: var(--croquis-occupied);
+}
+.parking-spot-box.spot-occupied .spot-status-text {
+    background: var(--croquis-occupied);
+}
+
+.parking-spot-box.spot-reserved {
+    border-color: var(--croquis-reserved);
+}
+.parking-spot-box.spot-reserved .spot-status-text {
+    background: var(--croquis-reserved);
+}
+
+.parking-spot-box.spot-out-of-service {
+    border-color: var(--croquis-out-of-service);
+}
+.parking-spot-box.spot-out-of-service .spot-status-text {
+    background: var(--croquis-out-of-service);
+}
+
+.parking-spot-box.spot-selected {
+    border-color: var(--croquis-selected);
+    background: rgba(6, 182, 212, 0.05);
+}
+.parking-spot-box.spot-selected .spot-status-text {
+    background: var(--croquis-selected);
+}
+
+.parking-spot-box.spot-disabled {
+    border-color: var(--croquis-disabled);
+}
+.parking-spot-box.spot-disabled .spot-status-text {
+    background: var(--croquis-disabled);
+}
+
+/* Ecosystem Role Tabs (Structured 6px Radius Standard) */
+.role-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 0.85rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.role-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1.75rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.role-tab:hover {
+    color: var(--color-text-primary);
+    border-color: var(--input-border);
+}
+
+.role-tab.active {
+    background: rgba(0, 109, 54, 0.08);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    box-shadow: 0 2px 6px rgba(0, 109, 54, 0.12);
+}
+
+.role-content-wrapper {
+    padding: 3rem 3.5rem;
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--card-shadow);
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .role-content-wrapper {
+        padding: 1.5rem 1rem;
+    }
+    .role-tab {
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+    }
+}
+
+.role-panel {
+    display: none;
+}
+
+.role-panel.active {
+    display: block;
+}
+
+.calc-box,
+.role-info {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 2.2rem 2.5rem;
+    box-shadow: var(--card-shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.calc-box h3,
+.role-info h3 {
+    font-size: 1.75rem;
+    margin-bottom: 0.9rem;
+    color: var(--color-text-primary);
+    line-height: 1.3;
+}
+
+.calc-box p,
+.role-info p {
+    font-size: 1.02rem;
+    color: var(--color-text-secondary);
+    line-height: 1.65;
+    margin-bottom: 1.5rem;
+}
+
+.feature-list {
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    list-style: none;
+    width: 100%;
+}
+
+.feature-list li {
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: var(--color-text-secondary);
+    display: block;
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    padding: 0.6rem 0.9rem;
+    border-radius: var(--radius-sm);
+}
+
+.feature-list li i {
+    color: var(--color-primary);
+    font-size: 1.05rem;
+    width: 20px;
+    text-align: center;
+    float: left;
+    margin-right: 0.75rem;
+    margin-top: 0.2rem;
+}
+
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.9rem;
+    background: rgba(0, 109, 54, 0.08);
+    color: var(--color-primary);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 1.2rem;
+    width: fit-content;
+}
+
+/* Mobile Phone & Dash Frame Mockups */
+.mockup-frame {
+    display: flex;
+    justify-content: center;
+}
+
+.phone-shell {
+    width: 275px;
+    height: 500px;
+    background: #0f172a;
+    border: 7px solid #1e293b;
+    border-radius: var(--radius-max);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    position: relative;
+}
+
+.phone-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.6rem 0.9rem 0.25rem;
+    font-size: 0.68rem;
+    color: #94a3b8;
+}
+
+.phone-app-content {
+    padding: 1rem;
+}
+
+.phone-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.85rem;
+    color: #ffffff;
+}
+
+.phone-greeting {
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.user-avatar {
+    width: 28px;
+    height: 28px;
+    background: var(--color-primary);
+    border-radius: var(--radius-xs);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #fff;
+}
+
+.phone-card.active-res {
+    background: rgba(37, 99, 235, 0.15);
+    border: 1px solid rgba(37, 99, 235, 0.3);
+    padding: 0.85rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.85rem;
+    color: #ffffff;
+}
+
+.res-tag {
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: #60a5fa;
+    letter-spacing: 1px;
+    margin-bottom: 0.25rem;
+}
+
+.phone-qr-placeholder {
+    margin-top: 0.75rem;
+    padding: 0.6rem;
+    background: #ffffff;
+    color: #000;
+    border-radius: var(--radius-xs);
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.phone-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
+}
+
+.phone-action-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.6rem 0.25rem;
+    border-radius: var(--radius-xs);
+    text-align: center;
+    font-size: 0.68rem;
+    color: #cbd5e1;
+}
+
+.phone-action-item i {
+    display: block;
+    font-size: 0.95rem;
+    color: #60a5fa;
+    margin-bottom: 0.2rem;
+}
+
+/* Calculator Section Interactive Components */
+.calculator-card {
+    padding: 3rem 3.5rem;
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--card-shadow);
+}
+
+.calc-group {
+    margin-bottom: 1.8rem;
+}
+
+.calc-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.6rem;
+}
+
+.calc-label-row label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--color-text-primary);
+}
+
+.calc-val {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    color: var(--color-primary);
+    font-size: 1.05rem;
+}
+
+input[type="range"] {
+    width: 100%;
+    height: 8px;
+    background: var(--color-border);
+    border-radius: var(--radius-xs);
+    outline: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    margin: 0.8rem 0 1.2rem;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+}
+
+.checkbox-container input {
+    accent-color: var(--color-primary);
+    width: 16px;
+    height: 16px;
+}
+
+.calc-result-card {
+    padding: 2.5rem;
+    border-radius: var(--radius-md);
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.calc-result-title {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.calc-amount-primary {
+    font-family: var(--font-heading);
+    font-size: 3.2rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    margin: 0.5rem 0 0.25rem;
+}
+
+.calc-amount-primary .currency {
+    font-size: 1.8rem;
+    margin-right: 0.25rem;
+}
+
+.calc-sub-note {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 1.4rem;
+}
+
+.calc-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.8rem;
+    text-align: left;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    padding: 1.2rem 1.4rem;
+    border-radius: var(--radius-sm);
+}
+
+.breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+}
+
+.breakdown-item.highlight {
+    border-top: 1px solid var(--color-border);
+    padding-top: 0.65rem;
+    color: var(--color-text-primary);
+    font-weight: 700;
+}
+
+.breakdown-item.highlight strong {
+    color: var(--color-primary);
+}
+
+.btn-calc-cta {
+    padding: 0.95rem 1.8rem;
+    font-size: 1rem;
+}
+
+/* CTA Banner Section Specification */
+.cta-banner-section {
+    padding: 6rem 0 8rem;
+}
+
+@media (max-width: 768px) {
+    .calc-result-card {
+        padding: 1.5rem 1rem;
+    }
+    .calc-amount-primary {
+        font-size: 2.5rem;
+    }
+    .calc-amount-primary .currency {
+        font-size: 1.4rem;
+    }
+    .btn-calc-cta {
+        padding: 0.8rem 1rem;
+        font-size: 0.85rem;
+        white-space: normal;
+        height: auto;
+    }
+    .breakdown-item {
+        font-size: 0.85rem;
+    }
+}
+
+.cta-banner-card {
+    background: var(--color-primary-dark);
+    color: #ffffff;
+    border-radius: var(--radius-lg);
+    padding: 4rem 4.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25), 0 6px 14px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.cta-banner-card:hover {
+    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.32), 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+.cta-content h2 {
+    color: #ffffff;
+    font-size: 2.25rem;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.8rem;
+}
+
+.cta-content p {
+    color: #C8D5CC;
+    font-size: 1.1rem;
+    max-width: 650px;
+    line-height: 1.6;
+}
+
+.cta-buttons {
+    display: flex;
+    gap: 1.2rem;
+    flex-shrink: 0;
+}
+
+.cta-banner-card .btn-primary {
+    background: #ffffff;
+    color: var(--color-primary-dark);
+    border-color: #ffffff;
+    font-weight: 700;
+}
+
+.cta-banner-card .btn-primary:hover {
+    background: #F0F3EF;
+    border-color: #F0F3EF;
+}
+
+@media (max-width: 1024px) {
+    .cta-banner-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 3rem 2rem;
+        gap: 2rem;
+    }
+    .cta-content h2 {
+        white-space: normal;
+        font-size: 1.8rem;
+    }
+    .cta-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    .cta-buttons .btn {
+        width: 100%;
+    }
+}
+
+
+/* Modal Dialog Specification (8px Radius Standard) */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.2rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: var(--transition);
+}
+
+.modal-backdrop.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.modal-window {
+    width: 100%;
+    max-width: 520px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    padding: 2rem;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-close {
+    position: absolute;
+    top: 0.9rem;
+    right: 0.9rem;
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.modal-close:hover {
+    color: var(--color-text-primary);
+}
+
+.modal-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-header-icon {
+    width: 44px;
+    height: 44px;
+    background: rgba(0, 109, 54, 0.1);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: var(--color-primary);
+    margin: 0 auto 0.75rem;
+}
+
+.modal-header p {
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+    .croquis-layout-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .map-container-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+    .map-canvas {
+        height: 280px;
+    }
+}

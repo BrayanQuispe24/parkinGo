@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceder a ParkinGo - Inicio de Sesión y Registro</title>
+    <meta name="description"
+        content="Inicia sesión o regístrate en ParkinGo. Conecta con parqueos en Santa Cruz y toda Bolivia.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/logo.png">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+
+<body class="auth-body">
+
+    <div class="auth-wrapper">
+
+        <!-- Left Pane: Hero Branding & Showcase -->
+        <div class="auth-hero-pane">
+            <div class="auth-hero-top">
+                <a href="index.html" class="auth-brand-logo">
+                    <img src="assets/logo.png" alt="ParkinGo Logo">
+                    <span>Parkin<span style="color: var(--color-accent, #FF9500);">Go!</span></span>
+                </a>
+            </div>
+
+            <div class="auth-hero-content">
+                <h1 class="auth-hero-title">
+                    Tu Espacio de Parqueo<br>
+                    <span class="glow-accent">Al Alcance de un Clic</span>
+                </h1>
+                <p class="auth-hero-desc">
+                    La plataforma inteligente para conductores y propietarios de parqueos en Santa Cruz. Reserva, monetiza y gestiona sin complicaciones.
+                </p>
+
+                <div class="auth-hero-features">
+                    <div class="hero-feature-item">
+                        <div class="hero-feature-icon">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div class="hero-feature-text">
+                            <h4>Acceso Seguro y Verificado</h4>
+                            <p>Tus datos y transacciones protegidas con estándares enterprise.</p>
+                        </div>
+                    </div>
+
+                    <div class="hero-feature-item">
+                        <div class="hero-feature-icon">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                        </div>
+                        <div class="hero-feature-text">
+                            <h4>Disponibilidad en Tiempo Real</h4>
+                            <p>Encuentra lugares libres en zonas de alto tráfico instantáneamente.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="auth-hero-mascot">
+                <img src="assets/Vehiculo.png" alt="Vehículo ParkinGo Ilustración">
+            </div>
+        </div>
+
+        <!-- Right Pane: Form Card Container -->
+        <div class="auth-form-pane">
+
+            <!-- Top Return Nav -->
+            <div class="auth-top-nav">
+                <a href="index.html" class="btn-back-home">
+                    <i class="fa-solid fa-arrow-left"></i> Volver a la Landing
+                </a>
+            </div>
+
+            <!-- Card Container -->
+            <div class="auth-card">
+
+                <!-- Header -->
+                <div class="auth-card-header">
+                    <h2 class="auth-card-title" id="auth-card-title">¡Bienvenido de Nuevo!</h2>
+                    <p class="auth-card-subtitle" id="auth-card-subtitle">Ingresa tus credenciales para acceder a tu panel</p>
+                </div>
+
+                <!-- Tab Switcher -->
+                <div class="auth-tabs-container">
+                    <button type="button" class="auth-tab-btn active" data-tab="login">
+                        <i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión
+                    </button>
+                    <button type="button" class="auth-tab-btn" data-tab="register">
+                        <i class="fa-solid fa-user-plus"></i> Registrarse
+                    </button>
+                </div>
+
+                <!-- ==================== FORMULARIO DE LOGIN ==================== -->
+                <div class="auth-form-panel active" id="panel-login">
+                    <div class="auth-feedback-toast" id="login-toast"></div>
+
+                    <form id="form-login" novalidate>
+                        <!-- Campo 1: Correo electrónico -->
+                        <div class="form-group">
+                            <label class="form-label" for="login-email">
+                                Correo Electrónico <span class="required-star">*</span>
+                            </label>
+                            <div class="input-icon-wrapper">
+                                <i class="fa-solid fa-envelope input-icon"></i>
+                                <input type="email" id="login-email" class="form-control"
+                                    placeholder="ejemplo@parkingo.bo" required>
+                            </div>
+                        </div>
+
+                        <!-- Campo 2: Contraseña -->
+                        <div class="form-group">
+                            <label class="form-label" for="login-password">
+                                Contraseña <span class="required-star">*</span>
+                            </label>
+                            <div class="input-icon-wrapper">
+                                <i class="fa-solid fa-lock input-icon"></i>
+                                <input type="password" id="login-password" class="form-control"
+                                    placeholder="••••••••••••" required>
+                                <button type="button" class="btn-toggle-password" data-target="login-password"
+                                    title="Mostrar/ocultar contraseña">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Recordarme y Olvidé contraseña -->
+                        <div class="form-options-row">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="login-remember" checked>
+                                <span>Recordar mi sesión</span>
+                            </label>
+                            <a href="#" class="forgot-password-link" onclick="alert('Funcionalidad de recuperación simulada. Envíe correo a soporte@parkingo.bo'); return false;">¿Olvidaste tu contraseña?</a>
+                        </div>
+
+                        <!-- Botón Submit -->
+                        <button type="submit" class="btn-auth-submit" id="btn-login-submit">
+                            <i class="fa-solid fa-spinner spinner-icon"></i>
+                            <span class="btn-text-content">Ingresar a ParkinGo</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- ==================== FORMULARIO DE REGISTRO ==================== -->
+                <div class="auth-form-panel" id="panel-register">
+                    <div class="auth-feedback-toast" id="register-toast"></div>
+
+                    <form id="form-register" novalidate>
+
+                        <!-- Campo 1: Nombre Completo -->
+                        <div class="form-group">
+                            <label class="form-label" for="reg-fullname">
+                                Nombre Completo <span class="required-star">*</span>
+                            </label>
+                            <div class="input-icon-wrapper">
+                                <i class="fa-solid fa-user input-icon"></i>
+                                <input type="text" id="reg-fullname" class="form-control"
+                                    placeholder="Ej. Juan Carlos Pérez Morales" required>
+                            </div>
+                        </div>
+
+                        <!-- Campo 2: Correo Electrónico -->
+                        <div class="form-group">
+                            <label class="form-label" for="reg-email">
+                                Correo Electrónico <span class="required-star">*</span>
+                            </label>
+                            <div class="input-icon-wrapper">
+                                <i class="fa-solid fa-envelope input-icon"></i>
+                                <input type="email" id="reg-email" class="form-control"
+                                    placeholder="juan.perez@ejemplo.com" required>
+                            </div>
+                        </div>
+
+                        <!-- Campo 3: Contraseña -->
+                        <div class="form-group">
+                            <label class="form-label" for="reg-password">
+                                Contraseña <span class="required-star">*</span>
+                            </label>
+                            <div class="input-icon-wrapper">
+                                <i class="fa-solid fa-lock input-icon"></i>
+                                <input type="password" id="reg-password" class="form-control"
+                                    placeholder="Mínimo 6 caracteres" required>
+                                <button type="button" class="btn-toggle-password" data-target="reg-password"
+                                    title="Mostrar/ocultar contraseña">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength-wrap">
+                                <div class="password-strength-bar">
+                                    <div class="password-strength-fill" id="password-strength-fill"></div>
+                                </div>
+                                <div class="password-strength-text">
+                                    <span id="password-strength-label">Fuerza de la contraseña</span>
+                                    <span>Seguridad alta</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campo 4: Rol (Tipo de Usuario) -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                Rol / Tipo de Usuario <span class="required-star">*</span>
+                            </label>
+                            <div class="roles-grid">
+                                <label class="role-badge-option">
+                                    <input type="radio" name="reg_role" value="conductor" checked>
+                                    <div class="role-badge-card">
+                                        <div class="role-badge-icon">
+                                            <i class="fa-solid fa-car"></i>
+                                        </div>
+                                        <div class="role-badge-info">
+                                            <h5>Conductor</h5>
+                                            <p>Reservo parqueos</p>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="role-badge-option">
+                                    <input type="radio" name="reg_role" value="anfitrion">
+                                    <div class="role-badge-card">
+                                        <div class="role-badge-icon">
+                                            <i class="fa-solid fa-warehouse"></i>
+                                        </div>
+                                        <div class="role-badge-info">
+                                            <h5>Anfitrión</h5>
+                                            <p>Alquilo mi parqueo</p>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="role-badge-option">
+                                    <input type="radio" name="reg_role" value="operador">
+                                    <div class="role-badge-card">
+                                        <div class="role-badge-icon">
+                                            <i class="fa-solid fa-user-gear"></i>
+                                        </div>
+                                        <div class="role-badge-info">
+                                            <h5>Operador</h5>
+                                            <p>Control de garaje</p>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="role-badge-option">
+                                    <input type="radio" name="reg_role" value="admin">
+                                    <div class="role-badge-card">
+                                        <div class="role-badge-icon">
+                                            <i class="fa-solid fa-shield-halved"></i>
+                                        </div>
+                                        <div class="role-badge-info">
+                                            <h5>Administrador</h5>
+                                            <p>Gestión completa</p>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Fila doble: Estado y Fecha de Nacimiento -->
+                        <div class="form-group-row">
+                            <!-- Campo 5: Estado (Estado de cuenta / Departamento) -->
+                            <div class="form-group">
+                                <label class="form-label" for="reg-estado">
+                                    Estado / Depto. <span class="required-star">*</span>
+                                </label>
+                                <div class="input-icon-wrapper">
+                                    <i class="fa-solid fa-location-dot input-icon"></i>
+                                    <select id="reg-estado" class="form-control" required>
+                                        <option value="Santa Cruz" selected>Santa Cruz</option>
+                                        <option value="La Paz">La Paz</option>
+                                        <option value="Cochabamba">Cochabamba</option>
+                                        <option value="Oruro">Oruro</option>
+                                        <option value="Potosí">Potosí</option>
+                                        <option value="Tarija">Tarija</option>
+                                        <option value="Chuquisaca">Chuquisaca</option>
+                                        <option value="Beni">Beni</option>
+                                        <option value="Pando">Pando</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Campo 6: Fecha de Nacimiento -->
+                            <div class="form-group">
+                                <label class="form-label" for="reg-birthdate">
+                                    Fecha Nacimiento <span class="required-star">*</span>
+                                </label>
+                                <div class="input-icon-wrapper">
+                                    <i class="fa-solid fa-calendar-days input-icon"></i>
+                                    <input type="date" id="reg-birthdate" class="form-control" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fila doble: Sexo y Carnet de Identidad -->
+                        <div class="form-group-row">
+                            <!-- Campo 7: Sexo -->
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Sexo <span class="required-star">*</span>
+                                </label>
+                                <div class="sex-options-group">
+                                    <label class="sex-pill-option">
+                                        <input type="radio" name="reg_sexo" value="M" checked>
+                                        <span class="sex-pill-label"><i class="fa-solid fa-mars"></i> Masc.</span>
+                                    </label>
+                                    <label class="sex-pill-option">
+                                        <input type="radio" name="reg_sexo" value="F">
+                                        <span class="sex-pill-label"><i class="fa-solid fa-venus"></i> Fem.</span>
+                                    </label>
+                                    <label class="sex-pill-option">
+                                        <input type="radio" name="reg_sexo" value="O">
+                                        <span class="sex-pill-label">Otro</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Campo 8: Carnet de Identidad -->
+                            <div class="form-group">
+                                <label class="form-label" for="reg-ci-number">
+                                    Carnet de Identidad (C.I.) <span class="required-star">*</span>
+                                </label>
+                                <div class="ci-input-group">
+                                    <input type="text" id="reg-ci-number" class="form-control ci-number-input no-icon"
+                                        placeholder="Ej. 8492014" required>
+                                    <select id="reg-ci-exp" class="form-control ci-expedido-select no-icon" required>
+                                        <option value="SC" selected>SC</option>
+                                        <option value="LP">LP</option>
+                                        <option value="CB">CB</option>
+                                        <option value="OR">OR</option>
+                                        <option value="PT">PT</option>
+                                        <option value="TJ">TJ</option>
+                                        <option value="CH">CH</option>
+                                        <option value="BE">BE</option>
+                                        <option value="PA">PA</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botón Submit Registro -->
+                        <button type="submit" class="btn-auth-submit" id="btn-register-submit" style="margin-top: 0.5rem;">
+                            <i class="fa-solid fa-spinner spinner-icon"></i>
+                            <span class="btn-text-content">Crear mi Cuenta en ParkinGo</span>
+                        </button>
+
+                    </form>
+                </div>
+
+                <!-- Footer Terms Note -->
+                <div class="auth-card-footer">
+                    Al ingresar o registrarte en ParkinGo, aceptas nuestros<br>
+                    <a href="#">Términos y Condiciones</a> y nuestra <a href="#">Política de Privacidad</a>.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Script Import -->
+    <script src="js/auth.js"></script>
+</body>
+
+</html>

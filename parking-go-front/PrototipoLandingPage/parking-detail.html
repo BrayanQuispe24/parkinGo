@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle del Parqueo | ParkinGo Enterprise</title>
+
+  <!-- Typography & Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Icons (FontAwesome 6) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Custom Dashboard Stylesheet -->
+  <link rel="stylesheet" href="css/dashboard.css">
+
+  <style>
+    /* ==========================================================================
+       AIRBNB-STYLE PARKING DETAIL STYLING
+       ========================================================================== */
+
+    /* Airbnb 5-Photo Gallery Grid */
+    .airbnb-gallery-wrapper {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 0.75rem;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 2rem;
+      height: 380px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .gallery-main {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .gallery-main img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .gallery-main img:hover {
+      transform: scale(1.03);
+    }
+
+    .gallery-sub-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      height: 100%;
+    }
+
+    .gallery-sub-grid img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .gallery-sub-grid img:hover {
+      transform: scale(1.05);
+    }
+
+    /* Croquis Interactive Slot Selector */
+    .croquis-interactive-box {
+      background: #1E293B;
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      color: #FFFFFF;
+      margin-bottom: 2rem;
+    }
+
+    .slot-pick-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .slot-pick-card {
+      background: #334155;
+      border-radius: var(--radius-sm);
+      padding: 0.65rem 0.4rem;
+      text-align: center;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .slot-pick-card:hover {
+      border-color: #22C55E;
+      transform: translateY(-2px);
+    }
+
+    .slot-pick-card.selected {
+      background: #006D36 !important;
+      border-color: #22C55E !important;
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+    }
+
+    .slot-pick-card.ocupado {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Sticky Airbnb Booking Sidebar Widget */
+    .airbnb-sticky-widget {
+      position: sticky;
+      top: 80px;
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Modern Enterprise Review Cards & Avatar System (Crisp 6px Radii) */
+    .review-card-modern {
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid var(--accent-emerald);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.25rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .review-card-modern:hover {
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+      border-color: #CBD5CE;
+    }
+
+    .avatar-circle-sm {
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
+      background: #063D25;
+      color: #FFFFFF;
+      font-weight: 800;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #006D36;
+      flex-shrink: 0;
+    }
+
+    .rating-stars-badge {
+      background: #FEF3C7;
+      color: #D97706;
+      font-weight: 800;
+      font-size: 0.8rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      border: 1px solid #FDE68A;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .bolivian-plate-badge {
+      background: #FFFFFF;
+      border: 2px solid #1E3A8A;
+      border-radius: 4px;
+      padding: 0.15rem 0.55rem;
+      font-family: 'Outfit', monospace, sans-serif;
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: #1E3A8A;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    /* Ticket / Boleta Voucher Pass Styling - Crisp Enterprise Layout */
+    .ticket-voucher-card {
+      background: #FFFFFF;
+      border-radius: 8px;
+      border: 1px solid #CBD5CE;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(6, 61, 37, 0.08);
+      position: relative;
+    }
+
+    .ticket-header-banner {
+      background: linear-gradient(135deg, #063D25 0%, #0B5735 100%);
+      color: #FFFFFF;
+      padding: 1.5rem 1.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ticket-body-container {
+      padding: 1.5rem 1.75rem;
+    }
+
+    .ticket-spec-card {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 6px;
+      padding: 1.25rem;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .ticket-invoice-box {
+      background: #F8FAFC;
+      border: 1px solid #CBD5CE;
+      border-radius: 6px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .ticket-barcode-box {
+      text-align: center;
+      border: 2px dashed #CBD5CE;
+      border-radius: 6px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      background: #FFFFFF;
+    }
+
+    /* Modal Setup */
+    .modal-overlay {
+      position: fixed !important;
+      top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+      background: rgba(15, 23, 42, 0.7) !important;
+      backdrop-filter: blur(5px);
+      z-index: 1000 !important;
+      display: none !important;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-overlay.active {
+      display: flex !important;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Standard SaaS App Container Shell -->
+  <div class="app-container">
+
+    <!-- Sidebar Component (Dark Forest Green) -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo-brand" title="Volver a ParkinGo">
+          <div class="logo-icon"><i class="fa-solid fa-car-side"></i></div>
+          <div class="logo-text">
+            <span>PARKINGO</span>
+            <span>PORTAL CONDUCTOR</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Navegación</div>
+
+        <a href="parking-driver.html" class="nav-item">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Volver a Buscar Parqueos</span>
+        </a>
+
+        <a href="parking-driver.html?view=ticket-activo" class="nav-item">
+          <i class="fa-solid fa-qrcode"></i>
+          <span>Ticket & Reserva Activa</span>
+        </a>
+
+        <a href="parking-driver.html?view=mis-vehiculos" class="nav-item">
+          <i class="fa-solid fa-car"></i>
+          <span>Mis Vehículos</span>
+        </a>
+
+        <div class="nav-section-label">Cambiar de Portal</div>
+        <a href="parking-admin.html" class="nav-item">
+          <i class="fa-solid fa-user-gear"></i>
+          <span>Vista Administrador</span>
+        </a>
+        <a href="parking-operator.html" class="nav-item">
+          <i class="fa-solid fa-headset"></i>
+          <span>Vista Operador (Garita)</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="admin-card">
+          <div class="admin-avatar">GC</div>
+          <div class="admin-info">
+            <span class="admin-name">Gonzalo Claros</span>
+            <span class="admin-role"><i class="fa-solid fa-car-side"></i> Conductor Verificado</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper" id="mainWrapper">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <a href="parking-driver.html" class="btn btn-sm btn-outline-secondary">
+            <i class="fa-solid fa-chevron-left me-1"></i> Regresar a Parqueos
+          </a>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Switch Role Portal Pills -->
+          <div class="d-none d-md-flex align-items-center gap-2 me-2">
+            <a href="parking-admin.html" class="badge-pill-link" style="background:#EEF2FF; color:#4F46E5; text-decoration:none; padding:0.35rem 0.75rem; border-radius:20px; font-weight:700; font-size:0.8rem; border:1px solid rgba(79,70,229,0.2);">
+              <i class="fa-solid fa-user-gear me-1"></i> Admin Parqueo
+            </a>
+            <a href="parking-operator.html" class="badge-pill-link" style="background:#F0FDF4; color:#166534; text-decoration:none; padding:0.35rem 0.75rem; border-radius:20px; font-weight:700; font-size:0.8rem; border:1px solid rgba(22,101,52,0.2);">
+              <i class="fa-solid fa-headset me-1"></i> Operador Caseta
+            </a>
+            <a href="parking-driver.html" class="badge" style="background:#063D25; color:#22C55E; padding:0.4rem 0.8rem; border-radius:20px; font-weight:700; font-size:0.8rem; text-decoration:none; border:1px solid rgba(34,197,94,0.3);">
+              <i class="fa-solid fa-car-side me-1"></i> Portal Conductor
+            </a>
+          </div>
+
+          <div class="user-profile-menu d-flex align-items-center gap-2 ms-2">
+            <div class="admin-avatar" style="width:32px; height:32px; font-size:0.75rem; background:#063D25; border:1px solid #006D36;">GC</div>
+            <span class="d-none d-sm-inline fw-bold text-dark" style="font-size: 0.88rem;">Gonzalo Claros</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content Canvas -->
+      <main class="content-canvas">
+
+        <!-- Header Title Section -->
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="badge" style="background:#DCFCE7; color:#15803D; font-weight:700;">
+                <i class="fa-solid fa-shield-check me-1"></i> PARQUEO VERIFICADO PARKINGO
+              </span>
+              <span id="detail-parking-rating" style="font-weight:700; color:var(--text-main); font-size:0.9rem;">
+                <i class="fa-solid fa-star text-warning me-1"></i>4.8 (124 reseñas)
+              </span>
+            </div>
+
+            <h1 style="font-family:'Outfit',sans-serif; font-size:2.2rem; font-weight:800; color:var(--text-main); margin-bottom:0.3rem;" id="detail-parking-name">
+              ParkinGo Equipetrol Central
+            </h1>
+
+            <p style="font-size:0.92rem; color:var(--text-muted);" id="detail-parking-address">
+              <i class="fa-solid fa-location-dot text-emerald me-1"></i> Av. San Martín #450, Equipetrol Norte, Santa Cruz
+            </p>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+              <i class="fa-solid fa-arrow-up-from-bracket me-1"></i> Compartir
+            </button>
+            <button class="btn btn-outline-danger btn-sm">
+              <i class="fa-regular fa-heart me-1"></i> Guardar
+            </button>
+          </div>
+        </div>
+
+        <!-- 1. Airbnb 5-Photo Gallery Grid -->
+        <div class="airbnb-gallery-wrapper" id="detail-gallery-grid">
+          <!-- Rendered dynamically by JS -->
+        </div>
+
+        <!-- 2. Main Content Grid (Left Details + Right Sticky Booking Widget) -->
+        <div class="row g-4">
+          <!-- Left Column: Details, Croquis & Reviews -->
+          <div class="col-lg-7">
+            <!-- Tagline -->
+            <div class="p-3 mb-4" style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:12px;">
+              <h5 class="fw-bold text-success mb-1" style="font-size:1rem;">
+                <i class="fa-solid fa-square-parking me-1"></i> Estacionamiento Inteligente Garantizado
+              </h5>
+              <p style="font-size:0.88rem; color:#166534; margin:0;" id="detail-parking-tagline">
+                Parqueo de alta seguridad en Equipetrol con apertura automática por cámaras LPR y cargadores EV.
+              </p>
+            </div>
+
+            <!-- Features & Amenities -->
+            <h4 style="font-family:'Outfit',sans-serif; font-size:1.3rem; font-weight:800; margin-bottom:1rem; color:var(--text-main);">
+              Características y Servicios Disponibles
+            </h4>
+            <div class="grid-2-cols gap-3 mb-4" id="detail-features-grid" style="display:grid; grid-template-columns:1fr 1fr;">
+              <!-- Rendered dynamically by JS -->
+            </div>
+
+            <!-- Croquis Interactivo de Plazas en Tiempo Real -->
+            <h4 style="font-family:'Outfit',sans-serif; font-size:1.3rem; font-weight:800; margin-bottom:0.5rem; color:var(--text-main);">
+              Croquis de Plazas & Selección Directa
+            </h4>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+              Haz clic en cualquier plaza verde disponible para elegirla automáticamente en tu reserva.
+            </p>
+
+            <div class="croquis-interactive-box">
+              <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary" style="font-size:0.82rem;">
+                <span>🚪 GARITA DE ACCESO PRINCIPAL (LECTURA LPR)</span>
+                <span>🚗 SENTIDO DE CIRCULACIÓN ➔</span>
+              </div>
+
+              <div class="slot-pick-grid" id="detail-croquis-slots-grid">
+                <!-- Rendered dynamically by JS -->
+              </div>
+            </div>
+
+            <!-- Matriz de Tarifas y Planes -->
+            <h4 style="font-family:'Outfit',sans-serif; font-size:1.3rem; font-weight:800; margin-bottom:1rem; color:var(--text-main);">
+              Planes y Tarifas del Parqueo
+            </h4>
+            <div class="card mb-4 p-3 border">
+              <div class="row g-3 text-center">
+                <div class="col-4 border-end">
+                  <span class="text-muted" style="font-size:0.75rem; text-transform:uppercase; font-weight:700;">Tarifa por Hora</span>
+                  <div class="fw-bold text-emerald" style="font-size:1.25rem; font-family:'Outfit',sans-serif;" id="plan-hourly-rate">Bs 10.00 / h</div>
+                  <span class="text-muted" style="font-size:0.72rem;">Pago por tiempo usado</span>
+                </div>
+                <div class="col-4 border-end">
+                  <span class="text-muted" style="font-size:0.75rem; text-transform:uppercase; font-weight:700;">Pase de Día (8h)</span>
+                  <div class="fw-bold text-primary" style="font-size:1.25rem; font-family:'Outfit',sans-serif;" id="plan-day-pass">Bs 65.00 / día</div>
+                  <span class="text-muted" style="font-size:0.72rem;">Ahorra 20% en jornada</span>
+                </div>
+                <div class="col-4">
+                  <span class="text-muted" style="font-size:0.75rem; text-transform:uppercase; font-weight:700;">Abonado Mensual</span>
+                  <div class="fw-bold text-warning" style="font-size:1.25rem; font-family:'Outfit',sans-serif;" id="plan-monthly-price">Bs 450.00 / mes</div>
+                  <button class="btn btn-link p-0 text-decoration-none fw-bold" style="font-size:0.72rem; color:var(--accent-emerald);" onclick="ParkingDetailApp.requestMonthlySubscription()">
+                    Solicitar Plaza Fija ➔
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Muro de Reseñas -->
+            <h4 style="font-family:'Outfit',sans-serif; font-size:1.3rem; font-weight:800; margin-bottom:1rem; color:var(--text-main);">
+              Opiniones de Conductores
+            </h4>
+            <div id="detail-reviews-container">
+              <!-- Rendered dynamically by JS -->
+            </div>
+          </div>
+
+          <!-- Right Column: Airbnb-Style Sticky Booking Widget -->
+          <div class="col-lg-5">
+            <div class="airbnb-sticky-widget" style="padding:1.5rem; border-radius:8px; border:1px solid #CBD5CE; box-shadow: 0 6px 20px rgba(0,0,0,0.05); background:#FFFFFF;">
+              <div class="d-flex justify-content-between align-items-baseline mb-3 pb-2.5 border-bottom">
+                <div>
+                  <strong style="font-family:'Outfit',sans-serif; font-size:1.75rem; color:#063D25;" id="widget-price-display">Bs 10.00</strong>
+                  <span style="font-size:0.92rem; color:var(--text-muted);"> / hora</span>
+                </div>
+                <span class="badge" style="background:#FEF3C7; color:#D97706; font-size:0.82rem; font-weight:700; padding:0.4rem 0.75rem; border:1px solid #FDE68A; border-radius:6px;">
+                  <i class="fa-solid fa-bolt me-1"></i> Reserva Inmediata
+                </span>
+              </div>
+
+              <form id="detail-widget-booking-form">
+                <!-- Vehicle Selector -->
+                <div style="margin-bottom:1rem;">
+                  <label class="form-label fw-bold" style="font-size:0.9rem; color:#1E293B; margin-bottom:0.4rem; display:block;">1. Seleccionar Vehículo:</label>
+                  <select class="form-select" id="widget-vehicle-select" required style="padding:0.55rem 0.8rem; font-size:0.92rem; border-radius:6px; border:1px solid #CBD5CE;">
+                    <!-- Populated dynamically -->
+                  </select>
+                </div>
+
+                <!-- Date & Start Time -->
+                <div class="row g-2.5" style="margin-bottom:1rem;">
+                  <div class="col-6">
+                    <label class="form-label fw-bold" style="font-size:0.9rem; color:#1E293B; margin-bottom:0.4rem; display:block;">2. Fecha:</label>
+                    <input type="date" class="form-control" id="widget-booking-date" required style="padding:0.55rem 0.8rem; font-size:0.92rem; border-radius:6px; border:1px solid #CBD5CE;">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label fw-bold" style="font-size:0.9rem; color:#1E293B; margin-bottom:0.4rem; display:block;">Hora Inicio:</label>
+                    <input type="time" class="form-control" id="widget-booking-time" required style="padding:0.55rem 0.8rem; font-size:0.92rem; border-radius:6px; border:1px solid #CBD5CE;">
+                  </div>
+                </div>
+
+                <!-- Duration & Slot Type -->
+                <div class="row g-2.5" style="margin-bottom:1rem;">
+                  <div class="col-6">
+                    <label class="form-label fw-bold" style="font-size:0.9rem; color:#1E293B; margin-bottom:0.4rem; display:block;">3. Duración:</label>
+                    <select class="form-select" id="widget-hours-select" required style="padding:0.55rem 0.8rem; font-size:0.92rem; border-radius:6px; border:1px solid #CBD5CE;">
+                      <option value="1">1 Hora</option>
+                      <option value="2" selected>2 Horas</option>
+                      <option value="3">3 Horas</option>
+                      <option value="4">4 Horas</option>
+                      <option value="8">Pase Día (8h)</option>
+                    </select>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label fw-bold" style="font-size:0.9rem; color:#1E293B; margin-bottom:0.4rem; display:block;">Tipo Plaza:</label>
+                    <select class="form-select" id="widget-slot-type-select" style="padding:0.55rem 0.8rem; font-size:0.92rem; border-radius:6px; border:1px solid #CBD5CE;">
+                      <option value="standard">Techada Estándar</option>
+                      <option value="ev">Carga EV (+Bs 5/h)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Selected Slot Code -->
+                <div style="margin-bottom:1rem;">
+                  <label class="form-label fw-bold" style="font-size:0.9rem; color:#1E293B; margin-bottom:0.4rem; display:block;">4. Plaza Elegida en Croquis:</label>
+                  <input type="text" class="form-control fw-bold text-success" id="widget-selected-slot" value="A-05" readonly style="background:#F0FDF4; border:1px solid #86EFAC; padding:0.55rem 0.8rem; font-size:0.95rem; border-radius:6px;">
+                </div>
+
+                <!-- Payment Method Radios -->
+                <div style="margin-bottom:1.15rem;">
+                  <label class="form-label fw-bold" style="font-size:0.9rem; color:#1E293B; margin-bottom:0.45rem; display:block;">5. Método de Pago Digital:</label>
+                  <div class="d-flex gap-2.5">
+                    <label class="border text-center flex-fill cursor-pointer d-flex align-items-center justify-content-center" style="background:#F8FAFC; border-radius:6px; border:1px solid #CBD5CE; padding:0.55rem 0.75rem;">
+                      <input type="radio" name="detail-payment-method" value="QR Simbol" checked class="me-2" style="width:1rem; height:1rem;">
+                      <span class="fw-bold" style="font-size:0.9rem;"><i class="fa-solid fa-qrcode text-emerald me-1"></i> QR Simbol</span>
+                    </label>
+                    <label class="border text-center flex-fill cursor-pointer d-flex align-items-center justify-content-center" style="background:#F8FAFC; border-radius:6px; border:1px solid #CBD5CE; padding:0.55rem 0.75rem;">
+                      <input type="radio" name="detail-payment-method" value="Tarjeta Visa/MC" class="me-2" style="width:1rem; height:1rem;">
+                      <span class="fw-bold" style="font-size:0.9rem;"><i class="fa-solid fa-credit-card text-primary me-1"></i> Tarjeta</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Cost Summary Box -->
+                <div style="background:#F8FAFC; border-radius:6px; border:1px solid #CBD5CE; padding:1rem 1.15rem; margin-bottom:1.25rem;">
+                  <div class="d-flex justify-content-between align-items-center mb-2" style="font-size:0.9rem;">
+                    <span class="text-muted">Tarifa por hora:</span>
+                    <strong id="summary-rate-hour" class="text-dark" style="font-size:0.95rem;">Bs 10.00</strong>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center mb-2" style="font-size:0.9rem;">
+                    <span class="text-muted">Garantía de plaza libre:</span>
+                    <span class="text-success fw-bold" style="font-size:0.9rem;">GRATIS</span>
+                  </div>
+                  <hr class="my-2.5" style="border-top:1px solid #CBD5CE;">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-dark" style="font-size:1.05rem;">Total a Pagar:</span>
+                    <strong style="font-family:'Outfit',sans-serif; font-size:1.6rem; color:#006D36;" id="summary-total-price">Bs 20.00</strong>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 fw-bold" style="background:#006D36; border:none; font-size:0.98rem; padding:0.75rem 1.25rem; border-radius:6px; box-shadow:0 2px 6px rgba(0,109,54,0.2);">
+                  <i class="fa-solid fa-lock me-1.5"></i> Reservar y Pagar Anticipadamente
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Controller Script -->
+  <script src="js/parking-detail.js"></script>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    const mainWrapper = document.getElementById('mainWrapper');
+  </script>
+</body>
+
+</html>

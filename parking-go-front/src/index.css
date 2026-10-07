@@ -1,0 +1,11 @@
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
+@import "./assets/css/main.css";
+@import "./assets/css/components.css";
+@import "./assets/css/interactive.css";
+
+@theme {
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+}
+

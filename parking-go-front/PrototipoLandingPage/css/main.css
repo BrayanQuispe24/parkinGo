@@ -1,0 +1,402 @@
+/* ==========================================
+   ParkinGo - Complete Enterprise SaaS Design System
+   Technical Border Radius & Strict Token Specification
+   ========================================== */
+
+:root {
+    /* Principal Brand Colors (ParkinGo Emerald Green) */
+    --color-primary: #006D36;
+    --color-primary-hover: #00562A;
+    --color-primary-dark: #003F1E;
+
+    /* Secondary / Functional Accent (ParkinGo Gold) */
+    --color-accent: #FF9500;
+    --color-accent-hover: #E68600;
+
+    /* Base Layout Colors (Warm Map Off-White Neutrals) */
+    --color-background: #F4F6F4;
+    --color-surface: #FFFFFF;
+    --color-surface-hover: #EAF0EB;
+    --color-border: #D8E2DA;
+
+    --color-text-primary: #0F2417;
+    --color-text-secondary: #4A5E52;
+    --color-text-muted: #82968A;
+
+    /* Component Specific Tokens */
+    --color-topbar-bg: #FFFFFF;
+    --color-topbar-border: #D8E2DA;
+    --color-topbar-text: #0F2417;
+    --color-topbar-text-sub: #4A5E52;
+
+    --color-sidebar-bg: #006D36;
+    --color-sidebar-text: #D2EBDC;
+    --color-sidebar-text-active: #FFFFFF;
+    --color-sidebar-active-bg: rgba(255, 255, 255, 0.12);
+    --color-sidebar-active-border: #FF9500;
+
+    /* Semantic Status Colors (Strict Separation - Not corporate colors) */
+    --color-success: #22C55E;
+    --color-success-bg: #DCFCE7;
+    --color-success-text: #15803D;
+
+    --color-danger: #EF4444;
+    --color-danger-bg: #FEE2E2;
+    --color-danger-text: #B91C1C;
+
+    --color-reserved: #2563EB;
+    --color-reserved-bg: #DBEAFE;
+    --color-reserved-text: #1D4ED8;
+
+    --color-warning: #F59E0B;
+    --color-warning-bg: #FEF3C7;
+    --color-warning-text: #B45309;
+
+    --color-observed: #EA580C;
+    --color-observed-bg: #FFEDD5;
+    --color-observed-text: #C2410C;
+
+    --color-inactive: #64748B;
+    --color-inactive-bg: #F1F5F9;
+    --color-inactive-text: #475569;
+
+    /* Croquis del Parqueo Tokens */
+    --croquis-bg: #F1F5F2;
+    --croquis-grid: #CBD5CE;
+    --croquis-street: #334155;
+    --croquis-available: #22C55E;
+    --croquis-occupied: #EF4444;
+    --croquis-reserved: #3B82F6;
+    --croquis-out-of-service: #64748B;
+    --croquis-selected: #06B6D4;
+    --croquis-disabled: #2563EB;
+
+    /* Form & Input Tokens */
+    --input-bg: #FFFFFF;
+    --input-border: #CBD5CE;
+    --input-text: #17211B;
+    --input-placeholder: #94A09A;
+    --input-focus-border: #0A4C62;
+    --input-focus-ring: rgba(10, 76, 98, 0.18);
+
+    /* Table Tokens */
+    --table-header-bg: #F7F8F4;
+    --table-header-text: #536159;
+    --table-row-bg: #FFFFFF;
+    --table-row-border: #DDE3DE;
+    --table-row-hover: #F0F3EF;
+
+    /* Card Shadows & Glass */
+    --shadow-sm: 0 1px 2px rgba(23, 33, 27, 0.05);
+    --card-shadow: 0 1px 3px rgba(23, 33, 27, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(23, 33, 27, 0.08), 0 2px 4px -2px rgba(23, 33, 27, 0.04);
+    --shadow-lg: 0 10px 15px -3px rgba(23, 33, 27, 0.08);
+
+    /* Typography */
+    --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    /* Technical Enterprise Border Radius Scale (Pill style for ClassGo) */
+    --radius-xs: 4px;
+    --radius-sm: 8px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-max: 99px;
+
+    /* Transition System */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 600ms cubic-bezier(0.16, 1, 0.3, 1);
+    --transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+/* Dark Mode Tokens (Unified Selector [data-theme="dark"]) */
+[data-theme="dark"] {
+    --color-background: #0B1210;
+    --color-surface: #111A16;
+    --color-surface-hover: #18231D;
+    --color-border: #2B3931;
+
+    --color-text-primary: #F5F7F5;
+    --color-text-secondary: #A7B2AB;
+    --color-text-muted: #718078;
+
+    --color-primary: #12799A;
+    --color-primary-hover: #1995BC;
+    --color-primary-dark: #0A4C62;
+
+    --color-accent: #FFA933;
+    --color-accent-hover: #FFC066;
+
+    --color-topbar-bg: #111A16;
+    --color-topbar-border: #2B3931;
+    --color-topbar-text: #F5F7F5;
+    --color-topbar-text-sub: #A7B2AB;
+
+    --color-sidebar-bg: #052A38;
+    --color-sidebar-text: #82A7B8;
+    --color-sidebar-text-active: #FFFFFF;
+    --color-sidebar-active-bg: rgba(255, 255, 255, 0.10);
+    --color-sidebar-active-border: #FF9500;
+
+    --input-bg: #111A16;
+    --input-border: #2B3931;
+    --input-text: #F5F7F5;
+    --input-placeholder: #718078;
+    --input-focus-border: #12799A;
+    --input-focus-ring: rgba(18, 121, 154, 0.25);
+
+    --table-header-bg: #18231D;
+    --table-header-text: #A7B2AB;
+    --table-row-bg: #111A16;
+    --table-row-border: #2B3931;
+    --table-row-hover: #18231D;
+
+    --croquis-bg: #18231D;
+    --croquis-grid: #33443A;
+    --croquis-street: #0A0F0C;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Reset & Base */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+}
+
+body {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Typography Helpers (Hierarchy Standard: Hero 600, H2/H3 600-700) */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 1.4;
+}
+
+a {
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+a:hover {
+    color: var(--color-accent-hover);
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* Layout Container (Max 1280px Desktop) */
+.container {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+/* Section Spacing (8rem Desktop, 6rem Tablet, 4rem Mobile) */
+.section {
+    padding: 8rem 0;
+    position: relative;
+}
+
+.section-editorial {
+    padding: 10rem 0;
+    position: relative;
+}
+
+.section-header {
+    margin-bottom: 3.5rem;
+    max-width: 980px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Editorial Subtitle (Clean Text Standard - No pill border or background) */
+.section-subtitle {
+    display: block;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+
+    color: var(--color-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+
+    margin-bottom: 1rem;
+}
+
+.section-title {
+    font-size: clamp(2.2rem, 4vw, 3rem);
+    margin-bottom: 1rem;
+    letter-spacing: -0.03em;
+    color: var(--color-text-primary);
+    font-weight: 600;
+    line-height: 1.15;
+}
+
+.section-description {
+    color: var(--color-text-secondary);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    max-width: 780px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Editorial Step Numbers (01), (02), (03) */
+.step-number-editorial {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 0.6rem;
+    letter-spacing: -0.02em;
+}
+
+/* Grid System */
+.grid {
+    display: grid;
+    gap: 2.5rem;
+}
+
+.grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4rem;
+}
+
+.grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.5rem;
+}
+
+.grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+}
+
+.align-center {
+    align-items: center;
+}
+
+/* Surface Helper Classes (Decoupled Conceptual System) */
+.surface {
+    background: var(--color-surface);
+}
+
+.surface-bordered {
+    border: 1px solid var(--color-border);
+}
+
+.surface-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+/* ==========================================
+   Scroll Reveal Animations (Subtle & Performant Entrance)
+   ========================================== */
+.reveal,
+.reveal-left,
+.reveal-right,
+.reveal-up {
+    opacity: 0 !important;
+    transition: transform var(--transition-slow), opacity var(--transition-slow) !important;
+    will-change: transform, opacity;
+}
+
+.reveal-left {
+    transform: translateX(-30px) !important;
+}
+
+.reveal-right {
+    transform: translateX(30px) !important;
+}
+
+.reveal-up {
+    transform: translateY(24px) !important;
+}
+
+.reveal-visible {
+    opacity: 1 !important;
+    transform: translate(0, 0) !important;
+}
+
+/* Stagger Delays */
+.delay-1 { transition-delay: 0.1s !important; }
+.delay-2 { transition-delay: 0.2s !important; }
+.delay-3 { transition-delay: 0.3s !important; }
+.delay-4 { transition-delay: 0.4s !important; }
+
+/* Responsive Media Queries */
+@media (max-width: 1024px) {
+    .container {
+        padding: 0 1.75rem;
+    }
+
+    .section {
+        padding: 6rem 0;
+    }
+
+    .section-editorial {
+        padding: 7rem 0;
+    }
+
+    .grid-2 {
+        gap: 2.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 1.25rem;
+    }
+
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .section-title {
+        font-size: 2rem;
+    }
+
+    .section {
+        padding: 4rem 0;
+    }
+
+    .section-editorial {
+        padding: 4.5rem 0;
+    }
+}

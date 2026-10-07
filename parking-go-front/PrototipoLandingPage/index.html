@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkinGo - Software de Gestión, Reserva y Monetización de Parqueos</title>
+    <meta name="description"
+        content="Sistema de gestión y reserva de espacios de parqueo en Santa Cruz de la Sierra, Bolivia. Conecta conductores, parqueos comerciales y anfitriones particulares.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/logo.png">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/interactive.css">
+</head>
+
+<body>
+
+    <!-- Top Dark Scroll Fade Overlay -->
+    <div class="top-scroll-fade-overlay" id="top-scroll-fade"></div>
+
+    <!-- Header / Floating Pill Navbar (ClassGo 1:1 Exact Replica) -->
+    <header class="header classgo-pill-header" id="header">
+        <div class="pill-header-wrapper">
+            <!-- Brand Logo -->
+            <a href="#" class="logo">
+                <img src="assets/logo.png" alt="ParkinGo Logo" class="logo-img">
+                <span class="logo-text" style="color: #ffffff; font-size: 1.6rem; font-weight: 800;">Parkin<span
+                        style="color: var(--color-accent);">Go!</span></span>
+            </a>
+
+            <!-- Nav Links -->
+            <nav class="pill-nav-links">
+                <a href="#explorar">Parqueos</a>
+                <a href="#como-funciona">Cómo funciona</a>
+                <a href="#explora-tipos">Zonas</a>
+                <a href="#calculadora">Ser Anfitrión</a>
+                <a href="#mapa-envivo">Mapa en Vivo</a>
+            </nav>
+
+            <!-- Right Actions -->
+            <div class="pill-header-actions">
+                <button class="pill-lang-btn" title="Idioma Bolivia">
+                    <span class="flag-icon" style="font-size: 1.05rem; margin-right: 0.3rem;">🇧🇴</span>
+                    <span>Español</span>
+                </button>
+
+                <a href="auth.html?mode=login" class="btn-pill-login">Ingresar</a>
+
+                <div class="user-menu-dropdown-wrapper">
+                    <div class="user-avatar-circle-btn" id="user-menu-trigger" title="Cuenta de Usuario">
+                        <i class="fa-solid fa-user-plus"></i>
+                    </div>
+                    <div class="user-menu-popover" id="user-menu-popover">
+                        <a href="auth.html?mode=login" class="popover-item highlight">
+                            <i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión / Registro
+                        </a>
+                        <a href="dashboard.html" class="popover-item">
+                            <i class="fa-solid fa-shield-halved"></i> Admin General
+                        </a>
+                        <a href="parking-admin.html" class="popover-item">
+                            <i class="fa-solid fa-square-parking"></i> Admin de Parqueo
+                        </a>
+                        <div class="popover-divider"></div>
+                        <a href="#calculadora" class="popover-item">
+                            <i class="fa-solid fa-house-circle-check"></i> Registrar mi Parqueo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section (ClassGo 1:1 Design) -->
+        <section class="hero-classgo" id="inicio">
+            <div class="container hero-classgo-grid">
+                <div class="hero-classgo-text reveal-up">
+                    <h1 class="classgo-hero-h1">
+                        Reserva de Parqueos<br>
+                        <span class="glow-cyan-text">Cuando más lo necesitas</span>
+                    </h1>
+                    <p class="classgo-hero-p">
+                        Alcanza tu destino sin estrés con parqueos personalizados de los mejores espacios en Santa Cruz.
+                        Conéctate con parqueos autorizados para asegurar tu éxito.
+                    </p>
+                    <div class="classgo-pill-btn-group">
+                        <a href="#explorar" class="btn-classgo-outline" id="btn-hero-cta-search">
+                            <i class="fa-solid fa-compass"></i> Parqueos
+                        </a>
+                        <a href="auth.html?mode=register" class="btn-classgo-outline" id="btn-hero-cta-host">
+                            <i class="fa-solid fa-user-plus"></i> Regístrate
+                        </a>
+                        <a href="auth.html?mode=login" class="btn-classgo-outline">
+                            <i class="fa-solid fa-right-to-bracket"></i> Ingresa
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right Mascot Showcase -->
+                <div class="hero-classgo-mascot reveal-up delay-1">
+                    <img src="assets/Vehiculo.png" alt="Vehículo ParkinGo" class="mascot-img">
+                    <div class="mascot-floor-shadow"></div>
+                </div>
+            </div>
+
+            <!-- Floating Corner Widgets (Bottom-Right) -->
+            <div class="floating-corner-widgets">
+                <button class="widget-btn help-btn" title="Centro de Ayuda"><i
+                        class="fa-solid fa-question"></i></button>
+                <button class="widget-btn user-btn" title="Mi Cuenta"><i class="fa-solid fa-user"></i><span
+                        class="red-badge"></span></button>
+                <button class="widget-btn action-btn" title="Reserva Rápida"><i class="fa-solid fa-bolt"></i></button>
+            </div>
+
+            <!-- Soft Gradient Blur Fade Overlay -->
+            <div class="section-fade-divider fade-bottom-green"></div>
+
+            <!-- Organic Wave Divider (Conexión suave y fluida) -->
+            <div class="hero-wave-divider">
+                <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                    <path d="M0,32 C280,85 560,95 840,50 C1120,5 1320,40 1440,55 L1440,120 L0,120 Z" fill="var(--color-background, #F4F6F4)"></path>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Category Bar Section -->
+        <section class="category-bar-section reveal-up">
+            <div class="container">
+                <div class="category-carousel-wrapper">
+                    <button class="category-carousel-btn prev" id="cat-prev-btn" onclick="scrollCategorySlider(-1)"
+                        aria-label="Anterior categoría">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <div class="category-slider" id="category-slider">
+                        <button class="category-pill active" data-cat="all">
+                            <i class="fa-solid fa-border-all"></i>
+                            <span>Todos</span>
+                        </button>
+                        <button class="category-pill" data-cat="near">
+                            <i class="fa-solid fa-location-crosshairs"></i>
+                            <span>Cerca de mí</span>
+                        </button>
+                        <button class="category-pill" data-cat="hour">
+                            <i class="fa-solid fa-clock"></i>
+                            <span>Por hora</span>
+                        </button>
+                        <button class="category-pill" data-cat="day">
+                            <i class="fa-solid fa-calendar-day"></i>
+                            <span>Por día</span>
+                        </button>
+                        <button class="category-pill" data-cat="monthly">
+                            <i class="fa-solid fa-calendar-check"></i>
+                            <span>Mensual</span>
+                        </button>
+                    </div>
+                    <button class="category-carousel-btn next" id="cat-next-btn" onclick="scrollCategorySlider(1)"
+                        aria-label="Siguiente categoría">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Listing Cards Carousel Section -->
+        <section class="section listing-grid-section" id="explorar">
+            <div class="container">
+                <div class="grid-header-row reveal-up">
+                    <div>
+                        <h2 class="section-title-sm">Espacios de Parqueo Disponibles en Santa Cruz</h2>
+                        <p class="section-subtext" id="grid-results-count">Mostrando 7 espacios disponibles para reserva
+                            en tiempo real</p>
+                    </div>
+                    <div class="carousel-header-controls">
+                        <div class="cards-carousel-arrows">
+                            <button class="carousel-control-btn prev" id="cards-carousel-prev"
+                                aria-label="Parqueos anteriores" title="Anterior">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <button class="carousel-control-btn next" id="cards-carousel-next"
+                                aria-label="Siguientes parqueos" title="Siguiente">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="view-toggle-btns">
+                            <button class="btn btn-outline btn-xs active"><i class="fa-solid fa-sliders"></i>
+                                Carrusel</button>
+                            <a href="#croquis-seccion" class="btn btn-outline btn-xs"><i
+                                    class="fa-solid fa-car-tunnel"></i> Croquis de Plazas</a>
+                            <a href="#mapa-envivo" class="btn btn-outline btn-xs"><i
+                                    class="fa-solid fa-map-location-dot"></i> Ver en Mapa</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cards Carousel Container Track -->
+                <div class="listing-carousel-wrapper">
+                    <div class="listing-cards-carousel" id="listing-cards-grid">
+                        <!-- Cards populated via js/map-simulator.js -->
+                    </div>
+                </div>
+
+                <!-- Carousel Dots Pagination -->
+                <div class="listing-carousel-dots-container" id="listing-carousel-dots">
+                    <!-- Dots generated dynamically via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Cómo Funciona (ClassGo Inspired 4-Card Step Layout) -->
+        <section class="section how-it-works-section" id="como-funciona"
+            style="background: var(--color-primary); color: #ffffff; padding: 6rem 0 5rem; position: relative;">
+            
+            <!-- Soft Gradient Blur Fade Overlay for Top Transition -->
+            <div class="section-fade-divider fade-top-green"></div>
+
+            <!-- Top Organic Wave Divider -->
+            <div class="section-wave-divider wave-top fill-green">
+                <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                    <path d="M0,32 C280,85 560,95 840,50 C1120,5 1320,40 1440,55 L1440,120 L0,120 Z"></path>
+                </svg>
+            </div>
+
+            <div class="container" style="max-width: 1280px;">
+                <div class="section-header reveal-up text-center mb-5">
+                    <div class="section-subtitle-guide">
+                        <span class="guide-line"></span>
+                        <span>Una guía paso a paso</span>
+                        <span class="guide-line"></span>
+                    </div>
+                    <h2 class="section-title-steps">
+                        Estacionar Debería Ser Así De <span class="highlight-pill-text">Simple</span>
+                    </h2>
+                    <p class="section-subtext-steps">Encuentra y reserva los mejores parqueos en Santa Cruz, fácil y
+                        rápido.</p>
+                </div>
+
+                <div class="classgo-steps-grid reveal-up delay-1">
+                    <!-- Paso 1 -->
+                    <div class="classgo-step-card">
+                        <div class="step-badge-pill">Paso 1</div>
+                        <div class="step-card-img-wrapper">
+                            <img src="assets/step1_encuentra.png" alt="Encuentra tu parqueo">
+                        </div>
+                        <h3 class="classgo-step-title">Encuentra</h3>
+                        <p class="classgo-step-desc">Busca parqueos cerca de tu destino y consulta su disponibilidad en
+                            tiempo real.</p>
+                        <a href="#explorar" class="btn-step-action-orange">Comenzar</a>
+                    </div>
+
+                    <!-- Paso 2 -->
+                    <div class="classgo-step-card">
+                        <div class="step-badge-pill">Paso 2</div>
+                        <div class="step-card-img-wrapper">
+                            <img src="assets/step2_reserva.png" alt="Reserva tu espacio">
+                        </div>
+                        <h3 class="classgo-step-title">Reserva ahora</h3>
+                        <p class="classgo-step-desc">Selecciona tu espacio y confirma tu reserva antes de llegar para
+                            asegurar tu cupo.</p>
+                        <a href="#explorar" class="btn-step-action-orange">Buscar Ahora</a>
+                    </div>
+
+                    <!-- Paso 3 -->
+                    <div class="classgo-step-card">
+                        <div class="step-badge-pill">Paso 3</div>
+                        <div class="step-card-img-wrapper">
+                            <img src="assets/step3_estaciona.png" alt="Estaciona seguro">
+                        </div>
+                        <h3 class="classgo-step-title">Estaciona</h3>
+                        <p class="classgo-step-desc">Llega a la garita, ingresa con tu código QR o placa y ocupa tu
+                            plaza sin esperas.</p>
+                        <a href="#explorar" class="btn-step-action-orange">Empecemos</a>
+                    </div>
+
+                    <!-- Paso 4 / CTA Highlight Card -->
+                    <div class="classgo-step-card cta-card-highlight">
+                        <div class="cta-icon-bubble">
+                            <i class="fa-solid fa-person-running"></i>
+                        </div>
+                        <h3 class="classgo-cta-title">Comienza tu jornada</h3>
+                        <p class="classgo-cta-desc">Comienza tu viaje sin estrés con nosotros. ¡Reserva tu primera
+                            sesión hoy mismo!</p>
+                        <a href="#explorar" class="btn-step-action-dark">Empieza ahora</a>
+                    </div>
+                </div>
+            <!-- Organic Wave Section Divider -->
+            <div class="section-wave-divider wave-bottom fill-bg">
+                <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                    <path d="M0,40 C320,90 640,100 960,45 C1200,10 1360,40 1440,50 L1440,120 L0,120 Z"></path>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Benefit Handheld Section (High-Craft Mobile Showcase) -->
+        <section class="section mobile-showcase-section" id="parqueo-en-mano">
+            <div class="container" style="max-width: 1240px;">
+                <div class="mobile-feature-banner reveal-up">
+                    <div class="banner-ambient-glow glow-1"></div>
+                    <div class="banner-ambient-glow glow-2"></div>
+
+                    <!-- Floating Speech Callout Bubbles with Animated Badges -->
+                    <div class="speech-bubble bubble-top-left float-anim-1">
+                        <div class="bubble-icon-badge orange"><i class="fa-solid fa-bolt"></i></div>
+                        <span>Reserva al Instante</span>
+                        <div class="bubble-arrow arrow-right"></div>
+                    </div>
+
+                    <div class="speech-bubble bubble-top-right float-anim-2">
+                        <div class="bubble-icon-badge green"><i class="fa-solid fa-location-dot"></i></div>
+                        <span>Zonas Estratégicas</span>
+                        <div class="bubble-arrow arrow-left"></div>
+                    </div>
+
+                    <div class="speech-bubble bubble-mid-left float-anim-3">
+                        <div class="bubble-icon-badge blue"><i class="fa-solid fa-credit-card"></i></div>
+                        <span>Pago 100% Digital</span>
+                        <div class="bubble-arrow arrow-right"></div>
+                    </div>
+
+                    <div class="speech-bubble bubble-mid-right float-anim-4">
+                        <div class="bubble-icon-badge purple"><i class="fa-solid fa-qrcode"></i></div>
+                        <span>Acceso con QR</span>
+                        <div class="bubble-arrow arrow-left"></div>
+                    </div>
+
+                    <!-- Smartphone Device Mockup (iPhone Pro Style) -->
+                    <div class="phone-device-frame">
+                        <div class="phone-dynamic-island">
+                            <span class="island-camera-lens"></span>
+                        </div>
+                        <div class="phone-screen-glare"></div>
+                        <div class="phone-screen-content">
+                            <div class="phone-app-header">
+                                <div class="phone-menu-btn"><i class="fa-solid fa-bars"></i></div>
+                                <div class="phone-app-brand">Parkin<span>Go!</span></div>
+                                <div class="phone-user-icon"><i class="fa-solid fa-circle-user"></i></div>
+                            </div>
+                            <div class="phone-app-hero">
+                                <span class="phone-hero-tag"><i class="fa-solid fa-mobile-screen-button"></i> App
+                                    Móvil</span>
+                                <h3>Tu Parqueo al Alcance de la Mano</h3>
+                                <div class="phone-search-capsule">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <span>¿A dónde te diriges hoy?</span>
+                                </div>
+                            </div>
+                            <div class="phone-quick-actions">
+                                <div class="phone-action-btn">
+                                    <i class="fa-solid fa-map-location-dot"></i>
+                                    <span>Mapa</span>
+                                </div>
+                                <div class="phone-action-btn active">
+                                    <i class="fa-solid fa-calendar-check"></i>
+                                    <span>Reserva</span>
+                                </div>
+                                <div class="phone-action-btn">
+                                    <i class="fa-solid fa-qrcode"></i>
+                                    <span>Mi QR</span>
+                                </div>
+                            </div>
+                            <div class="phone-live-status-pill">
+                                <span class="status-pulse-dot"></span>
+                                <span>74 Parqueos Libres Ahora</span>
+                            </div>
+                            <div class="phone-mascot-wrapper">
+                                <img src="assets/Vehiculo.png" alt="Vehículo ParkinGo">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Overlapping White Benefit Card -->
+                    <div class="floating-benefit-card reveal-up delay-1">
+                        <div class="benefit-card-badge">
+                            <i class="fa-solid fa-star" style="color: #FF9500;"></i> Beneficios ParkinGo
+                        </div>
+                        <h4 class="benefit-card-title">
+                            ¿Por qué tener un parqueo al alcance de tu mano?
+                        </h4>
+
+                        <ul class="benefit-item-list">
+                            <li class="benefit-item">
+                                <div class="benefit-item-icon">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <div class="benefit-item-text">
+                                    <strong>Cero tiempo perdido:</strong> Encuentra y reserva tu espacio antes de salir
+                                    de casa o del trabajo.
+                                </div>
+                            </li>
+                            <li class="benefit-item">
+                                <div class="benefit-item-icon">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <div class="benefit-item-text">
+                                    <strong>Disponibilidad en tiempo real:</strong> Conoce plazas libres, ubicación
+                                    exacta y tarifas transparentes.
+                                </div>
+                            </li>
+                            <li class="benefit-item">
+                                <div class="benefit-item-icon">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <div class="benefit-item-text">
+                                    <strong>Ingreso 100% digital sin contacto:</strong> Accede a la garita escaneando tu
+                                    código QR desde tu celular.
+                                </div>
+                            </li>
+                        </ul>
+
+                        <a href="#explorar" class="btn-benefit-action">
+                            <span>Encontrar Parqueo Ahora</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Explora Nuestros Parqueos (Masonry Grid) -->
+        <section class="section explore-parking-types-section" id="explora-tipos">
+            <div class="container">
+                <div class="section-header text-center reveal-up">
+                    <h2 class="section-title" style="color: var(--color-primary);">Explora Nuestros Parqueos</h2>
+                    <p class="section-description" style="color: var(--color-text-secondary);">Parqueos listos en
+                        distintas áreas clave de la ciudad</p>
+                </div>
+
+                <div class="masonry-grid reveal-up delay-1">
+                    <div class="masonry-card tall">
+                        <img src="assets/parking_empresarial_1789393502203.png" alt="Zona Empresarial">
+                        <div class="masonry-content">
+                            <h3>Zona Empresarial</h3>
+                            <p>Equipetrol, Torres Empresariales, Oficinas.</p>
+                        </div>
+                    </div>
+                    <div class="masonry-card short">
+                        <img src="assets/parking_comercial_1789393577233.png" alt="Centros Comerciales">
+                        <div class="masonry-content">
+                            <h3>Centros Comerciales</h3>
+                            <p>Mall Ventura, Las Brisas, Supermercados.</p>
+                        </div>
+                    </div>
+                    <div class="masonry-card short">
+                        <img src="assets/parking_aeropuerto_1789393564642.png" alt="Aeropuerto">
+                        <div class="masonry-content">
+                            <h3>Aeropuerto y Viajes</h3>
+                            <p>Viru Viru, El Trompillo, Terminal Bimodal.</p>
+                        </div>
+                    </div>
+                    <div class="masonry-card tall">
+                        <img src="assets/parking_centro_1789393632373.png" alt="Centro Histórico">
+                        <div class="masonry-content">
+                            <h3>Centro Histórico</h3>
+                            <p>Plaza 24 de Septiembre, Bancos, Comercios.</p>
+                        </div>
+                    </div>
+                    <div class="masonry-card short">
+                        <img src="assets/parking_universidad_1789393620994.png" alt="Universidades">
+                        <div class="masonry-content">
+                            <h3>Universidades</h3>
+                            <p>UAGRM, Udabol, UPSA.</p>
+                        </div>
+                    </div>
+                    <div class="masonry-card short">
+                        <img src="assets/parking_eventos_1789393554270.png" alt="Eventos">
+                        <div class="masonry-content">
+                            <h3>Eventos</h3>
+                            <p>Fexpocruz, Estadio Tahuichi, Conciertos.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Parking Slots Layout Grid (Croquis del Parqueo) -->
+        <section class="section croquis-section" id="croquis-seccion">
+            <div class="container">
+                <div class="section-header text-center reveal-up">
+                    <span class="section-subtitle">GESTIÓN DE PLAZAS</span>
+                    <h2 class="section-title">Cada espacio, visible en tiempo real.</h2>
+                    <p class="section-description">
+                        Codificación visual clara de cada plaza. Reconocimiento rápido de estados con alto contraste.
+                    </p>
+                </div>
+
+                <div class="croquis-container reveal-up delay-1">
+                    <div class="croquis-header">
+                        <div class="croquis-title">
+                            <i class="fa-solid fa-layer-group"></i> Croquis Nivel 1 • Parqueo Central Equipetrol
+                        </div>
+                        <div class="croquis-legend">
+                            <span class="legend-item"><span class="legend-color available"></span> Disponible</span>
+                            <span class="legend-item"><span class="legend-color occupied"></span> Ocupado</span>
+                            <span class="legend-item"><span class="legend-color reserved"></span> Reservado</span>
+                            <span class="legend-item"><span class="legend-color out-of-service"></span> Fuera de
+                                servicio</span>
+                            <span class="legend-item"><span class="legend-color selected"></span> Seleccionado</span>
+                            <span class="legend-item"><span class="legend-color disabled"></span> Accesible</span>
+                        </div>
+                    </div>
+
+                    <div class="croquis-layout-grid">
+                        <!-- Spot 1: Disponible -->
+                        <div class="parking-spot-box spot-available"
+                            onclick="openBookingModal('Plaza A-01 (Equipetrol)', 'Bs. 6 / hr')">
+                            <span class="spot-id">A-01</span>
+                            <span class="spot-status-text"><i class="fa-solid fa-circle-check"></i> Disponible</span>
+                            <span class="spot-rate-tag">Por hora</span>
+                        </div>
+
+                        <!-- Spot 2: Ocupado -->
+                        <div class="parking-spot-box spot-occupied">
+                            <span class="spot-id">A-02</span>
+                            <span class="spot-status-text"><i class="fa-solid fa-ban"></i> Ocupado</span>
+                            <span class="spot-rate-tag">Placa 4821-KLX</span>
+                        </div>
+
+                        <!-- Spot 3: Reservado -->
+                        <div class="parking-spot-box spot-reserved">
+                            <span class="spot-id">A-03</span>
+                            <span class="spot-status-text"><i class="fa-solid fa-clock"></i> Reservado</span>
+                            <span class="spot-rate-tag">Placa 3912-BZX</span>
+                        </div>
+
+                        <!-- Spot 4: Seleccionado -->
+                        <div class="parking-spot-box spot-selected">
+                            <span class="spot-id">A-04</span>
+                            <span class="spot-status-text"><i class="fa-solid fa-hand-pointer"></i> Seleccionado</span>
+                            <span class="spot-rate-tag">En consulta</span>
+                        </div>
+
+                        <!-- Spot 5: Discapacidad -->
+                        <div class="parking-spot-box spot-disabled"
+                            onclick="openBookingModal('Plaza A-05 Accesible', 'Bs. 6 / hr')">
+                            <span class="spot-id">A-05</span>
+                            <span class="spot-status-text"><i class="fa-solid fa-wheelchair"></i> Accesible</span>
+                            <span class="spot-rate-tag">Preferencia</span>
+                        </div>
+
+                        <!-- Spot 6: Fuera de Servicio -->
+                        <div class="parking-spot-box spot-out-of-service">
+                            <span class="spot-id">A-06</span>
+                            <span class="spot-status-text"><i class="fa-solid fa-wrench"></i> Mantenimiento</span>
+                            <span class="spot-rate-tag">Bloqueado</span>
+                        </div>
+
+                        <!-- Street Driving Lane -->
+                        <div class="croquis-street-lane">
+                            <i class="fa-solid fa-road"></i> VÍA PRINCIPAL DE CIRCULACIÓN VEHICULAR (SENTIDO ÚNICO) <i
+                                class="fa-solid fa-arrow-right"></i>
+                        </div>
+
+                        <!-- Row B Spots -->
+                        <div class="parking-spot-box spot-available"
+                            onclick="openBookingModal('Plaza B-01', 'Bs. 6 / hr')">
+                            <span class="spot-id">B-01</span>
+                            <span class="spot-status-text"><i class="fa-solid fa-circle-check"></i> Disponible</span>
+                            <span class="spot-rate-tag">Por hora</span>
+                        </div>
+
+                        <div class="parking-spot-box spot-available"
+                            onclick="openBookingModal('Plaza B-02', 'Bs. 6 / hr')">
+                            <span class="spot-id">B-02</span>
+                            <span class="spot-status-text"><i class="fa-solid fa-circle-check"></i> Disponible</span>
+                            <span class="spot-rate-tag">Por hora</span>
+                        </div>
+
+                        <div class="parking-spot-box spot-occupied">
+                            <span class="spot-id">B-03</span>
+                            <span class="spot-status-text"><i class="fa-solid fa-ban"></i> Ocupado</span>
+                            <span class="spot-rate-tag">Placa 2019-LKP</span>
+                        </div>
+
+                        <div class="parking-spot-box spot-reserved">
+                            <span class="spot-id">B-04</span>
+                            <span class="spot-status-text"><i class="fa-solid fa-clock"></i> Reservado</span>
+                            <span class="spot-rate-tag">Placa 5821-XTR</span>
+                        </div>
+
+                        <div class="parking-spot-box spot-available"
+                            onclick="openBookingModal('Plaza B-05', 'Bs. 6 / hr')">
+                            <span class="spot-id">B-05</span>
+                            <span class="spot-status-text"><i class="fa-solid fa-circle-check"></i> Disponible</span>
+                            <span class="spot-rate-tag">Por hora</span>
+                        </div>
+
+                        <div class="parking-spot-box spot-available"
+                            onclick="openBookingModal('Plaza B-06', 'Bs. 6 / hr')">
+                            <span class="spot-id">B-06</span>
+                            <span class="spot-status-text"><i class="fa-solid fa-circle-check"></i> Disponible</span>
+                            <span class="spot-rate-tag">Por hora</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Santa Cruz Interactive Map Section -->
+        <section class="section map-section" id="mapa-envivo">
+            <div class="container">
+                <div class="section-header text-center reveal-up">
+                    <span class="section-subtitle">Vista de Mapa Interactivo</span>
+                    <h2 class="section-title">Mapa de Parqueos en Santa Cruz de la Sierra</h2>
+                    <p class="section-description">
+                        Explora la ubicación exacta de garajes en Equipetrol, Centro, UAGRM, Fexpocruz y Estadio. Haz
+                        clic en los pines para ver disponibilidad y reservar.
+                    </p>
+                </div>
+
+                <div class="map-wrapper surface-card">
+                    <div class="map-controls-bar">
+                        <div class="map-filters">
+                            <button class="filter-btn active" data-filter="all">
+                                <i class="fa-solid fa-layer-group"></i> Todos
+                            </button>
+                            <button class="filter-btn" data-filter="commercial">
+                                <i class="fa-solid fa-building-user"></i> Parqueos Comerciales
+                            </button>
+                            <button class="filter-btn" data-filter="host">
+                                <i class="fa-solid fa-house-user"></i> Garajes/Patios Particulares
+                            </button>
+                        </div>
+                        <div class="map-search-inline">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <select id="select-zone">
+                                <option value="all">Ver todas las zonas de Santa Cruz</option>
+                                <option value="equipetrol">Zona Equipetrol / Mall Ventura</option>
+                                <option value="centro">Centro Histórico / René Moreno</option>
+                                <option value="uagrm">Zona Universitaria (UAGRM)</option>
+                                <option value="fexpocruz">Fexpocruz / Feria Barrio Lindo</option>
+                                <option value="estadio">Estadio Tahuichi Aguilera</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="map-container-layout">
+                        <!-- Leaflet Canvas -->
+                        <div id="santa-cruz-map" class="map-canvas reveal-left"></div>
+
+                        <!-- Side Panel Info -->
+                        <div class="map-side-panel reveal-right" id="map-side-panel">
+                            <div class="side-panel-header">
+                                <h3 id="spot-detail-title">Selecciona un parqueo en el mapa</h3>
+                                <span class="badge-type" id="spot-detail-type">Instrucción</span>
+                            </div>
+
+                            <div class="side-panel-body" id="spot-detail-body">
+                                <div class="empty-state-map">
+                                    <i class="fa-solid fa-hand-pointer"></i>
+                                    <p>Haz clic en cualquiera de los marcadores en el mapa de Santa Cruz para consultar
+                                        tarifas, capacidad y reservar.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <!-- Organic Wave Section Divider -->
+            <div class="section-wave-divider wave-bottom fill-surface">
+                <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                    <path d="M0,32 C280,85 560,95 840,50 C1120,5 1320,40 1440,55 L1440,120 L0,120 Z"></path>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Ecosystem Roles Section -->
+        <section class="section roles-section" id="roles">
+            <div class="container">
+                <div class="section-header text-center reveal-up">
+                    <span class="section-subtitle">Ecosistema Multirol</span>
+                    <h2 class="section-title">Diseñado para cada actor de la movilidad urbana</h2>
+                    <p class="section-description">
+                        ParkinGo conecta tres perfiles clave con herramientas hechas a la medida en entorno Web y Móvil.
+                    </p>
+                </div>
+
+                <!-- Tabs -->
+                <div class="role-tabs">
+                    <button class="role-tab active" data-role="conductor">
+                        <i class="fa-solid fa-car"></i>
+                        <span>Conductores / Clientes</span>
+                    </button>
+                    <button class="role-tab" data-role="comercial">
+                        <i class="fa-solid fa-building-shield"></i>
+                        <span>Parqueos Comerciales (B2B)</span>
+                    </button>
+                    <button class="role-tab" data-role="anfitrion">
+                        <i class="fa-solid fa-house-circle-check"></i>
+                        <span>Anfitriones Particulares (C2C)</span>
+                    </button>
+                </div>
+
+                <!-- Tab Panels with Component Carousel Controls -->
+                <div class="role-content-wrapper surface-card">
+                    <button class="role-carousel-nav prev" id="role-prev-btn" onclick="navigateRoleCarousel(-1)"
+                        aria-label="Anterior componente">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <button class="role-carousel-nav next" id="role-next-btn" onclick="navigateRoleCarousel(1)"
+                        aria-label="Siguiente componente">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                    <!-- Conductor Tab Content -->
+                    <div class="role-panel active" id="panel-conductor">
+                        <div class="grid grid-2 align-center calculator-wrapper">
+                            <div class="calc-box surface-card reveal-left">
+                                <span class="role-badge"><i class="fa-solid fa-mobile-screen"></i> App Móvil
+                                    Conductor</span>
+                                <h3>Encuentra espacio en tiempo real y llega sin estrés</h3>
+                                <p>
+                                    La app móvil te permite buscar parqueos cercanos a tu destino, comparar precios por
+                                    hora o por día, reservar con anticipación y obtener la ruta directa.
+                                </p>
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-shield-halved"></i> <strong>Garantía de Cupo:</strong> Tu
+                                        reserva congela el espacio por el tiempo acordado.</li>
+                                    <li><i class="fa-solid fa-map-pin"></i> <strong>Navegación GPS:</strong> Integración
+                                        directa con mapas y rutas recomendadas.</li>
+                                    <li><i class="fa-solid fa-bell"></i> <strong>Alertas Inteligentes:</strong>
+                                        Notificaciones cuando tu reserva esté por vencer.</li>
+                                    <li><i class="fa-solid fa-receipt"></i> <strong>Pago Flexible:</strong> Tarifa por
+                                        servicio transparente de Bs. 1 a Bs. 5.</li>
+                                </ul>
+                                <button class="btn btn-accent btn-open-demo-role" data-demo-type="conductor">
+                                    <i class="fa-solid fa-play"></i> Probar Demo Conductor
+                                </button>
+                            </div>
+
+                            <div class="role-visual reveal-right">
+                                <div class="phone-device-frame">
+                                    <div class="phone-dynamic-island">
+                                        <span class="island-camera-lens"></span>
+                                    </div>
+                                    <div class="phone-screen-glare"></div>
+                                    <div class="phone-screen-content">
+                                        <div class="phone-app-header">
+                                            <div class="phone-menu-btn"><i class="fa-solid fa-bars"></i></div>
+                                            <div class="phone-app-brand">Parkin<span>Go!</span></div>
+                                            <div class="phone-user-icon"><i class="fa-solid fa-circle-user"></i></div>
+                                        </div>
+                                        <div class="phone-app-hero">
+                                            <span class="phone-hero-tag"><i class="fa-solid fa-mobile-screen-button"></i> App Móvil</span>
+                                            <h3>Tu Parqueo al Alcance de la Mano</h3>
+                                            <div class="phone-search-capsule">
+                                                <i class="fa-solid fa-magnifying-glass"></i>
+                                                <span>¿A dónde te diriges hoy?</span>
+                                            </div>
+                                        </div>
+                                        <div class="phone-quick-actions">
+                                            <div class="phone-action-btn">
+                                                <i class="fa-solid fa-map-location-dot"></i>
+                                                <span>Mapa</span>
+                                            </div>
+                                            <div class="phone-action-btn active">
+                                                <i class="fa-solid fa-calendar-check"></i>
+                                                <span>Reserva</span>
+                                            </div>
+                                            <div class="phone-action-btn">
+                                                <i class="fa-solid fa-qrcode"></i>
+                                                <span>Mi QR</span>
+                                            </div>
+                                        </div>
+                                        <div class="phone-live-status-pill">
+                                            <span class="status-pulse-dot"></span>
+                                            <span>74 Parqueos Libres Ahora</span>
+                                        </div>
+                                        <div class="phone-mascot-wrapper">
+                                            <img src="assets/Vehiculo.png" alt="Vehículo ParkinGo">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parqueo Comercial Tab Content (Administradores) -->
+                    <div class="role-panel" id="panel-comercial">
+                        <div class="grid grid-2 align-center">
+                            <div class="role-info">
+                                <span class="role-badge b2b"><i class="fa-solid fa-desktop"></i> PARA
+                                    ADMINISTRADORES</span>
+                                <h3>Tu parqueo bajo control.</h3>
+                                <p>
+                                    Gestiona plazas, reservas, operadores, disponibilidad y movimientos desde una sola
+                                    plataforma profesional.
+                                </p>
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-chart-line"></i> <strong>Reportes y Ocupación:</strong>
+                                        Métricas detalladas de ingresos y horas pico.</li>
+                                    <li><i class="fa-solid fa-users-gear"></i> <strong>Gestión de Operadores:</strong>
+                                        Asigna empleados para control en garita.</li>
+                                    <li><i class="fa-solid fa-tags"></i> <strong>Precios Dinámicos:</strong> Ajusta
+                                        tarifas para días festivos o eventos.</li>
+                                    <li><i class="fa-solid fa-handshake"></i> <strong>Planes B2B Flexibles:</strong>
+                                        Adaptados a la escala de tu parqueo.</li>
+                                </ul>
+                                <button class="btn btn-accent btn-open-demo-role" data-demo-type="comercial">
+                                    <i class="fa-solid fa-play"></i> Probar Dashboard Web B2B
+                                </button>
+                            </div>
+
+                            <div class="role-visual">
+                                <!-- Web Admin Frame showcasing Dashboard Preview Image -->
+                                <div class="surface-card"
+                                    style="overflow: hidden; border-radius: var(--radius-md); border: 1px solid var(--color-border); box-shadow: var(--shadow-lg);">
+                                    <img src="assets/admin_dashboard_preview.png"
+                                        alt="ParkinGo Web Admin Dashboard Preview"
+                                        style="width: 100%; height: auto; display: block;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Anfitrión Particular Tab Content -->
+                    <div class="role-panel" id="panel-anfitrion">
+                        <div class="grid grid-2 align-center">
+                            <div class="role-info">
+                                <span class="role-badge c2c"><i class="fa-solid fa-coins"></i> PARA ANFITRIONES</span>
+                                <h3>Convierte tu espacio en una oportunidad.</h3>
+                                <p>
+                                    ¿Tienes un garaje, patio o terreno cerca del Estadio, Fexpocruz, UAGRM o Centro?
+                                    Publícalo sin pagar mensualidad fija y gana dinero por cada reserva.
+                                </p>
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-percent"></i> <strong>Modelo 0 Bs. Inicial:</strong> Solo
+                                        pagas comisión por reserva concretada.</li>
+                                    <li><i class="fa-solid fa-calendar-days"></i> <strong>Horarios Flexibles:</strong>
+                                        Elige qué días y horas alquilar tu plaza.</li>
+                                    <li><i class="fa-solid fa-bolt"></i> <strong>Tarifas para Eventos:</strong>
+                                        Incrementa tus ingresos durante eventos masivos.</li>
+                                    <li><i class="fa-solid fa-lock"></i> <strong>Verificación de Usuarios:</strong>
+                                        Conductores identificados por su placa.</li>
+                                </ul>
+                                <button class="btn btn-accent btn-open-demo-role" data-demo-type="anfitrion">
+                                    <i class="fa-solid fa-plus-circle"></i> Registrar mi Garaje Gratis
+                                </button>
+                            </div>
+
+                            <div class="role-visual">
+                                <div class="surface-card" style="padding: 2.2rem;">
+                                    <div
+                                        style="font-size: 0.75rem; font-weight: 700; color: var(--color-primary); margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em;">
+                                        <i class="fa-solid fa-house-flag"></i> ANFITRIÓN PARKINGO
+                                    </div>
+                                    <h4 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.4rem;">Garaje
+                                        Privado Calle 21 de Septiembre</h4>
+                                    <p
+                                        style="font-size: 0.9rem; color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+                                        <i class="fa-solid fa-location-dot" style="color: var(--color-accent);"></i> A 2
+                                        cuadras del Estadio Tahuichi
+                                    </p>
+
+                                    <div
+                                        style="background: var(--color-background); border: 1px solid var(--color-border); padding: 1.2rem; border-radius: var(--radius-md); text-align: center; margin-bottom: 1.5rem;">
+                                        <span style="font-size: 0.85rem; color: var(--color-text-secondary);">Ganancia
+                                            estimada este mes:</span>
+                                        <div
+                                            style="font-size: 2.2rem; font-weight: 700; color: var(--color-primary); margin-top: 0.2rem; font-family: var(--font-heading);">
+                                            Bs. 1,450</div>
+                                    </div>
+
+                                    <div
+                                        style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;">
+                                        <span style="color: var(--color-text-secondary);">Estado del Garaje Hoy:</span>
+                                        <span class="badge-status badge-disponible"><i
+                                                class="fa-solid fa-circle-check"></i> DISPONIBLE</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="role-carousel-dots">
+                        <span class="role-dot active" onclick="setRoleCarousel(0)" title="Conductor"></span>
+                        <span class="role-dot" onclick="setRoleCarousel(1)" title="Parqueo Comercial"></span>
+                        <span class="role-dot" onclick="setRoleCarousel(2)" title="Anfitrión Particular"></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Revenue Estimator Calculator for Hosts -->
+        <section class="section calculator-section" id="calculadora">
+            <div class="container">
+                <div class="section-header text-center reveal-up">
+                    <span class="section-subtitle">ESTIMADOR DE INGRESOS</span>
+                    <h2 class="section-title">Calcula cuánto puedes ganar alquilando tu espacio</h2>
+                    <p class="section-description">
+                        Ajusta la cantidad de espacios, las horas diarias de ocupación y tu tarifa por hora para conocer
+                        tus proyecciones de ganancias en Bolivia.
+                    </p>
+                </div>
+
+                <div class="calculator-card grid grid-2">
+                    <!-- Controls -->
+                    <div class="calc-inputs">
+                        <div class="calc-group">
+                            <div class="calc-label-row">
+                                <label for="range-spaces"><i class="fa-solid fa-car-tunnel"></i> Cantidad de Espacios /
+                                    Garajes:</label>
+                                <span class="calc-val" id="val-spaces">2 espacios</span>
+                            </div>
+                            <input type="range" id="range-spaces" min="1" max="50" value="2" step="1">
+                        </div>
+
+                        <div class="calc-group">
+                            <div class="calc-label-row">
+                                <label for="range-hours"><i class="fa-solid fa-clock"></i> Horas Promedio Ocupadas al
+                                    Día:</label>
+                                <span class="calc-val" id="val-hours">6 horas/día</span>
+                            </div>
+                            <input type="range" id="range-hours" min="1" max="14" value="6" step="1">
+                        </div>
+
+                        <div class="calc-group">
+                            <div class="calc-label-row">
+                                <label for="range-rate"><i class="fa-solid fa-money-bill-wave"></i> Tarifa por Hora
+                                    (Bs.):</label>
+                                <span class="calc-val" id="val-rate">Bs. 6 / hr</span>
+                            </div>
+                            <input type="range" id="range-rate" min="3" max="20" value="6" step="1">
+                        </div>
+
+                        <div class="calc-group">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="check-event-bonus" checked>
+                                <span class="checkmark"></span>
+                                <span>Incluir bono de alta demanda / eventos masivos (+30% fin de semana)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Result Card -->
+                    <div class="calc-result-card surface-card reveal-right">
+                        <span class="calc-result-title">Proyección de Ingreso Mensual Neto</span>
+                        <div class="calc-amount-primary">
+                            <span class="currency">Bs.</span>
+                            <span id="calc-net-monthly">1,728</span>
+                        </div>
+                        <p class="calc-sub-note">Neto para ti después de la comisión del 20% de ParkinGo</p>
+
+                        <div class="calc-breakdown">
+                            <div class="breakdown-item">
+                                <span>Ingreso Bruto Mensual:</span>
+                                <strong id="calc-gross-monthly">Bs. 2,160</strong>
+                            </div>
+                            <div class="breakdown-item">
+                                <span>Comisión ParkinGo (20%):</span>
+                                <strong id="calc-commission">Bs. 432</strong>
+                            </div>
+                            <div class="breakdown-item highlight">
+                                <span>Ganancia Anual Estimada:</span>
+                                <strong id="calc-annual">Bs. 20,736</strong>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-accent btn-block btn-calc-cta" id="btn-calc-apply">
+                            <i class="fa-solid fa-rocket"></i> Publicar Mi Garaje Gratis
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Transparent Revenue Models & Pricing -->
+        <section class="section plans-section" id="planes">
+            <div class="container">
+                <div class="section-header text-center reveal-up">
+                    <span class="section-subtitle">MODELO COMERCIAL</span>
+                    <h2 class="section-title">Elige la modalidad perfecta para tu parqueo</h2>
+                    <p class="section-description">
+                        Sin costos ocultos. Diseñado para adaptarse desde un garaje particular de 1 plaza hasta parqueos
+                        comerciales de más de 100 espacios.
+                    </p>
+                </div>
+
+                <div class="pricing-carousel-wrapper">
+                    <button class="plans-carousel-nav prev" id="plan-prev-btn" onclick="scrollPlansCarousel(-1)"
+                        aria-label="Anterior plan">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <div class="grid grid-3 pricing-grid" id="pricing-grid">
+                        <!-- Plan Commission -->
+                        <div class="pricing-card reveal-left delay-1">
+                            <div class="plan-tag">RECOMENDADO ANFITRIONES</div>
+                            <h3 class="plan-title">Plan Comisión Sin Cuota Fija</h3>
+                            <div class="plan-price">
+                                <span class="price-amount">Bs. 0</span>
+                                <span class="price-period">/ mes</span>
+                            </div>
+                            <p class="plan-desc">Ideal para garajes, patios, terrenos y parqueos pequeños sin inversión
+                                inicial.</p>
+
+                            <div class="plan-fee-highlight">
+                                <i class="fa-solid fa-percent"></i> <strong>20% de comisión</strong> únicamente por
+                                reserva concretada.
+                            </div>
+
+                            <ul class="plan-features">
+                                <li><i class="fa-solid fa-check"></i> Registro de hasta 5 espacios</li>
+                                <li><i class="fa-solid fa-check"></i> Panel de control de disponibilidad</li>
+                                <li><i class="fa-solid fa-check"></i> Tarifas ajustables por evento</li>
+                                <li><i class="fa-solid fa-check"></i> Verificación de placas</li>
+                                <li><i class="fa-solid fa-check"></i> Cobro automático</li>
+                            </ul>
+
+                            <button class="btn btn-secondary btn-block btn-select-plan"
+                                data-plan="Plan Comisión 20%">Registrarme Gratis</button>
+                        </div>
+
+                        <!-- Plan Commercial Pro -->
+                        <div class="pricing-card popular-card reveal-up delay-2">
+                            <div class="popular-badge"><i class="fa-solid fa-star"></i> MÁS POPULAR B2B</div>
+                            <h3 class="plan-title">Parqueo Comercial Pro</h3>
+                            <div class="plan-price">
+                                <span class="price-amount">Bs. 350</span>
+                                <span class="price-period">/ mes</span>
+                            </div>
+                            <p class="plan-desc">Para empresas y parqueos comerciales que buscan máxima visibilidad y
+                                herramientas completas.</p>
+
+                            <div class="plan-fee-highlight">
+                                <i class="fa-solid fa-gem"></i> <strong>Comisión reducida o fija</strong> +
+                                Posicionamiento VIP en mapa.
+                            </div>
+
+                            <ul class="plan-features">
+                                <li><i class="fa-solid fa-check"></i> Espacios e ingresos ilimitados</li>
+                                <li><i class="fa-solid fa-check"></i> Multi-operador con roles y turnos</li>
+                                <li><i class="fa-solid fa-check"></i> Posicionamiento destacado en búsquedas</li>
+                                <li><i class="fa-solid fa-check"></i> Módulo de clientes frecuentes</li>
+                                <li><i class="fa-solid fa-check"></i> Reportes avanzados en Excel/PDF</li>
+                            </ul>
+
+                            <button class="btn btn-accent btn-block btn-select-plan"
+                                data-plan="Parqueo Comercial Pro">Contratar Plan Comercial</button>
+                        </div>
+
+                        <!-- Driver Service Fee -->
+                        <div class="pricing-card reveal-right delay-3">
+                            <div class="plan-tag">PARA CONDUCTORES</div>
+                            <h3 class="plan-title">Tarifa por Reserva Conductor</h3>
+                            <div class="plan-price">
+                                <span class="price-amount">Bs. 1 - 5</span>
+                                <span class="price-period">/ reserva</span>
+                            </div>
+                            <p class="plan-desc">Aplicada al cliente por el uso de mapas, reserva garantizada y rutas
+                                directas.</p>
+
+                            <div class="plan-fee-highlight">
+                                <i class="fa-solid fa-car"></i> <strong>Ahorro garantizado</strong> en tiempo y consumo
+                                de combustible.
+                            </div>
+
+                            <ul class="plan-features">
+                                <li><i class="fa-solid fa-check"></i> Reserva inmediata o anticipada</li>
+                                <li><i class="fa-solid fa-check"></i> Visualización de mapa en tiempo real</li>
+                                <li><i class="fa-solid fa-check"></i> Alertas y recordatorios de vencimiento</li>
+                                <li><i class="fa-solid fa-check"></i> Rutas directas por GPS</li>
+                                <li><i class="fa-solid fa-check"></i> Historial y comprobante digital</li>
+                            </ul>
+
+                            <button class="btn btn-outline btn-block btn-select-plan"
+                                data-plan="Tarifa por Reserva Conductor">Ver Tarifas Conductor</button>
+                        </div>
+                    </div>
+                    <button class="plans-carousel-nav next" id="plan-next-btn" onclick="scrollPlansCarousel(1)"
+                        aria-label="Siguiente plan">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Banner Section -->
+        <section class="section cta-banner-section">
+            <div class="container">
+                <div class="cta-banner-card reveal-up">
+                    <div class="cta-content">
+                        <h2>Muévete mejor con ParkinGo.</h2>
+                        <p>Encuentra un parqueo o comienza a gestionar tus espacios desde una sola plataforma.</p>
+                    </div>
+                    <div class="cta-buttons">
+                        <a href="#explorar" class="btn btn-accent btn-lg" id="btn-cta-demo">
+                            <i class="fa-solid fa-magnifying-glass"></i> Buscar parqueo
+                        </a>
+                        <a href="#calculadora" class="btn btn-secondary btn-lg" id="btn-cta-contact">
+                            <i class="fa-solid fa-house-circle-check"></i> Registrar mi parqueo
+                        </a>
+                    </div>
+                </div>
+            <!-- Organic Wave Section Divider -->
+            <div class="section-wave-divider wave-bottom fill-dark">
+                <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                    <path d="M0,45 C360,95 720,80 1080,40 C1260,20 1380,45 1440,60 L1440,120 L0,120 Z"></path>
+                </svg>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Specification -->
+    <footer class="footer reveal-up">
+        <!-- Soft Gradient Blur Fade Overlay for Footer -->
+        <div class="section-fade-divider fade-top-dark"></div>
+
+        <!-- Top Organic Wave Divider for Footer -->
+        <div class="section-wave-divider wave-top fill-dark">
+            <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                <path d="M0,32 C280,85 560,95 840,50 C1120,5 1320,40 1440,55 L1440,120 L0,120 Z"></path>
+            </svg>
+        </div>
+        <div class="container">
+            <div class="footer-top grid grid-4">
+                <div class="footer-col brand-col">
+                    <a href="#" class="logo">
+                        <img src="assets/logo.png" alt="ParkinGo Logo" class="logo-img">
+                        <span class="logo-text">Parkin<span>Go</span></span>
+                    </a>
+                    <p>
+                        Tecnología para encontrar, reservar y gestionar espacios de estacionamiento en Santa Cruz de la
+                        Sierra, Bolivia.
+                    </p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+                        <a href="#" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Producto</h4>
+                    <ul>
+                        <li><a href="#como-funciona">Cómo funciona</a></li>
+                        <li><a href="#explorar">Buscar parqueos</a></li>
+                        <li><a href="#croquis-seccion">Croquis de plazas</a></li>
+                        <li><a href="#mapa-envivo">Mapa en vivo</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Empresa</h4>
+                    <ul>
+                        <li><a href="#roles">Para conductores</a></li>
+                        <li><a href="#roles">Para propietarios</a></li>
+                        <li><a href="#planes">Planes y tarifas</a></li>
+                        <li><a href="#calculadora">Calculadora de ingresos</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Acceso & Soporte</h4>
+                    <ul>
+                        <li><a href="#" class="btn-open-demo-role" data-demo-type="conductor">Iniciar sesión</a></li>
+                        <li><a href="#calculadora">Registrar mi parqueo</a></li>
+                        <li><i class="fa-solid fa-envelope"></i> contacto@parkingo.bo</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom text-center">
+                <p>&copy; 2026 ParkinGo Bolivia. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive Live Reservation & Role Demo Modal -->
+    <div class="modal-backdrop" id="demo-modal">
+        <div class="modal-window">
+            <button class="modal-close" id="modal-close-btn">&times;</button>
+
+            <div class="modal-header">
+                <div class="modal-icon"><i class="fa-solid fa-qrcode"></i></div>
+                <h3 id="modal-title">Simulador de Reserva en Tiempo Real</h3>
+                <p id="modal-subtitle">Prueba la experiencia fluida de reserva digital de ParkinGo en Santa Cruz.</p>
+            </div>
+
+            <div class="modal-body" id="modal-body">
+                <!-- Dynamic Content injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Componente Automóvil Animado Asistente (ParkinGo Car Assistant) -->
+    <div class="parking-car-assistant" id="parking-car-assistant">
+        <!-- Burbuja de Mensaje Flotante -->
+        <div class="parking-car-bubble" id="parking-car-bubble">
+            <span>¿Tienes alguna duda? 👋</span>
+            <div class="bubble-arrow"></div>
+        </div>
+
+        <div class="parking-car-wrapper">
+            <img src="assets/autoSinRuedas.png" class="parking-car-body" alt="Auto ParkinGo">
+            <img src="assets/rueda.png" class="parking-wheel parking-wheel-front" alt="Rueda Delantera">
+            <img src="assets/rueda.png" class="parking-wheel parking-wheel-back" alt="Rueda Trasera">
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="js/main.js"></script>
+    <script src="js/map-simulator.js"></script>
+    <script src="js/calculator.js"></script>
+    <script src="js/demo-modal.js"></script>
+</body>
+
+</html>

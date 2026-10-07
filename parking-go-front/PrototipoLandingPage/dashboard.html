@@ -1,0 +1,1851 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Administrador General | ParkinGo Enterprise</title>
+
+  <!-- Typography & Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Icons (FontAwesome 6) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom Stylesheets -->
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/tenants.css">
+</head>
+
+<body>
+
+  <div class="app-container">
+
+    <!-- ==========================================================================
+         SIDEBAR NAVIGATION
+         ========================================================================== -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo-brand" title="Volver a ParkinGo Landing">
+          <div class="logo-icon"><i class="fa-solid fa-square-parking"></i></div>
+          <div class="logo-text">
+            <span>PARKCONTROL</span>
+            <span>ADMIN GENERAL</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Módulos de Gestión</div>
+
+        <a class="nav-item active" data-view="reportes" title="Reportes Generales">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Reportes Generales</span>
+        </a>
+
+        <a class="nav-item" data-view="usuarios" title="Dueños de Empresa">
+          <i class="fa-solid fa-users"></i>
+          <span>Gestión de Usuarios</span>
+        </a>
+
+        <a class="nav-item" data-view="tenants" title="Gestión de Tenants Multi-Tenant">
+          <i class="fa-solid fa-building-user"></i>
+          <span>Gestión de Tenants</span>
+          <span class="badge badge-pending" style="margin-left:auto; font-size:0.65rem; padding:0.12rem 0.35rem; background:#006D36; color:#FFF;">SaaS</span>
+        </a>
+
+        <a class="nav-item" data-view="permisos" title="Roles y Permisos">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>Roles y Permisos</span>
+        </a>
+
+        <a class="nav-item" data-view="solicitudes" title="Solicitudes de Registro">
+          <i class="fa-solid fa-clipboard-check"></i>
+          <span>Solicitudes</span>
+          <span class="badge badge-pending" id="pending-requests-count"
+            style="margin-left:auto; font-size:0.7rem; padding:0.15rem 0.45rem;">3</span>
+        </a>
+
+        <a class="nav-item" data-view="planes" title="Planes y Suscripciones">
+          <i class="fa-solid fa-gem"></i>
+          <span>Planes y Suscripciones</span>
+        </a>
+
+        <a class="nav-item" data-view="comisiones" title="Comisiones">
+          <i class="fa-solid fa-percent"></i>
+          <span>Comisiones</span>
+        </a>
+
+        <a class="nav-item" data-view="promociones" title="Promociones">
+          <i class="fa-solid fa-ticket"></i>
+          <span>Promociones</span>
+        </a>
+
+        <div class="nav-section-label">Seguridad y Auditoría</div>
+
+        <a class="nav-item" data-view="denuncias" title="Denuncias y Reportes">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>Denuncias y Reportes</span>
+          <span class="badge badge-suspended" id="pending-denuncias-count"
+            style="margin-left:auto; font-size:0.7rem; padding:0.15rem 0.45rem;">2</span>
+        </a>
+
+        <a class="nav-item" data-view="configuracion" title="Configuración General">
+          <i class="fa-solid fa-gears"></i>
+          <span>Configuración Sistema</span>
+        </a>
+
+        <a class="nav-item" data-view="backups" title="Copias de Seguridad">
+          <i class="fa-solid fa-database"></i>
+          <span>Copias de Seguridad</span>
+        </a>
+
+        <a class="nav-item" data-view="bitacora" title="Bitácora (Audit Log)">
+          <i class="fa-solid fa-list-check"></i>
+          <span>Bitácora (Audit Log)</span>
+        </a>
+
+        <a href="index.html" class="nav-item" title="Volver a Landing Page"
+          style="margin-top:auto; color:var(--accent-rose);">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <span>Volver a Landing</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="admin-card">
+          <div class="admin-avatar">AG</div>
+          <div class="admin-info">
+            <div class="admin-name">Admin General</div>
+            <div class="admin-role">SuperUsuario Global</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==========================================================================
+         MAIN WORKSPACE CONTENT
+         ========================================================================== -->
+    <div class="main-wrapper">
+
+      <!-- Enterprise System Banner -->
+      <div class="enterprise-alert-bar">
+        <div>
+          <i class="fa-solid fa-shield-halved"></i> <strong>SISTEMA OPERATIVO:</strong> Producción v2.4 • SLA
+          Garantizado 99.9%
+        </div>
+        <div>
+          <span>Entorno: <strong>Santa Cruz, Bolivia (Bs.)</strong> | Sincronización en tiempo real <i
+              class="fa-solid fa-rotate" style="margin-left:0.25rem;"></i></span>
+        </div>
+      </div>
+
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="toggle-sidebar-btn" id="toggle-sidebar" title="Alternar Menú">
+            <i class="fa-solid fa-bars-staggered"></i>
+          </button>
+          <div class="page-title-display">
+            <h1 id="current-page-title">Reportes Generales</h1>
+            <span class="page-breadcrumb" id="current-page-breadcrumb">ParkinGo Enterprise / Reportes Generales</span>
+          </div>
+        </div>
+
+        <div class="command-search-box" onclick="document.getElementById('search-users-input')?.focus()"
+          title="Búsqueda Rápida Enterprise">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <span>Buscar por empresa, ID o parqueo...</span>
+          <kbd>⌘K</kbd>
+        </div>
+
+        <div class="topbar-right">
+          <select class="org-selector" title="Seleccionar Red u Organización">
+            <option>Red Bolivia - General</option>
+            <option>Sucursales Santa Cruz</option>
+            <option>Sucursales La Paz</option>
+          </select>
+
+          <div class="live-occupancy-badge">
+            <div class="pulse-dot"></div>
+            <span>Ocupación Global: <strong>78.4%</strong></span>
+          </div>
+
+          <button class="quick-action-btn" title="Notificaciones del Sistema">
+            <i class="fa-solid fa-bell"></i>
+            <span class="notification-count">3</span>
+          </button>
+
+          <a href="parking-operator.html"
+            style="text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; padding:0 0.75rem; height:34px; border-radius:4px; background:rgba(37,99,235,0.08); color:#2563EB; border:1px solid rgba(37,99,235,0.25); font-size:0.78rem; font-weight:600; white-space:nowrap; flex-shrink:0; transition:all 0.15s ease;"
+            title="Ir a la Terminal Operativa de Garita">
+            <i class="fa-solid fa-id-card-clip"></i>
+            <span>Rol Operador</span>
+          </a>
+
+          <a href="parking-admin.html"
+            style="text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; padding:0 0.75rem; height:34px; border-radius:4px; background:rgba(0,109,54,0.08); color:#006D36; border:1px solid rgba(0,109,54,0.25); font-size:0.78rem; font-weight:600; white-space:nowrap; flex-shrink:0; transition:all 0.15s ease;"
+            title="Ir al Panel de Administrador de Parqueo">
+            <i class="fa-solid fa-square-parking"></i>
+            <span>Admin Parqueo</span>
+          </a>
+
+          <a href="parking-driver.html"
+            style="text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; padding:0 0.75rem; height:34px; border-radius:4px; background:rgba(16,185,129,0.1); color:#059669; border:1px solid rgba(16,185,129,0.3); font-size:0.78rem; font-weight:600; white-space:nowrap; flex-shrink:0; transition:all 0.15s ease;"
+            title="Ir al Portal Web del Conductor">
+            <i class="fa-solid fa-car-side"></i>
+            <span>Portal Conductor</span>
+          </a>
+
+          <button class="quick-action-btn" onclick="openModal('modalExportReport')"
+            title="Programar Exportación Enterprise">
+            <i class="fa-solid fa-download"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- CANVAS VIEWS -->
+      <main class="content-canvas">
+
+        <!-- ==========================================================================
+             VIEW 1: REPORTES GENERALES (DASHBOARD ANALÍTICO)
+             ========================================================================== -->
+        <section id="view-reportes" class="dashboard-view active">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2>Visión General Analítica</h2>
+              <p>Métricas consolidadas de rendimiento financiero, reservas y transacciones de la plataforma.</p>
+            </div>
+            <div class="view-actions">
+              <button class="btn btn-secondary" onclick="openModal('modalExportReport')">
+                <i class="fa-solid fa-file-export"></i> Exportar Reporte
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Cards Grid (8 Global Metrics) -->
+          <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.25rem;">
+            <div class="card kpi-card" style="border-left-color: var(--accent-blue);">
+              <div class="kpi-header">
+                <span>Usuarios Totales</span>
+                <div class="kpi-icon" style="background: rgba(37,99,235,0.1); color: var(--accent-blue);"><i
+                    class="fa-solid fa-users"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="kpi-total-users">1,420</div>
+                <div class="kpi-subtext">Conductores, Admins y Dueños</div>
+              </div>
+            </div>
+
+            <div class="card kpi-card" style="border-left-color: var(--primary-color);">
+              <div class="kpi-header">
+                <span>Admins de Parqueo</span>
+                <div class="kpi-icon" style="background: var(--accent-emerald-light); color: var(--primary-color);"><i
+                    class="fa-solid fa-user-gear"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="kpi-parking-admins">95</div>
+                <div class="kpi-subtext">Registrados en la plataforma</div>
+              </div>
+            </div>
+
+            <div class="card kpi-card" style="border-left-color: var(--accent-emerald);">
+              <div class="kpi-header">
+                <span>Parqueos Activos</span>
+                <div class="kpi-icon" style="background: var(--accent-emerald-light); color: var(--accent-emerald);"><i
+                    class="fa-solid fa-square-parking"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="kpi-active-parkings">48</div>
+                <div class="kpi-subtext">Operativos en tiempo real</div>
+              </div>
+            </div>
+
+            <div class="card kpi-card" style="border-left-color: #D97706;">
+              <div class="kpi-header">
+                <span>Plazas Publicadas</span>
+                <div class="kpi-icon" style="background: rgba(217,119,6,0.1); color: #D97706;"><i
+                    class="fa-solid fa-border-all"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="kpi-total-slots">4,250</div>
+                <div class="kpi-subtext">Cupos totales disponibles</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+            <div class="card kpi-card">
+              <div class="kpi-header">
+                <span>Reservas Realizadas</span>
+                <div class="kpi-icon" style="color:var(--accent-amber);"><i class="fa-solid fa-receipt"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="kpi-transactions">38,420</div>
+                <div class="kpi-subtext">Transacciones procesadas</div>
+              </div>
+            </div>
+
+            <div class="card kpi-card" style="border-left-color: var(--accent-emerald);">
+              <div class="kpi-header">
+                <span>Ingresos Comisiones</span>
+                <div class="kpi-icon" style="background: var(--accent-emerald-light); color: var(--accent-emerald);"><i
+                    class="fa-solid fa-wallet"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="kpi-revenue">Bs. 48,290.50</div>
+                <div class="kpi-subtext">Retención 8.5% a parqueos</div>
+              </div>
+            </div>
+
+            <div class="card kpi-card" style="border-left-color: var(--accent-blue);">
+              <div class="kpi-header">
+                <span>Tarifa de Servicio</span>
+                <div class="kpi-icon" style="background: rgba(37,99,235,0.1); color: var(--accent-blue);"><i
+                    class="fa-solid fa-hand-holding-dollar"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="kpi-service-fees">Bs. 14,350.00</div>
+                <div class="kpi-subtext">Bs. 2.50 por reserva conductor</div>
+              </div>
+            </div>
+
+            <div class="card kpi-card" style="border-left-color: #8B5CF6;">
+              <div class="kpi-header">
+                <span>Planes Contratados</span>
+                <div class="kpi-icon" style="background: rgba(139,92,246,0.1); color: #8B5CF6;"><i
+                    class="fa-solid fa-gem"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="kpi-plans-breakdown">45 Planes</div>
+                <div class="kpi-subtext">12 Enterprise • 24 Pro • 9 Básico</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Chart -->
+          <div class="card chart-container-card">
+            <div class="chart-header">
+              <div>
+                <h3>Ingresos Mensuales vs Transacciones</h3>
+                <p style="font-size:0.78rem; color:var(--text-muted);">Comparativa de ingresos por comisiones e volumen
+                  transaccional diario.</p>
+              </div>
+              <select class="form-select" style="width: auto;">
+                <option>Año 2026 (Global)</option>
+                <option>Últimos 6 meses</option>
+              </select>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="incomeChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ==========================================================================
+             VIEW 2: GESTIÓN DE USUARIOS DEL SISTEMA
+             ========================================================================== -->
+        <section id="view-usuarios" class="dashboard-view">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2>Gestión de Usuarios del Sistema</h2>
+              <p>Administración centralizada de usuarios: Administradores de Parqueo, Dueños de Empresa y Conductores.
+              </p>
+            </div>
+            <div class="view-actions">
+              <button class="btn btn-primary" onclick="openModal('modalNewOwner')">
+                <i class="fa-solid fa-plus"></i> Registrar Usuario
+              </button>
+            </div>
+          </div>
+
+          <div class="filters-bar">
+            <div class="search-input-wrapper">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="search-users-input" class="form-control"
+                placeholder="Buscar por nombre, correo, empresa o rol...">
+            </div>
+
+            <select class="form-select" id="filter-user-role">
+              <option value="todos">Todos los Roles</option>
+              <option value="Administrador de Parqueo">Administrador de Parqueo</option>
+              <option value="Dueño de Empresa">Dueño de Empresa</option>
+              <option value="Conductor">Conductor</option>
+            </select>
+
+            <select class="form-select" id="filter-user-status">
+              <option value="todos">Todos los Estados</option>
+              <option value="Activo">Solo Activos</option>
+              <option value="Suspendido">Solo Suspendidos</option>
+            </select>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:30px;"><input type="checkbox"></th>
+                  <th>Usuario / Correo</th>
+                  <th>Rol Asignado</th>
+                  <th>Empresa / Tipo</th>
+                  <th>Teléfono</th>
+                  <th>Estado</th>
+                  <th>Parqueos</th>
+                  <th style="text-align:right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body">
+                <!-- JS Population -->
+              </tbody>
+            </table>
+            <div class="table-pagination">
+              <span>Mostrando 1 - 5 de 5 registros de dueños</span>
+              <div class="pagination-controls">
+                <button class="page-btn"><i class="fa-solid fa-chevron-left"></i></button>
+                <button class="page-btn active">1</button>
+                <button class="page-btn"><i class="fa-solid fa-chevron-right"></i></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ==========================================================================
+             VIEW 3: ROLES Y PERMISOS
+             ========================================================================== -->
+        <section id="view-permisos" class="dashboard-view">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2>Matriz de Roles y Permisos Enterprise</h2>
+              <p>Configuración granular de facultades por cada nivel de usuario del sistema.</p>
+            </div>
+            <div class="view-actions">
+              <button class="btn btn-primary" onclick="savePermissions()">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar Permisos
+              </button>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom: 1.25rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+              <div>
+                <h4 style="font-size:0.95rem; margin-bottom:0.2rem;">Rol Seleccionado</h4>
+                <p style="font-size:0.78rem; color:var(--text-muted);">Haz clic en el rol que deseas editar para cargar
+                  su matriz de permisos.</p>
+              </div>
+              <div style="display:flex; gap:0.5rem; flex-wrap:wrap;" id="role-selector-container">
+                <button class="btn btn-primary btn-sm role-btn active"
+                  onclick="selectRole('Administrador General')">Administrador General</button>
+                <button class="btn btn-secondary btn-sm role-btn"
+                  onclick="selectRole('Administrador de Parqueo')">Administrador de Parqueo</button>
+                <button class="btn btn-secondary btn-sm role-btn" onclick="selectRole('Operador de Parqueo')">Operador
+                  de Parqueo</button>
+                <button class="btn btn-secondary btn-sm role-btn" onclick="selectRole('Conductor')">Conductor</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table permissions-matrix-table">
+              <thead>
+                <tr>
+                  <th>Módulo del Sistema</th>
+                  <th style="text-align:center;">Lectura</th>
+                  <th style="text-align:center;">Creación</th>
+                  <th style="text-align:center;">Edición</th>
+                  <th style="text-align:center;">Eliminación</th>
+                </tr>
+              </thead>
+              <tbody id="permissions-table-body">
+                <!-- JS Population -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ==========================================================================
+             VIEW: GESTIÓN DE TENANTS (MULTI-TENANT SAAS)
+             ========================================================================== -->
+        <section id="view-tenants" class="dashboard-view">
+          
+          <!-- VISTA 1: LISTA PRINCIPAL DE TENANTS -->
+          <div id="tenants-main-list-view">
+
+            <div class="view-header">
+              <div class="view-header-title">
+                <h2>Gestión de Tenants</h2>
+                <p>Administra las organizaciones y propietarios registrados en ParkinGo.</p>
+              </div>
+              <div class="view-actions">
+                <button type="button" class="btn-primary-green" id="btn-open-new-tenant">
+                  <i class="fa-solid fa-plus"></i> Nuevo Tenant
+                </button>
+              </div>
+            </div>
+
+            <!-- 4 KPIs Superiores -->
+            <div class="kpi-grid">
+              <div class="kpi-card">
+                <div class="kpi-icon-box total">
+                  <i class="fa-solid fa-building-user"></i>
+                </div>
+                <div class="kpi-info">
+                  <div class="kpi-value" id="kpi-total-tenants">128</div>
+                  <div class="kpi-label">Total Tenants</div>
+                </div>
+              </div>
+
+              <div class="kpi-card">
+                <div class="kpi-icon-box active">
+                  <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="kpi-info">
+                  <div class="kpi-value" id="kpi-active-tenants">105</div>
+                  <div class="kpi-label">Tenants Activos</div>
+                </div>
+              </div>
+
+              <div class="kpi-card">
+                <div class="kpi-icon-box suspended">
+                  <i class="fa-solid fa-circle-pause"></i>
+                </div>
+                <div class="kpi-info">
+                  <div class="kpi-value" id="kpi-suspended-tenants">8</div>
+                  <div class="kpi-label">Tenants Suspendidos</div>
+                </div>
+              </div>
+
+              <div class="kpi-card">
+                <div class="kpi-icon-box parking">
+                  <i class="fa-solid fa-square-parking"></i>
+                </div>
+                <div class="kpi-info">
+                  <div class="kpi-value" id="kpi-total-parqueos">246</div>
+                  <div class="kpi-label">Parqueos Registrados</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Buscador y Filtros -->
+            <div class="filters-card">
+              <div class="filters-flex-row">
+                <div class="search-input-group">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="text" id="tenant-search-input" placeholder="Buscar por nombre, propietario, correo o ID...">
+                </div>
+
+                <select class="filter-select" id="filter-status">
+                  <option value="all">Estado: Todos</option>
+                  <option value="activo">Activo</option>
+                  <option value="inactivo">Inactivo</option>
+                  <option value="suspendido">Suspendido</option>
+                  <option value="pendiente">Pendiente</option>
+                </select>
+
+                <select class="filter-select" id="filter-type">
+                  <option value="all">Tipo: Todos</option>
+                  <option value="empresa">Empresa</option>
+                  <option value="particular">Propietario particular</option>
+                </select>
+
+                <select class="filter-select" id="filter-plan">
+                  <option value="all">Plan: Todos</option>
+                  <option value="gratuito">Gratuito</option>
+                  <option value="basico">Básico</option>
+                  <option value="profesional">Profesional</option>
+                  <option value="empresarial">Empresarial</option>
+                </select>
+
+                <button type="button" class="btn-reset-filters" id="btn-reset-filters">
+                  <i class="fa-solid fa-rotate-left"></i> Limpiar filtros
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabla Principal de Tenants -->
+            <div class="table-card">
+              <div class="table-responsive">
+                <table class="tenants-data-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Tenant</th>
+                      <th>Administrador Responsable</th>
+                      <th>Tipo</th>
+                      <th>Parqueos</th>
+                      <th>Operadores</th>
+                      <th>Plan</th>
+                      <th>Estado</th>
+                      <th>Fecha Registro</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tenants-table-body">
+                    <!-- Inyectado mediante JS -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Footer Paginador -->
+              <div class="table-pagination-footer">
+                <div>Mostrando <strong>1 - 5</strong> de <strong>128</strong> tenants registrados</div>
+                <div class="pagination-controls">
+                  <button type="button" class="btn-page" disabled><i class="fa-solid fa-chevron-left"></i></button>
+                  <button type="button" class="btn-page active">1</button>
+                  <button type="button" class="btn-page">2</button>
+                  <button type="button" class="btn-page">3</button>
+                  <button type="button" class="btn-page"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- VISTA 2: DETALLE DEL TENANT (8 TABS) -->
+          <div id="tenants-detail-view" class="tenant-detail-view-container">
+
+            <div class="breadcrumb" style="margin-bottom: 0.75rem;">
+              <a href="#" onclick="backToMainList(); return false;">Tenants</a>
+              <span class="sep">/</span>
+              <span class="current" id="detail-tenant-name-bc">Detalle de Tenant</span>
+            </div>
+
+            <!-- Cabecera de Detalle -->
+            <div class="tenant-detail-header-card">
+              <div class="detail-header-top">
+                <div class="detail-title-block">
+                  <div class="detail-tenant-avatar" id="detail-tenant-avatar">P</div>
+                  <div class="detail-title-info">
+                    <h2 id="detail-tenant-name">Parking Center SRL</h2>
+                    <div class="detail-meta-tags">
+                      <span>ID: <strong id="detail-tenant-id">TNT-101</strong></span>
+                      <span>•</span>
+                      <span id="detail-tenant-status" class="badge-status activo">Activo</span>
+                      <span>•</span>
+                      <span>Tipo: <strong id="detail-tenant-type">Empresa</strong></span>
+                      <span>•</span>
+                      <span>Plan: <strong id="detail-tenant-plan">Profesional</strong></span>
+                      <span>•</span>
+                      <span>Creado: <span id="detail-tenant-date">2025-02-10</span></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem;">
+                  <button type="button" class="btn-secondary-outline" onclick="alert('Editar datos de tenant');">
+                    <i class="fa-solid fa-pen-to-square"></i> Editar
+                  </button>
+                  <button type="button" class="btn-secondary-outline" onclick="alert('Cambiar estado del tenant');">
+                    <i class="fa-solid fa-arrows-rotate"></i> Cambiar estado
+                  </button>
+                  <button type="button" class="btn-secondary-outline" style="color:#EF4444; border-color:#FCA5A5;" onclick="openSuspendConfirmModal(currentDetailTenant ? currentDetailTenant.id : 'TNT-101')">
+                    <i class="fa-solid fa-circle-pause"></i> Suspender
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Barra de Pestañas (8 Tabs) -->
+            <div class="tenant-tabs-bar">
+              <button type="button" class="tenant-tab-item active" data-tab="resumen" onclick="switchDetailTab('resumen')">
+                <i class="fa-solid fa-chart-line"></i> Resumen
+              </button>
+              <button type="button" class="tenant-tab-item" data-tab="parqueos" onclick="switchDetailTab('parqueos')">
+                <i class="fa-solid fa-square-parking"></i> Parqueos
+              </button>
+              <button type="button" class="tenant-tab-item" data-tab="usuarios" onclick="switchDetailTab('usuarios')">
+                <i class="fa-solid fa-users"></i> Usuarios
+              </button>
+              <button type="button" class="tenant-tab-item" data-tab="operadores" onclick="switchDetailTab('operadores')">
+                <i class="fa-solid fa-user-gear"></i> Operadores
+              </button>
+              <button type="button" class="tenant-tab-item" data-tab="reservas" onclick="switchDetailTab('reservas')">
+                <i class="fa-solid fa-calendar-check"></i> Reservas
+              </button>
+              <button type="button" class="tenant-tab-item" data-tab="pagos" onclick="switchDetailTab('pagos')">
+                <i class="fa-solid fa-receipt"></i> Pagos
+              </button>
+              <button type="button" class="tenant-tab-item" data-tab="configuracion" onclick="switchDetailTab('configuracion')">
+                <i class="fa-solid fa-sliders"></i> Configuración
+              </button>
+              <button type="button" class="tenant-tab-item" data-tab="bitacora" onclick="switchDetailTab('bitacora')">
+                <i class="fa-solid fa-clock-rotate-left"></i> Bitácora
+              </button>
+            </div>
+
+            <!-- TAB 1: RESUMEN -->
+            <div class="detail-tab-pane active" id="tab-pane-resumen">
+              <div class="detail-summary-grid">
+                <div class="summary-info-card">
+                  <div class="summary-card-title"><i class="fa-solid fa-cubes" style="color:var(--accent-emerald);"></i> Métricas del Tenant</div>
+                  <div class="info-list-group">
+                    <div class="info-item-row"><span class="label">Parqueos registrados:</span> <span class="val" id="sum-parqueos-count">4</span></div>
+                    <div class="info-item-row"><span class="label">Plazas totales:</span> <span class="val">315 espacios</span></div>
+                    <div class="info-item-row"><span class="label">Operadores activos:</span> <span class="val" id="sum-operadores-count">8</span></div>
+                    <div class="info-item-row"><span class="label">Reservas del mes:</span> <span class="val">1,420 reservas</span></div>
+                    <div class="info-item-row"><span class="label">Ingresos generados:</span> <span class="val" style="color:#22C55E;">Bs. 48,920</span></div>
+                    <div class="info-item-row"><span class="label">Comisión ParkinGo:</span> <span class="val" style="color:var(--accent-emerald);" id="sum-comision">8.5% (Bs. 4,158)</span></div>
+                  </div>
+                </div>
+
+                <div class="summary-info-card">
+                  <div class="summary-card-title"><i class="fa-solid fa-user-shield" style="color:var(--accent-emerald);"></i> Administrador Responsable</div>
+                  <div class="info-list-group">
+                    <div class="info-item-row"><span class="label">Nombre:</span> <span class="val" id="sum-admin-name">Carlos Méndez</span></div>
+                    <div class="info-item-row"><span class="label">Correo:</span> <span class="val" id="sum-admin-email">carlos.mendez@parkingcenter.bo</span></div>
+                    <div class="info-item-row"><span class="label">Teléfono:</span> <span class="val" id="sum-admin-phone">+591 773-48291</span></div>
+                    <div class="info-item-row"><span class="label">Estado de Cuenta:</span> <span class="val"><span class="badge-status activo">Activo</span></span></div>
+                  </div>
+                </div>
+
+                <div class="summary-info-card">
+                  <div class="summary-card-title"><i class="fa-solid fa-file-contract" style="color:var(--accent-emerald);"></i> Datos Comerciales</div>
+                  <div class="info-list-group">
+                    <div class="info-item-row"><span class="label">NIT / Documento:</span> <span class="val" id="sum-nit">10293847019</span></div>
+                    <div class="info-item-row"><span class="label">Dirección Fiscal:</span> <span class="val">Av. San Martín #420, Santa Cruz</span></div>
+                    <div class="info-item-row"><span class="label">Tenant ID:</span> <span class="val"><code>TNT-101</code></span></div>
+                    <div class="info-item-row"><span class="label">Tipo de Aislamiento:</span> <span class="val">Strict Schema Isolation</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 2: PARQUEOS (DISEÑO 1:1 CON VISTA DE TARJETAS DE SUCURSALES) -->
+            <div class="detail-tab-pane" id="tab-pane-parqueos">
+              
+              <!-- Header Top Bar -->
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.25rem;">
+                <div>
+                  <h3 style="font-size:1.25rem; font-weight:700; color:var(--text-main); margin:0 0 0.25rem 0;">Gestión de Parqueos y Sucursales</h3>
+                  <p style="font-size:0.85rem; color:var(--text-muted); margin:0;">Monitoreo en tiempo real de capacidad, ocupación y estado por ubicación.</p>
+                </div>
+                <button type="button" class="btn-primary-green" onclick="alert('Registrar nueva sucursal de parqueo para este tenant');">
+                  <i class="fa-solid fa-plus"></i> Registrar Sucursal
+                </button>
+              </div>
+
+              <!-- Filters Row (1:1 con Imagen 1) -->
+              <div class="filters-card" style="margin-bottom:1.25rem;">
+                <div class="filters-flex-row">
+                  <div class="search-input-group">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="detail-parking-search" placeholder="Buscar sucursal, ciudad o dirección..." oninput="filterTenantBranchCards()">
+                  </div>
+
+                  <select class="filter-select" id="detail-parking-status-filter" onchange="filterTenantBranchCards()">
+                    <option value="all">Todos los Estados</option>
+                    <option value="operativo">OPERATIVO</option>
+                    <option value="lleno">LLENO</option>
+                    <option value="mantenimiento">MANTENIMIENTO</option>
+                    <option value="inactivo">INACTIVO</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Branch Cards Grid (1:1 con Imagen 1) -->
+              <div id="detail-parqueos-cards-container">
+                <!-- JS Population -->
+              </div>
+
+            </div>
+
+            <!-- TAB 3: USUARIOS -->
+            <div class="detail-tab-pane" id="tab-pane-usuarios">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3 style="font-size:1.1rem; margin:0;">Usuarios Asociados al Tenant</h3>
+                <button type="button" class="btn-primary-green" onclick="alert('Invitar nuevo usuario');"><i class="fa-solid fa-user-plus"></i> Invitar Usuario</button>
+              </div>
+              <div class="table-card">
+                <table class="tenants-data-table">
+                  <thead>
+                    <tr>
+                      <th>Nombre</th>
+                      <th>Correo</th>
+                      <th>Rol</th>
+                      <th>Parqueo Asignado</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody id="detail-usuarios-tbody">
+                    <!-- Inyectado mediante JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- TAB 4: OPERADORES -->
+            <div class="detail-tab-pane" id="tab-pane-operadores">
+              <div class="table-card" style="padding:1.5rem; text-align:center; color:var(--text-muted);">
+                <i class="fa-solid fa-user-gear" style="font-size:2rem; color:var(--accent-emerald); margin-bottom:0.5rem;"></i>
+                <p style="margin:0; font-weight:600;">8 Operadores de Garaje asignados en turnos rotativos.</p>
+              </div>
+            </div>
+
+            <!-- TAB 5: RESERVAS -->
+            <div class="detail-tab-pane" id="tab-pane-reservas">
+              <div class="table-card" style="padding:1.5rem; text-align:center; color:var(--text-muted);">
+                <i class="fa-solid fa-calendar-check" style="font-size:2rem; color:var(--accent-emerald); margin-bottom:0.5rem;"></i>
+                <p style="margin:0; font-weight:600;">Historial de 1,420 reservas registradas este mes.</p>
+              </div>
+            </div>
+
+            <!-- TAB 6: PAGOS -->
+            <div class="detail-tab-pane" id="tab-pane-pagos">
+              <div class="table-card" style="padding:1.5rem; text-align:center; color:var(--text-muted);">
+                <i class="fa-solid fa-receipt" style="font-size:2rem; color:var(--accent-emerald); margin-bottom:0.5rem;"></i>
+                <p style="margin:0; font-weight:600;">Comisión generada: Bs. 4,158 | Estado de pago: Al día.</p>
+              </div>
+            </div>
+
+            <!-- TAB 7: CONFIGURACIÓN -->
+            <div class="detail-tab-pane" id="tab-pane-configuracion">
+              <div class="summary-info-card" style="max-width:600px;">
+                <h4 style="margin-bottom:1rem;">Parámetros del Tenant</h4>
+                <div class="form-group">
+                  <label class="form-label">Porcentaje de Comisión por Reserva (%):</label>
+                  <input type="number" class="form-control" value="8.5" step="0.1">
+                </div>
+                <button type="button" class="btn-primary-green" style="margin-top:1rem;" onclick="showToast('Configuración de comisión guardada', 'success');">Guardar Cambios</button>
+              </div>
+            </div>
+
+            <!-- TAB 8: BITÁCORA DE AUDITORÍA -->
+            <div class="detail-tab-pane" id="tab-pane-bitacora">
+              <h3 style="font-size:1.1rem; margin-bottom:1.25rem;">Línea de Tiempo de Acciones (Bitácora de Auditoría)</h3>
+              <div class="timeline-list" id="detail-bitacora-timeline">
+                <!-- Inyectado mediante JS -->
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- ==========================================================================
+             VIEW 4: GESTIÓN DE PARQUEOS (SUCURSALES)
+             ========================================================================== -->
+        <section id="view-parqueos" class="dashboard-view">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2>Gestión de Parqueos y Sucursales</h2>
+              <p>Monitoreo en tiempo real de capacidad, ocupación y estado por ubicación.</p>
+            </div>
+            <div class="view-actions">
+              <button class="btn btn-primary" onclick="alert('Registrar nueva sucursal de parqueo')">
+                <i class="fa-solid fa-plus"></i> Registrar Sucursal
+              </button>
+            </div>
+          </div>
+
+          <div class="filters-bar">
+            <div class="search-input-wrapper">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="search-parking-input" class="form-control"
+                placeholder="Buscar sucursal, ciudad o dueño...">
+            </div>
+
+            <select class="form-select" id="filter-parking-company">
+              <option value="todas">Todas las Empresas</option>
+            </select>
+
+            <select class="form-select" id="filter-parking-status">
+              <option value="todos">Todos los Estados</option>
+              <option value="Operativo">Operativos</option>
+              <option value="Lleno">Llenos</option>
+              <option value="Mantenimiento">En Mantenimiento</option>
+            </select>
+          </div>
+
+          <div class="parking-grid" id="parkings-cards-container">
+            <!-- JS Population -->
+          </div>
+        </section>
+
+
+        <!-- ==========================================================================
+             VIEW: SOLICITUDES DE REGISTRO DE PARQUEOS
+             ========================================================================== -->
+        <section id="view-solicitudes" class="dashboard-view">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2>Solicitudes de Registro de Parqueos</h2>
+              <p>Revisión, aprobación y alta oficial de estacionamientos registrados por Administradores de Parqueo.</p>
+            </div>
+          </div>
+
+          <!-- KPI Summary Cards -->
+          <div class="kpi-grid">
+            <div class="card kpi-card" style="border-left-color: var(--accent-blue);">
+              <div class="kpi-header">
+                <span>Total Solicitudes</span>
+                <div class="kpi-icon" style="background: rgba(37,99,235,0.1); color: var(--accent-blue);">
+                  <i class="fa-solid fa-folder-open"></i>
+                </div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="req-kpi-total">4</div>
+                <div class="kpi-subtext">Histórico acumulado</div>
+              </div>
+            </div>
+
+            <div class="card kpi-card" style="border-left-color: #D97706;">
+              <div class="kpi-header">
+                <span>Pendientes de Revisión</span>
+                <div class="kpi-icon" style="background: rgba(217,119,6,0.1); color: #D97706;">
+                  <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="req-kpi-pending">3</div>
+                <div class="kpi-subtext">Requieren acción del Admin</div>
+              </div>
+            </div>
+
+            <div class="card kpi-card" style="border-left-color: var(--accent-emerald);">
+              <div class="kpi-header">
+                <span>Aprobadas (Alta)</span>
+                <div class="kpi-icon" style="background: var(--accent-emerald-light); color: var(--accent-emerald);">
+                  <i class="fa-solid fa-circle-check"></i>
+                </div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="req-kpi-approved">1</div>
+                <div class="kpi-subtext">Parqueos activos en red</div>
+              </div>
+            </div>
+
+            <div class="card kpi-card" style="border-left-color: var(--accent-rose);">
+              <div class="kpi-header">
+                <span>Rechazadas</span>
+                <div class="kpi-icon" style="background: rgba(225,29,72,0.1); color: var(--accent-rose);">
+                  <i class="fa-solid fa-circle-xmark"></i>
+                </div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="req-kpi-rejected">0</div>
+                <div class="kpi-subtext">Solicitudes denegadas</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="filters-bar">
+            <div class="search-input-wrapper">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="search-requests-input" class="form-control"
+                placeholder="Buscar por ID, parqueo, administrador o ciudad...">
+            </div>
+
+            <select class="form-select" id="filter-request-status">
+              <option value="todos">Todos los Estados</option>
+              <option value="Pendiente" selected>Pendiente de Revisión</option>
+              <option value="Aprobado">Aprobados</option>
+              <option value="Rechazado">Rechazados</option>
+            </select>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID Solicitud</th>
+                  <th>Parqueo Solicitado</th>
+                  <th>Administrador / Empresa</th>
+                  <th>Ciudad / Ubicación</th>
+                  <th>Capacidad / Tarifa</th>
+                  <th>Fecha Enviado</th>
+                  <th>Estado</th>
+                  <th style="text-align:right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="requests-table-body">
+                <!-- JS Population -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+
+        <!-- ==========================================================================
+             VIEW 5: GESTIÓN DE PLANES
+             ========================================================================== -->
+        <section id="view-planes" class="dashboard-view">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2>Planes Comerciales y Suscripciones</h2>
+              <p>Catálogo comercial para empresas registradas en la plataforma ParkinGo.</p>
+            </div>
+          </div>
+
+          <div class="plans-grid" id="plans-cards-container">
+            <!-- JS Population -->
+          </div>
+        </section>
+
+
+        <!-- ==========================================================================
+             VIEW 6: GESTIÓN DE COMISIONES
+             ========================================================================== -->
+        <section id="view-comisiones" class="dashboard-view">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2>Comisiones y Liquidaciones Financieras</h2>
+              <p>Ajuste de tasas de retención por servicio y pagos pendientes a dueños.</p>
+            </div>
+          </div>
+
+          <!-- Configuration Card -->
+          <div class="card" style="margin-bottom: 1.25rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+              <div>
+                <h4 style="font-size:0.95rem; margin-bottom:0.2rem;">Porcentaje de Comisión Global</h4>
+                <p style="font-size:0.78rem; color:var(--text-muted);">Comisión retenida de forma automática por cada
+                  reserva o cobro de terminal.</p>
+              </div>
+              <div style="display:flex; gap:0.75rem; align-items:center;">
+                <input type="number" step="0.1" id="commission-rate-input" class="form-control form-control-no-icon"
+                  style="width:100px;" value="8.5">
+                <button class="btn btn-primary" onclick="saveCommissionRate()">
+                  <i class="fa-solid fa-check"></i> Actualizar %
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID Liquidación</th>
+                  <th>Empresa Receptora</th>
+                  <th>Monto Bruto</th>
+                  <th>Comisión Retenida</th>
+                  <th>Neto Transferir</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="settlements-table-body">
+                <!-- JS Population -->
+              </tbody>
+            </table>
+            <div class="table-pagination">
+              <span>Mostrando 3 liquidaciones de la sesión actual</span>
+              <div class="pagination-controls">
+                <button class="page-btn active">1</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ==========================================================================
+             VIEW 7: PROMOCIONES DEL SISTEMA
+             ========================================================================== -->
+        <section id="view-promociones" class="dashboard-view">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2>Promociones y Cupones Globales</h2>
+              <p>Campañas de descuento configuradas para la red de parqueos.</p>
+            </div>
+            <div class="view-actions">
+              <button class="btn btn-primary" onclick="openModal('modalNewPromo')">
+                <i class="fa-solid fa-ticket"></i> Crear Promoción
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Código Cupón</th>
+                  <th>Tipo / Valor</th>
+                  <th>Vigencia</th>
+                  <th>Uso Actual</th>
+                  <th>Estado</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="promotions-table-body">
+                <!-- JS Population -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+
+        <!-- ==========================================================================
+             VIEW 8: BITÁCORA DEL SISTEMA (AUDIT LOG)
+             ========================================================================== -->
+        <section id="view-bitacora" class="dashboard-view">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2>Bitácora de Auditoría (Audit Log Enterprise)</h2>
+              <p>Registro inmutable de actividades administrativas con trazabilidad de IP.</p>
+            </div>
+          </div>
+
+          <div class="filters-bar">
+            <div class="search-input-wrapper">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="search-audit-input" class="form-control"
+                placeholder="Buscar por usuario, acción, módulo o dirección IP...">
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Fecha y Hora</th>
+                  <th>Usuario / Rol</th>
+                  <th>Acción Realizada</th>
+                  <th>Módulo Afectado</th>
+                  <th>Dirección IP</th>
+                </tr>
+              </thead>
+              <tbody id="audit-table-body">
+                <!-- JS Population -->
+              </tbody>
+            </table>
+            <div class="table-pagination">
+              <span>Registros en tiempo real • Audit Log v2.4</span>
+              <div class="pagination-controls">
+                <button class="page-btn active">1</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ==========================================================================
+             VIEW 9: COPIAS DE SEGURIDAD (BACKUP & RESTORE)
+             ========================================================================== -->
+        <section id="view-backups" class="dashboard-view">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2>Copias de Seguridad (Database & Backup Vault)</h2>
+              <p>Gestión de respaldos automáticos, encriptación en la nube y restauración de emergencia.</p>
+            </div>
+            <div class="view-actions">
+              <button class="btn btn-primary" onclick="createBackup()">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Crear Copia Ahora
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Grid -->
+          <div class="kpi-grid">
+            <div class="card kpi-card">
+              <div class="kpi-header">
+                <span>Último Respaldado</span>
+                <div class="kpi-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" style="font-size:1.4rem;">Hoy 04:00 AM</div>
+                <div class="kpi-subtext">Estado: Completado OK</div>
+                <div class="kpi-trend positive">
+                  <i class="fa-solid fa-circle-check"></i> Encriptado AES-256
+                </div>
+              </div>
+            </div>
+
+            <div class="card kpi-card">
+              <div class="kpi-header">
+                <span>Frecuencia Automática</span>
+                <div class="kpi-icon" style="color:var(--accent-blue);"><i class="fa-solid fa-calendar-check"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" style="font-size:1.4rem;">Diaria</div>
+                <div class="kpi-subtext">04:00 hrs (UTC)</div>
+                <div class="kpi-trend positive">
+                  <i class="fa-solid fa-shield-halved"></i> Programado activo
+                </div>
+              </div>
+            </div>
+
+            <div class="card kpi-card">
+              <div class="kpi-header">
+                <span>Espacio Ocupado</span>
+                <div class="kpi-icon" style="color:var(--accent-amber);"><i class="fa-solid fa-hard-drive"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value">1.42 GB</div>
+                <div class="kpi-subtext">Total 4 copias almacenadas</div>
+                <div class="kpi-trend positive">
+                  <i class="fa-solid fa-cloud"></i> B2B Cloud Storage
+                </div>
+              </div>
+            </div>
+
+            <div class="card kpi-card">
+              <div class="kpi-header">
+                <span>Retención de Datos</span>
+                <div class="kpi-icon" style="color:var(--accent-rose);"><i class="fa-solid fa-box-archive"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value">30 Días</div>
+                <div class="kpi-subtext">Políticas de retención B2B</div>
+                <div class="kpi-trend positive">
+                  <i class="fa-solid fa-check"></i> Cumple ISO-27001
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Configuration Card -->
+          <div class="card" style="margin-bottom: 1.25rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+              <div>
+                <h4 style="font-size:0.95rem; margin-bottom:0.2rem;">Programación de Respaldos Automáticos</h4>
+                <p style="font-size:0.78rem; color:var(--text-muted);">Configura la frecuencia y política de guardado en
+                  la nube.</p>
+              </div>
+              <div style="display:flex; gap:0.75rem; align-items:center;">
+                <select class="form-select" id="backup-frequency-select">
+                  <option value="Diario">Frecuencia: Diaria (Recomendado)</option>
+                  <option value="Semanal">Frecuencia: Semanal</option>
+                  <option value="Mensual">Frecuencia: Mensual</option>
+                </select>
+                <button class="btn btn-secondary"
+                  onclick="showToast('Configuración de respaldos guardada.', 'success')">
+                  <i class="fa-solid fa-floppy-disk"></i> Guardar Políticas
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Backups Table -->
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID Respaldado</th>
+                  <th>Fecha y Hora</th>
+                  <th>Tipo</th>
+                  <th>Tamaño</th>
+                  <th>Formato</th>
+                  <th>Encriptación</th>
+                  <th>Estado</th>
+                  <th style="text-align:right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="backups-table-body">
+                <!-- JS Population -->
+              </tbody>
+            </table>
+            <div class="table-pagination">
+              <span>Historial de respaldos de base de datos • Vault v2.4</span>
+              <div class="pagination-controls">
+                <button class="page-btn active">1</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ==========================================================================
+             VIEW 9: CALIFICACIONES, DENUNCIAS Y REPORTES DE PARQUEOS
+             ========================================================================== -->
+        <section id="view-denuncias" class="dashboard-view">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2>Denuncias y Reportes de Parqueos</h2>
+              <p>Auditoría de reclamos y calificaciones reportados por conductores sobre estacionamientos de la red.</p>
+            </div>
+          </div>
+
+          <div class="kpi-grid">
+            <div class="card kpi-card" style="border-left-color: var(--accent-blue);">
+              <div class="kpi-header">
+                <span>Total Reportes</span>
+                <div class="kpi-icon" style="background: rgba(37,99,235,0.1); color: var(--accent-blue);"><i
+                    class="fa-solid fa-flag"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="den-kpi-total">3</div>
+                <div class="kpi-subtext">Registrados este mes</div>
+              </div>
+            </div>
+
+            <div class="card kpi-card" style="border-left-color: #D97706;">
+              <div class="kpi-header">
+                <span>En Investigación</span>
+                <div class="kpi-icon" style="background: rgba(217,119,6,0.1); color: #D97706;"><i
+                    class="fa-solid fa-magnifying-glass"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="den-kpi-pending">2</div>
+                <div class="kpi-subtext">Requieren atención del Admin</div>
+              </div>
+            </div>
+
+            <div class="card kpi-card" style="border-left-color: var(--accent-emerald);">
+              <div class="kpi-header">
+                <span>Resueltos</span>
+                <div class="kpi-icon" style="background: var(--accent-emerald-light); color: var(--accent-emerald);"><i
+                    class="fa-solid fa-circle-check"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="den-kpi-resolved">1</div>
+                <div class="kpi-subtext">Conciliados con éxito</div>
+              </div>
+            </div>
+
+            <div class="card kpi-card" style="border-left-color: var(--accent-rose);">
+              <div class="kpi-header">
+                <span>Sancionados</span>
+                <div class="kpi-icon" style="background: rgba(225,29,72,0.1); color: var(--accent-rose);"><i
+                    class="fa-solid fa-gavel"></i></div>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="den-kpi-sanctioned">0</div>
+                <div class="kpi-subtext">Parqueos penalizados</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="filters-bar">
+            <div class="search-input-wrapper">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="search-denuncias-input" class="form-control"
+                placeholder="Buscar por ID, parqueo, usuario o categoría...">
+            </div>
+
+            <select class="form-select" id="filter-denuncia-status">
+              <option value="todos">Todos los Estados</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="En Investigación">En Investigación</option>
+              <option value="Resuelto">Resuelto</option>
+            </select>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID Reporte</th>
+                  <th>Parqueo Reportado</th>
+                  <th>Conductor / Denunciante</th>
+                  <th>Categoría</th>
+                  <th>Severidad</th>
+                  <th>Fecha</th>
+                  <th>Estado</th>
+                  <th style="text-align:right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="denuncias-table-body">
+                <!-- JS Population -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+
+        <!-- ==========================================================================
+             VIEW 10: CONFIGURACIÓN GENERAL DEL SISTEMA
+             ========================================================================== -->
+        <section id="view-configuracion" class="dashboard-view">
+          <div class="view-header">
+            <div class="view-header-title">
+              <h2>Configuración General del Sistema ParkinGo</h2>
+              <p>Parámetros globales de la plataforma, monedas, SLA operativo y datos institucionales.</p>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem;">
+            <div class="card">
+              <h3
+                style="font-size:1.05rem; margin-bottom:1rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.5rem;">
+                <i class="fa-solid fa-sliders" style="color:var(--primary-color);"></i> Parámetros de Operación
+              </h3>
+              <form id="formSystemConfig" onsubmit="event.preventDefault(); saveSystemConfig();">
+                <div class="form-group">
+                  <label>Nombre Institucional de la Plataforma</label>
+                  <input type="text" id="cfg-platform-name" class="form-control form-control-no-icon"
+                    value="ParkinGo Enterprise Platform" required>
+                </div>
+                <div class="form-group">
+                  <label>Moneda Principal del Sistema</label>
+                  <select id="cfg-currency" class="form-select" style="width:100%;">
+                    <option value="BOB" selected>Bolivianos - Bs. (BOB)</option>
+                    <option value="USD">Dólares Estadounidenses - $ (USD)</option>
+                    <option value="MXN">Pesos Mexicanos - $ (MXN)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>SLA Operativo Garantizado (%)</label>
+                  <input type="text" id="cfg-sla" class="form-control form-control-no-icon" value="99.9%" required>
+                </div>
+                <div class="form-group">
+                  <label>Modo Mantenimiento Global</label>
+                  <select id="cfg-maintenance" class="form-select" style="width:100%;">
+                    <option value="false" selected>Desactivado (Sistema Normal)</option>
+                    <option value="true">Activado (Solo Administradores)</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top:0.5rem;">
+                  <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios de Operación
+                </button>
+              </form>
+            </div>
+
+            <div class="card">
+              <h3
+                style="font-size:1.05rem; margin-bottom:1rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.5rem;">
+                <i class="fa-solid fa-headset" style="color:var(--primary-color);"></i> Soporte e Integración Enterprise
+              </h3>
+              <div class="form-group">
+                <label>Correo Electrónico de Soporte Técnico</label>
+                <input type="email" id="cfg-support-email" class="form-control form-control-no-icon"
+                  value="soporte@parkingo.bo">
+              </div>
+              <div class="form-group">
+                <label>Línea Telefónica de Atención 24/7</label>
+                <input type="text" id="cfg-support-phone" class="form-control form-control-no-icon"
+                  value="+591 800 10 9900">
+              </div>
+              <div
+                style="background:rgba(0,109,54,0.04); border-left:3px solid var(--primary-color); padding:0.85rem; border-radius:0 6px 6px 0; margin-top:1.5rem;">
+                <div style="font-weight:700; font-size:0.85rem; color:var(--primary-color); margin-bottom:0.25rem;">
+                  Estado de Servicios API</div>
+                <div style="font-size:0.78rem; color:var(--text-muted);">
+                  • Motor de Reservas: <strong style="color:var(--accent-emerald);">Activo</strong><br>
+                  • Pasarela de Pagos (QR/Tarjeta): <strong style="color:var(--accent-emerald);">Activo</strong><br>
+                  • Servicio de Geolocalización GPS: <strong style="color:var(--accent-emerald);">Activo</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+
+  <!-- ==========================================================================
+       MODAL WINDOWS SYSTEM
+       ========================================================================== -->
+
+  <!-- MODAL: NUEVO USUARIO DEL SISTEMA -->
+  <div class="modal-backdrop" id="modalNewOwner">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Registrar Nuevo Usuario del Sistema</h3>
+        <button class="modal-close-btn" onclick="closeModal('modalNewOwner')">&times;</button>
+      </div>
+      <form id="formNewOwner">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Rol de Usuario</label>
+            <select id="owner-role" class="form-select" style="width:100%;">
+              <option value="Administrador de Parqueo">Administrador de Parqueo</option>
+              <option value="Dueño de Empresa" selected>Dueño de Empresa</option>
+              <option value="Conductor">Conductor</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Nombre Completo</label>
+            <input type="text" id="owner-name" class="form-control form-control-no-icon" placeholder="Ej. Juan Pérez"
+              required>
+          </div>
+          <div class="form-group">
+            <label>Empresa / Organización (Opcional para Conductores)</label>
+            <input type="text" id="owner-company" class="form-control form-control-no-icon"
+              placeholder="Ej. Parkings del Sur S.A. / Particular" required>
+          </div>
+          <div class="form-group">
+            <label>Correo Electrónico</label>
+            <input type="email" id="owner-email" class="form-control form-control-no-icon"
+              placeholder="usuario@empresa.com" required>
+          </div>
+          <div class="form-group">
+            <label>Teléfono de Contacto</label>
+            <input type="text" id="owner-phone" class="form-control form-control-no-icon" placeholder="+591 700 00000"
+              required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modalNewOwner')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Registrar Usuario</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: DETALLE DUEÑO -->
+  <div class="modal-backdrop" id="modalUserDetail">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Detalle del Registrado Enterprise</h3>
+        <button class="modal-close-btn" onclick="closeModal('modalUserDetail')">&times;</button>
+      </div>
+      <div class="modal-body" id="userDetailBody">
+        <!-- JS Content -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalUserDetail')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NUEVA PROMOCIÓN -->
+  <div class="modal-backdrop" id="modalNewPromo">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Crear Nueva Promoción / Cupón</h3>
+        <button class="modal-close-btn" onclick="closeModal('modalNewPromo')">&times;</button>
+      </div>
+      <form id="formNewPromo">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Código del Cupón</label>
+            <input type="text" id="promo-code" class="form-control form-control-no-icon" placeholder="Ej. VERANO2026"
+              required>
+          </div>
+          <div class="form-group">
+            <label>Tipo de Descuento</label>
+            <select id="promo-type" class="form-select" style="width:100%;">
+              <option value="Porcentaje">Porcentaje (%)</option>
+              <option value="Monto Fijo">Monto Fijo ($)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Valor de Descuento</label>
+            <input type="text" id="promo-discount" class="form-control form-control-no-icon"
+              placeholder="Ej. 20% o $30 MXN" required>
+          </div>
+          <div class="form-group">
+            <label>Límite Máximo de Usos</label>
+            <input type="number" id="promo-limit" class="form-control form-control-no-icon" value="500" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modalNewPromo')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Crear Promoción</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDITAR PLAN -->
+  <div class="modal-backdrop" id="modalEditPlan">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Editar Plan de Suscripción</h3>
+        <button class="modal-close-btn" onclick="closeModal('modalEditPlan')">&times;</button>
+      </div>
+      <form id="formEditPlan">
+        <div class="modal-body">
+          <input type="hidden" id="edit-plan-id">
+          <div class="form-group">
+            <label>Nombre del Plan</label>
+            <input type="text" id="edit-plan-name" class="form-control form-control-no-icon" readonly>
+          </div>
+          <div class="form-group">
+            <label>Precio Mensual ($ USD)</label>
+            <input type="number" id="edit-plan-price" class="form-control form-control-no-icon" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modalEditPlan')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EXPORTAR REPORTE -->
+  <div class="modal-backdrop" id="modalExportReport">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Exportar Reportes Enterprise</h3>
+        <button class="modal-close-btn" onclick="closeModal('modalExportReport')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Tipo de Datos a Exportar</label>
+          <select class="form-select" style="width:100%;">
+            <option>Consolidado de Comisiones e Ingresos</option>
+            <option>Directorio de Empresas y Dueños</option>
+            <option>Bitácora de Eventos de Seguridad (Audit Log)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Formato de Salida</label>
+          <select class="form-select" style="width:100%;">
+            <option>Archivo Excel (.xlsx)</option>
+            <option>Documento PDF (.pdf)</option>
+            <option>Valores Separados por Comas (.csv)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalExportReport')">Cancelar</button>
+        <button type="button" class="btn btn-primary"
+          onclick="closeModal('modalExportReport'); showToast('Reporte Enterprise generado y descargado.', 'success');">Generar
+          y Descargar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DETALLE DE SOLICITUD DE REGISTRO -->
+  <div class="modal-backdrop" id="modalRequestDetail">
+    <div class="modal-box" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3>Detalle de Solicitud de Registro</h3>
+        <button class="modal-close-btn" onclick="closeModal('modalRequestDetail')">&times;</button>
+      </div>
+      <div class="modal-body" id="requestDetailBody">
+        <!-- JS Population -->
+      </div>
+      <div class="modal-footer" id="requestDetailFooter">
+        <!-- JS Action Buttons (Aprobar / Rechazar) -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: RECHAZAR SOLICITUD DE REGISTRO -->
+  <div class="modal-backdrop" id="modalRejectRequest">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Rechazar Solicitud de Registro</h3>
+        <button class="modal-close-btn" onclick="closeModal('modalRejectRequest')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="reject-request-id">
+        <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:1rem;">
+          Indica el motivo de rechazo. Esta observación será enviada al Administrador de Parqueo.
+        </p>
+        <div class="form-group">
+          <label>Motivo de Rechazo / Observaciones</label>
+          <textarea id="reject-reason-input" class="form-control form-control-no-icon" rows="3"
+            placeholder="Ej. Documentación fiscal incompleta. Falta adjuntar la Licencia de Funcionamiento 2026 actualizada."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalRejectRequest')">Cancelar</button>
+        <button type="button" class="btn btn-danger" style="background:var(--accent-rose); color:#fff; border:none;"
+          onclick="confirmRejectRequest()">
+          <i class="fa-solid fa-ban"></i> Confirmar Rechazo
+        </button>
+      </div>
+    </div>
+    <!-- MODAL: OBSERVAR SOLICITUD DE REGISTRO -->
+    <div class="modal-backdrop" id="modalObserveRequest">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3>Observar Solicitud de Registro</h3>
+          <button class="modal-close-btn" onclick="closeModal('modalObserveRequest')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="observe-request-id">
+          <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:1rem;">
+            Indica los documentos o requisitos que el Administrador de Parqueo debe subsanar antes de la aprobación.
+          </p>
+          <div class="form-group">
+            <label>Detalle de Observaciones Requeridas</label>
+            <textarea id="observe-reason-input" class="form-control form-control-no-icon" rows="3"
+              placeholder="Ej. La Licencia de Funcionamiento adjunta se encuentra vencida (gestión 2024). Por favor subir el certificado 2026 renovado."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modalObserveRequest')">Cancelar</button>
+          <button type="button" class="btn btn-primary" style="background:#D97706; border-color:#D97706;"
+            onclick="confirmObserveRequest()">
+            <i class="fa-solid fa-triangle-exclamation"></i> Registrar Observación
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: DETALLE Y ACCIONES DE DENUNCIA -->
+    <div class="modal-backdrop" id="modalDenunciaDetail">
+      <div class="modal-box" style="max-width: 600px;">
+        <div class="modal-header">
+          <h3>Expediente de Denuncia / Reporte</h3>
+          <button class="modal-close-btn" onclick="closeModal('modalDenunciaDetail')">&times;</button>
+        </div>
+        <div class="modal-body" id="denunciaDetailBody">
+          <!-- JS Population -->
+        </div>
+        <div class="modal-footer" id="denunciaDetailFooter">
+          <!-- JS Population -->
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: NUEVO TENANT -->
+    <div class="modal-overlay" id="modal-new-tenant">
+      <div class="modal-box-lg">
+        <div class="modal-header-bar">
+          <h3><i class="fa-solid fa-building-user" style="color:var(--accent-emerald);"></i> Registrar Nuevo Tenant</h3>
+          <button type="button" class="btn-close-modal" id="btn-close-new-modal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <form id="form-new-tenant">
+          <div class="modal-body-content">
+
+            <!-- Sección 1: Información del Tenant -->
+            <div class="modal-form-section-title">1. Información del Tenant</div>
+
+            <div class="form-group-row" style="margin-bottom: 0.85rem;">
+              <div class="form-group">
+                <label class="form-label">Nombre Comercial / Razón Social <span style="color:#EF4444;">*</span></label>
+                <input type="text" id="new-tenant-name" class="form-control" placeholder="Ej. Smart Parking SRL" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Tipo de Tenant <span style="color:#EF4444;">*</span></label>
+                <select id="new-tenant-type" class="filter-select" style="width:100%;" required>
+                  <option value="Empresa" selected>Empresa</option>
+                  <option value="Particular">Propietario particular</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group-row" style="margin-bottom: 0.85rem;">
+              <div class="form-group">
+                <label class="form-label">NIT / Documento Identificación</label>
+                <input type="text" id="new-tenant-nit" class="form-control" placeholder="Ej. 1029384019">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Correo Electrónico Comercial <span style="color:#EF4444;">*</span></label>
+                <input type="email" id="new-tenant-email" class="form-control" placeholder="contacto@empresa.bo" required>
+              </div>
+            </div>
+
+            <div class="form-group-row" style="margin-bottom: 1.25rem;">
+              <div class="form-group">
+                <label class="form-label">Teléfono de Contacto <span style="color:#EF4444;">*</span></label>
+                <input type="text" id="new-tenant-phone" class="form-control" placeholder="+591 770-00000" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Dirección Fiscal</label>
+                <input type="text" id="new-tenant-address" class="form-control" placeholder="Av. Principal #100">
+              </div>
+            </div>
+
+            <!-- Sección 2: Administrador Responsable -->
+            <div class="modal-form-section-title">2. Administrador Responsable</div>
+
+            <div style="margin-bottom: 1rem; display:flex; gap:1.5rem; font-size:0.85rem;">
+              <label style="cursor:pointer; display:flex; align-items:center; gap:0.4rem;">
+                <input type="radio" name="admin_option" value="existing" checked onclick="toggleAdminOption('existing')">
+                <span>Seleccionar administrador existente</span>
+              </label>
+              <label style="cursor:pointer; display:flex; align-items:center; gap:0.4rem;">
+                <input type="radio" name="admin_option" value="new" onclick="toggleAdminOption('new')">
+                <span>+ Crear nuevo administrador</span>
+              </label>
+            </div>
+
+            <div id="admin-select-group" class="form-group" style="margin-bottom: 1.25rem;">
+              <label class="form-label">Administrador Existente:</label>
+              <select id="new-tenant-admin-select" class="filter-select" style="width:100%;">
+                <option value="carlos.mendez@parkingcenter.bo">Carlos Méndez (carlos.mendez@parkingcenter.bo)</option>
+                <option value="juan.rodriguez@gmail.com">Juan Rodríguez (juan.rodriguez@gmail.com)</option>
+                <option value="msuarez@smartparking.bo">María Suárez (msuarez@smartparking.bo)</option>
+                <option value="fprado@uruboparking.com">Fernando Prado (fprado@uruboparking.com)</option>
+              </select>
+            </div>
+
+            <div id="admin-new-fields-group" style="display:none; margin-bottom: 1.25rem;">
+              <div class="form-group-row">
+                <div class="form-group">
+                  <label class="form-label">Nombre Completo Admin:</label>
+                  <input type="text" id="new-admin-name" class="form-control" placeholder="Ej. Roberto Gómez">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Correo Personal Admin:</label>
+                  <input type="email" id="new-admin-email" class="form-control" placeholder="roberto@gmail.com">
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección 3: Configuración -->
+            <div class="modal-form-section-title">3. Configuración Inicial</div>
+
+            <div class="form-group-row">
+              <div class="form-group">
+                <label class="form-label">Plan Inicial:</label>
+                <select id="new-tenant-plan" class="filter-select" style="width:100%;">
+                  <option value="Gratuito">Gratuito</option>
+                  <option value="Básico">Básico</option>
+                  <option value="Profesional" selected>Profesional</option>
+                  <option value="Empresarial">Empresarial</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Estado Inicial:</label>
+                <select id="new-tenant-status" class="filter-select" style="width:100%;">
+                  <option value="Activo" selected>Activo</option>
+                  <option value="Pendiente">Pendiente</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Porcentaje Comisión (%):</label>
+                <input type="number" id="new-tenant-comision" class="form-control" value="8.5" step="0.5">
+              </div>
+            </div>
+
+          </div>
+
+          <div class="modal-footer-bar">
+            <button type="button" class="btn-secondary-outline" id="btn-cancel-new-tenant">Cancelar</button>
+            <button type="submit" class="btn-primary-green"><i class="fa-solid fa-floppy-disk"></i> Guardar Tenant</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: CONFIRMAR SUSPENSIÓN -->
+    <div class="modal-overlay" id="modal-confirm-suspend">
+      <div class="modal-box-lg" style="max-width:440px;">
+        <div class="modal-header-bar" style="background:#FEF2F2; border-bottom-color:#FCA5A5;">
+          <h3 style="color:#B91C1C; font-size:1.1rem;"><i class="fa-solid fa-triangle-exclamation"></i> Suspender Tenant</h3>
+          <button type="button" class="btn-close-modal" onclick="closeSuspendConfirmModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body-content">
+          <p style="font-size:0.9rem; color:var(--text-main); margin-bottom:0.75rem;">
+            ¿Está seguro de que desea suspender el tenant <strong id="suspend-tenant-name">Tenant</strong>?
+          </p>
+          <div style="background:#FFFBEB; border:1px solid #FCD34D; padding:0.75rem; border-radius:6px; font-size:0.78rem; color:#92400E;">
+            <i class="fa-solid fa-shield-halved"></i> <strong>Nota de Seguridad:</strong> No se realizarán eliminaciones físicas. Se conservará el historial completo de reservas, pagos y registros de auditoría.
+          </div>
+        </div>
+        <div class="modal-footer-bar">
+          <button type="button" class="btn-secondary-outline" onclick="closeSuspendConfirmModal()">Cancelar</button>
+          <button type="button" class="btn-primary-green" style="background:#EF4444;" onclick="confirmSuspendTenant()">Confirmar Suspensión</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST STACK CONTAINER -->
+    <div class="toast-stack" id="toast-stack"></div>
+
+    <!-- TOAST NOTIFICATIONS CONTAINER -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Script Modules -->
+    <script src="js/dashboard-data.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/tenants.js"></script>
+</body>
+
+</html>
