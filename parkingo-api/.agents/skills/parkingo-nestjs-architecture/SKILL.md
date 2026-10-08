@@ -50,3 +50,4 @@ Follow this sequence when building a new feature:
 - **Mappers:** Transform Prisma models to Entities, and Entities to DTOs here to avoid cluttering Actions and Controllers.
 - **Guards vs Policies:** Guard = "Can the user access this endpoint?" (Role/JWT). Policy = "Can the user manipulate this specific resource?"
 - **No Over-Architecture:** For extremely simple operations, `Controller -> Action -> Repository` is fine. Add Services and Policies only when complexity demands it.
+- **API Documentation:** EVERY implemented endpoint MUST be documented using Swagger. Use `@ApiTags`, `@ApiOperation`, and `@ApiResponse` in Controllers, and `@ApiProperty` in DTOs to ensure a professional and complete API reference.

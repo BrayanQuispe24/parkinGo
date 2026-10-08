@@ -15,10 +15,45 @@ model Role {
   id          String       @id @default(uuid())
   name        String       @unique
   permissions Permission[]
+  users       User[]
 }
 
 model Permission {
   id    String @id @default(uuid())
   name  String @unique
   roles Role[]
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum UserGender {
+  M
+  F
+  U
+}
+
+model User {
+  id         String      @id @default(uuid())
+  email      String      @unique
+  password   String
+  isVerified Boolean     @default(false)
+  status     UserStatus  @default(ACTIVE)
+  photoUrl   String?
+  firstName  String
+  lastName   String
+  gender     UserGender?
+  birthDate  DateTime?   @db.Date
+  ci         String      @unique
+  phone      String?
+
+  roleId String
+  role   Role   @relation(fields: [roleId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

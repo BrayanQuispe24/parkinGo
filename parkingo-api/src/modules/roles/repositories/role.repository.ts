@@ -10,6 +10,7 @@ export abstract class RoleRepository {
     abstract create(name: string, permissionIds?: string[]): Promise<RoleEntity>;
     abstract findAll(): Promise<RoleEntity[]>;
     abstract findById(id: string): Promise<RoleEntity>;
+    abstract findByName(name: string): Promise<RoleEntity | null>;
     abstract update(id: string, name?: string, permissionIds?: string[]): Promise<RoleEntity>;
     abstract delete(id: string): Promise<RoleEntity>;
 }

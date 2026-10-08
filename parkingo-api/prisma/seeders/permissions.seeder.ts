@@ -24,6 +24,25 @@ async function main() {
     }
 
     console.log('✅ Permisos insertados correctamente.');
+
+    console.log('👑 Sincronizando rol SUPERADMIN...');
+    const allPermissions = await prisma.permission.findMany();
+    
+    await prisma.role.upsert({
+        where: { name: 'SUPERADMIN' },
+        update: {
+            permissions: {
+                set: allPermissions.map(p => ({ id: p.id }))
+            }
+        },
+        create: {
+            name: 'SUPERADMIN',
+            permissions: {
+                connect: allPermissions.map(p => ({ id: p.id }))
+            }
+        }
+    });
+    console.log('✅ Rol SUPERADMIN creado/actualizado con todos los permisos.');
 }
 
 main()

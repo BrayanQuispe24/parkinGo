@@ -1,5 +1,5 @@
-import { IsNotEmpty, IsString, IsArray, IsUUID, IsOptional } from "class-validator";
-import { UUID } from "crypto";
+import { Transform } from "class-transformer";
+import { IsNotEmpty, IsString, IsArray, IsUUID, IsOptional, MinLength, MaxLength } from "class-validator";
 
 /**
  * Data Transfer Object (DTO) para la creación de un Rol.
@@ -8,7 +8,11 @@ import { UUID } from "crypto";
  */
 export class CreateRoleDto {
     @IsString()
-    @IsNotEmpty()
+    @IsNotEmpty({ message: 'El nombre del rol no puede estar vacío' })
+    @MinLength(3, { message: 'El nombre del rol debe tener al menos 3 caracteres' })
+    @MaxLength(30, { message: 'El nombre del rol no puede exceder los 30 caracteres' })
+    //vamos a transformar el texto
+    @Transform(({ value }) => value.trim().toUpperCase())
     name: string;
 
     @IsArray()

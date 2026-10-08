@@ -52,5 +52,6 @@ import { DeleteRoleAction } from "./actions/delete-role.action.js";
         },
 
     ],
+    exports: [RoleRepository],
 })
 export class RolesModule { }

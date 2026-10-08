@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post } from "@nestjs/common";
 import { CreateRoleAction } from "../actions/create-role.action.js";
 import { GetRolesAction } from "../actions/get-roles.action.js";
 import { CreateRoleDto } from "../dto/create-role.dto.js";
@@ -55,7 +55,7 @@ export class RolesController {
 
     @Patch(':id')
     @HttpCode(HttpStatus.OK)
-    async update(@Param('id') id: string, @Body() dto: UpdateRoleDto) {
+    async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateRoleDto) {
         const role = await this.updateRoleAction.execute(id, dto.name, dto.permissionsIds);
         return {
             message: "Rol actualizado exitosamente",
@@ -66,7 +66,7 @@ export class RolesController {
     }
     @Delete(':id')
     @HttpCode(HttpStatus.OK)
-    async delete(@Param('id') id: string) {
+    async delete(@Param('id', ParseUUIDPipe) id: string) {
         const role = await this.deleteRoleAction.execute(id);
         return {
             message: "Rol eliminado exitosamente",

@@ -24,6 +24,14 @@ export class PrismaRoleRepository implements RoleRepository {
         if (!role) throw new NotFoundException(`Role with ID "${id}" not found`);
         return RoleMapper.toDomain(role)!;
     }
+    async findByName(name: string): Promise<RoleEntity | null> {
+        const role = await this.prisma.role.findUnique({
+            where: { name },
+            include: { permissions: true }
+        });
+        if (!role) return null;
+        return RoleMapper.toDomain(role)!;
+    }
     async update(id: string, name?: string, permissionIds?: string[]): Promise<RoleEntity> {
         try {
             const role = await this.prisma.role.update({

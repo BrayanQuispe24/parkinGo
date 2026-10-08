@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { ConflictException, ForbiddenException, Injectable } from "@nestjs/common";
 import { RoleEntity } from "../entities/role.entity.js";
 import { RoleRepository } from "../repositories/role.repository.js";
 
@@ -18,6 +18,17 @@ export class UpdateRoleAction {
      * @returns La entidad de dominio del rol actualizada.
      */
     async execute(id: string, name?: string, permissionIds?: string[]): Promise<RoleEntity> {
+        //vamos a buscar el rol con el id para verificar si que no sea el rol del superadmin
+        const currentRole = await this.roleRepository.findById(id);
+        //si el rol es igual al del superadmin lo rechazamos 
+        if (currentRole.name === "SUPERADMIN") {
+            throw new ForbiddenException("No esta permitido modificar el rol base del sistema(SUPERADMIN).");
+        }
+        //ahora vamos a ver si el nombre que envia el cliente existe en la base de datos 
+        if (name && name.toUpperCase() !== currentRole.name) {
+            const roleExists = await this.roleRepository.findByName(name);
+            if (roleExists) throw new ConflictException(`El rol con el nombre "${name}" ya existe.`);
+        }
         return this.roleRepository.update(id, name, permissionIds);
     }
 }

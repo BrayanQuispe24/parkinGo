@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { ConflictException, Injectable } from "@nestjs/common";
 import { CreateRoleDto } from "../dto/create-role.dto.js";
 import { RoleRepository } from "../repositories/role.repository.js";
 
@@ -18,6 +18,10 @@ export class CreateRoleAction {
      */
     async execute(dto: CreateRoleDto) {
         //agregar validaciones de negocio aquí si son necesarias
+        //vamos a buscar el rol si existe
+        const roleExists = await this.rolRepository.findByName(dto.name);
+        if (roleExists) throw new ConflictException(`El rol con el nombre "${dto.name}" ya existe`);
+
         return this.rolRepository.create(dto.name, dto.permissionIds);
     }
 }
