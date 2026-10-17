@@ -9,8 +9,8 @@ export class DeleteRoleAction {
 
     async execute(id: string): Promise<RoleEntity> {
         const role = await this.roleRepository.findById(id);
-        if (role.name === "SUPERADMIN") {
-            throw new ForbiddenException("No esta permitido eliminar el rol base del sistema(SUPERADMIN).");
+        if (role.name === "SUPER_ADMIN") {
+            throw new ForbiddenException("No esta permitido eliminar el rol base del sistema(SUPER_ADMIN).");
         }
         return this.roleRepository.delete(id);
     }

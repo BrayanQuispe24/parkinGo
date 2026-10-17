@@ -20,7 +20,11 @@ export class UsuarioMapper {
             ci: prismaUser.ci,
             phone: prismaUser.phone,
             roleId: prismaUser.roleId,
-            role: prismaUser.role ? (RoleMapper.toDomain(prismaUser.role) || undefined) : undefined
+            role: prismaUser.role ? (RoleMapper.toDomain(prismaUser.role) || undefined) : undefined,
+            createdById: prismaUser.createdById,
+            termsAccepted: prismaUser.termsAccepted,
+            termsAcceptedAt: prismaUser.termsAcceptedAt,
+            verificationDocuments: prismaUser.verificationDocuments,
         });
     }
 
@@ -39,7 +43,8 @@ export class UsuarioMapper {
             ci: user.ci,
             phone: user.phone,
             roleId: user.roleId,
-            role: user.role ? RoleMapper.toEntity(user.role) : undefined
+            role: user.role ? RoleMapper.toEntity(user.role) : undefined,
+            createdById: user.createdById,
         };
     }
 

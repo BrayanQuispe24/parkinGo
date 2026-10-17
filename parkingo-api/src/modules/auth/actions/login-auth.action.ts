@@ -51,7 +51,11 @@ export class LoginAuthAction {
                     email: user.email,
                     firstName: user.firstName,
                     lastName: user.lastName,
-                    // puedes retornar más datos si el frontend los necesita
+                    role: user.role?.name ?? '',
+                    roleId: user.roleId,
+                    ci: user.ci,
+                    gender: user.gender,
+                    phone: user.phone,
                 }
             }
         };

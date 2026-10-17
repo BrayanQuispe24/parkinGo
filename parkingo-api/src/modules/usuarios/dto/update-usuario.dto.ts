@@ -1,8 +1,12 @@
 import { Transform } from "class-transformer";
-import { IsEmail, IsNotEmpty, IsOptional, IsString, IsUUID, MinLength, MaxLength } from "class-validator";
-import { UserGender } from "../entities/usuario.entity.js";
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MinLength, MaxLength } from "class-validator";
+import { UserGender, UserStatus } from "../entities/usuario.entity.js";
 
 export class UpdateUsuarioDto {
+    @IsOptional()
+    @IsEnum(UserStatus, { message: 'El estado debe ser ACTIVE, INACTIVE, SUSPENDED o DELETED' })
+    status?: UserStatus;
+
     @IsEmail({}, { message: 'El correo electrónico no es válido' })
     @IsOptional()
     @Transform(({ value }) => value?.trim().toLowerCase())

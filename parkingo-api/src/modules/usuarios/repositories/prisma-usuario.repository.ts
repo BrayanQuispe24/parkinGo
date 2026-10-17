@@ -8,15 +8,31 @@ import { UsuarioRepository } from "./usuario.repository.js";
 export class PrismaUsuarioRepository implements UsuarioRepository {
     constructor(private readonly prisma: PrismaService) { }
 
-    async findAll(): Promise<UsuarioEntity[]> {
-        const users = await this.prisma.user.findMany({ include: { role: true } });
+    async findAll(filter?: { createdById?: string; roleName?: string }): Promise<UsuarioEntity[]> {
+        const where: any = {};
+        if (filter?.createdById) {
+            where.createdById = filter.createdById;
+        }
+        if (filter?.roleName) {
+            if (filter.roleName === 'PARKING_OPERATOR' || filter.roleName === 'OPERATOR') {
+                where.role = { name: { in: ['PARKING_OPERATOR', 'OPERATOR'] } };
+            } else {
+                where.role = { name: filter.roleName };
+            }
+        }
+
+        const users = await this.prisma.user.findMany({
+            where,
+            include: { role: true, verificationDocuments: true },
+            orderBy: { createdAt: 'desc' },
+        });
         return users.map(user => UsuarioMapper.toDomain(user));
     }
 
     async findById(id: string): Promise<UsuarioEntity> {
         const user = await this.prisma.user.findUnique({
             where: { id },
-            include: { role: true }
+            include: { role: true, verificationDocuments: true },
         });
         if (!user) throw new NotFoundException(`Usuario con ID ${id} no encontrado.`);
         return UsuarioMapper.toDomain(user);
@@ -50,16 +66,21 @@ export class PrismaUsuarioRepository implements UsuarioRepository {
                 gender: data.gender,
                 phone: data.phone,
                 photoUrl: data.photoUrl,
+                status: data.status,
+                isVerified: data.isVerified,
                 birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
+                createdById: data.createdById,
+                termsAccepted: data.termsAccepted ?? false,
+                termsAcceptedAt: data.termsAcceptedAt,
             },
-            include: { role: true }
+            include: { role: true, verificationDocuments: true }
         });
         return UsuarioMapper.toDomain(user);
     }
 
     async update(id: string, data: Partial<UsuarioEntity>): Promise<UsuarioEntity> {
         try {
-            const { email, password, isVerified, status, photoUrl, firstName, lastName, gender, ci, phone, roleId } = data;
+            const { email, password, isVerified, status, photoUrl, firstName, lastName, gender, ci, phone, roleId, termsAccepted, termsAcceptedAt } = data;
 
             const user = await this.prisma.user.update({
                 where: { id },
@@ -75,9 +96,11 @@ export class PrismaUsuarioRepository implements UsuarioRepository {
                     ci,
                     phone,
                     roleId,
+                    termsAccepted,
+                    termsAcceptedAt,
                     birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
                 },
-                include: { role: true }
+                include: { role: true, verificationDocuments: true }
             });
             return UsuarioMapper.toDomain(user);
         } catch (error: any) {

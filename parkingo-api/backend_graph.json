@@ -1,0 +1,394 @@
+{
+  "$schema": "parkingo-backend-architecture-graph",
+  "version": "1.0.0",
+  "description": "Grafo de arquitectura y dependencias de parkingo-api para navegación y cambios quirúrgicos sin sobrecosto de tokens.",
+  "lastUpdated": "2026-10-15",
+  "meta": {
+    "framework": "NestJS",
+    "orm": "Prisma",
+    "database": "PostgreSQL",
+    "architecture": "Modular Layered (Controller -> Action -> Service/Repository -> Prisma)"
+  },
+  "shared": {
+    "database": {
+      "prismaService": "src/database/prisma.service.ts",
+      "schema": "prisma/schema.prisma"
+    },
+    "common": {
+      "filters": ["src/common/filters/prisma-client-exception.filter.ts"],
+      "guards": [
+        "src/modules/auth/guards/jwt-auth.guard.ts",
+        "src/modules/auth/guards/roles.guard.ts"
+      ],
+      "decorators": [
+        "src/modules/auth/decorators/roles.decorator.ts",
+        "src/modules/auth/decorators/current-user.decorator.ts"
+      ]
+    }
+  },
+  "modules": {
+    "auth": {
+      "path": "src/modules/auth",
+      "moduleFile": "src/modules/auth/auth.module.ts",
+      "controllers": [
+        {
+          "name": "AuthController",
+          "file": "src/modules/auth/controllers/auth.controller.ts",
+          "prefix": "/auth",
+          "endpoints": [
+            {
+              "method": "POST",
+              "path": "/login",
+              "action": "LoginAuthAction",
+              "dtoIn": "LoginAuthDto",
+              "summary": "Iniciar sesión y obtener tokens JWT"
+            },
+            {
+              "method": "POST",
+              "path": "/register",
+              "action": "RegisterAuthAction",
+              "dtoIn": "RegisterAuthDto",
+              "summary": "Registro de nuevos usuarios con validación de MX, dominios desechables y despacho OTP"
+            },
+            {
+              "method": "POST",
+              "path": "/verify-otp",
+              "action": "VerifyOtpAuthAction",
+              "dtoIn": "VerifyOtpDto",
+              "summary": "Verificación de código OTP de 6 dígitos y activación de cuenta"
+            },
+            {
+              "method": "POST",
+              "path": "/resend-otp",
+              "action": "ResendOtpAuthAction",
+              "dtoIn": "ResendOtpDto",
+              "summary": "Reenvío de nuevo código OTP con cooldown de 60 segundos"
+            }
+          ]
+        }
+      ],
+      "actions": {
+        "LoginAuthAction": {
+          "file": "src/modules/auth/actions/login-auth.action.ts",
+          "dtoIn": "src/modules/auth/dto/login-auth.dto.ts",
+          "dependsOn": [
+            "UsuarioRepository",
+            "JwtService"
+          ]
+        },
+        "RegisterAuthAction": {
+          "file": "src/modules/auth/actions/register-auth.action.ts",
+          "dtoIn": "src/modules/auth/dto/register-auth.dto.ts",
+          "dependsOn": [
+            "UsuarioRepository",
+            "RoleRepository",
+            "EmailVerificationTokenRepository",
+            "MailerService",
+            "UserVerificationContext"
+          ]
+        },
+        "VerifyOtpAuthAction": {
+          "file": "src/modules/auth/actions/verify-otp-auth.action.ts",
+          "dtoIn": "src/modules/auth/dto/verify-otp.dto.ts",
+          "dependsOn": [
+            "UsuarioRepository",
+            "EmailVerificationTokenRepository",
+            "JwtService"
+          ]
+        },
+        "ResendOtpAuthAction": {
+          "file": "src/modules/auth/actions/resend-otp-auth.action.ts",
+          "dtoIn": "src/modules/auth/dto/resend-otp.dto.ts",
+          "dependsOn": [
+            "UsuarioRepository",
+            "EmailVerificationTokenRepository",
+            "MailerService"
+          ]
+        }
+      },
+      "guards": [
+        "src/modules/auth/guards/jwt-auth.guard.ts",
+        "src/modules/auth/guards/roles.guard.ts"
+      ],
+      "strategies": [
+        "src/modules/auth/strategies/jwt.strategy.ts",
+        "src/modules/auth/strategies/verification/user-verification-strategy.interface.ts",
+        "src/modules/auth/strategies/verification/standard-driver.strategy.ts",
+        "src/modules/auth/strategies/verification/documented-partner.strategy.ts",
+        "src/modules/auth/strategies/verification/user-verification-strategy.resolver.ts",
+        "src/modules/auth/strategies/verification/user-verification.context.ts"
+      ],
+      "repositories": {
+        "emailVerificationToken": {
+          "interface": "src/modules/auth/repositories/email-verification-token.repository.ts",
+          "implementation": "src/modules/auth/repositories/prisma-email-verification-token.repository.ts"
+        },
+        "verificationDocument": {
+          "interface": "src/modules/auth/repositories/verification-document.repository.ts",
+          "implementation": "src/modules/auth/repositories/prisma-verification-document.repository.ts"
+        }
+      }
+    },
+    "usuarios": {
+      "path": "src/modules/usuarios",
+      "moduleFile": "src/modules/usuarios/usuarios.module.ts",
+      "prismaModel": "prisma/schema.prisma:User",
+      "controllers": [
+        {
+          "name": "UsuariosController",
+          "file": "src/modules/usuarios/controllers/usuarios.controller.ts",
+          "prefix": "/usuarios",
+          "endpoints": [
+            { "method": "GET", "path": "/", "action": "GetUsuariosAction", "summary": "Listar usuarios" },
+            { "method": "GET", "path": "/:id", "action": "GetUsuarioAction", "summary": "Obtener usuario por ID" },
+            { "method": "POST", "path": "/", "action": "CreateUsuarioAction", "dtoIn": "CreateUsuarioDto", "summary": "Crear usuario" },
+            { "method": "PATCH", "path": "/:id", "action": "UpdateUsuarioAction", "dtoIn": "UpdateUsuarioDto", "summary": "Actualizar usuario" },
+            { "method": "DELETE", "path": "/:id", "action": "DeleteUsuarioAction", "summary": "Eliminar usuario" }
+          ]
+        }
+      ],
+      "actions": {
+        "GetUsuariosAction": { "file": "src/modules/usuarios/actions/get-usuarios.action.ts", "dependsOn": ["UsuarioRepository"] },
+        "GetUsuarioAction": { "file": "src/modules/usuarios/actions/get-usuario.action.ts", "dependsOn": ["UsuarioRepository"] },
+        "CreateUsuarioAction": { "file": "src/modules/usuarios/actions/create-usuario.action.ts", "dtoIn": "src/modules/usuarios/dto/create-usuario.dto.ts", "dependsOn": ["UsuarioRepository", "RoleRepository", "MailerService", "EmailValidatorUtil"] },
+        "UpdateUsuarioAction": { "file": "src/modules/usuarios/actions/update-usuario.action.ts", "dtoIn": "src/modules/usuarios/dto/update-usuario.dto.ts", "dependsOn": ["UsuarioRepository"] },
+        "DeleteUsuarioAction": { "file": "src/modules/usuarios/actions/delete-usuario.action.ts", "dependsOn": ["UsuarioRepository"] }
+      },
+      "repositories": {
+        "interface": "src/modules/usuarios/repositories/usuario.repository.ts",
+        "implementation": "src/modules/usuarios/repositories/prisma-usuario.repository.ts"
+      },
+      "mappers": [
+        "src/modules/usuarios/mappers/usuario.mapper.ts"
+      ],
+      "entities": [
+        "src/modules/usuarios/entities/usuario.entity.ts"
+      ]
+    },
+    "roles": {
+      "path": "src/modules/roles",
+      "moduleFile": "src/modules/roles/roles.module.ts",
+      "prismaModels": [
+        "prisma/schema.prisma:Role",
+        "prisma/schema.prisma:Permission"
+      ],
+      "controllers": [
+        {
+          "name": "RolesController",
+          "file": "src/modules/roles/controllers/roles.controller.ts",
+          "prefix": "/roles",
+          "endpoints": [
+            { "method": "GET", "path": "/", "action": "GetRolesAction", "summary": "Listar todos los roles" },
+            { "method": "POST", "path": "/", "action": "CreateRoleAction", "dtoIn": "CreateRoleDto", "summary": "Crear un nuevo rol" },
+            { "method": "PATCH", "path": "/:id", "action": "UpdateRoleAction", "dtoIn": "UpdateRoleDto", "summary": "Actualizar rol" },
+            { "method": "DELETE", "path": "/:id", "action": "DeleteRoleAction", "summary": "Eliminar rol" }
+          ]
+        },
+        {
+          "name": "PermissionsController",
+          "file": "src/modules/roles/controllers/permissions.controller.ts",
+          "prefix": "/permissions",
+          "endpoints": [
+            { "method": "GET", "path": "/", "action": "GetPermissionAction", "summary": "Listar permisos disponibles" }
+          ]
+        }
+      ],
+      "actions": {
+        "GetRolesAction": { "file": "src/modules/roles/actions/get-roles.action.ts", "dependsOn": ["RoleRepository"] },
+        "CreateRoleAction": { "file": "src/modules/roles/actions/create-role.action.ts", "dtoIn": "src/modules/roles/dto/create-role.dto.ts", "dependsOn": ["RoleRepository"] },
+        "UpdateRoleAction": { "file": "src/modules/roles/actions/update-role.action.ts", "dtoIn": "src/modules/roles/dto/update-role.ts", "dependsOn": ["RoleRepository"] },
+        "DeleteRoleAction": { "file": "src/modules/roles/actions/delete-role.action.ts", "dependsOn": ["RoleRepository"] },
+        "GetPermissionAction": { "file": "src/modules/roles/actions/get-permission.action.ts", "dependsOn": ["PermissionRepository"] }
+      },
+      "repositories": {
+        "role": {
+          "interface": "src/modules/roles/repositories/role.repository.ts",
+          "implementation": "src/modules/roles/repositories/prisma-role.repository.ts"
+        },
+        "permission": {
+          "interface": "src/modules/roles/repositories/permission.repository.ts",
+          "implementation": "src/modules/roles/repositories/prisma-permission.repository.ts"
+        }
+      },
+      "mappers": [
+        "src/modules/roles/mappers/role.mapper.ts",
+        "src/modules/roles/mappers/permission.mapper.ts"
+      ],
+      "entities": [
+        "src/modules/roles/entities/role.entity.ts",
+        "src/modules/roles/entities/permission.entity.ts"
+      ]
+    },
+    "reports": {
+      "path": "src/modules/reports",
+      "moduleFile": "src/modules/reports/reports.module.ts",
+      "controllers": [
+        {
+          "name": "ReportsController",
+          "file": "src/modules/reports/controllers/reports.controller.ts",
+          "prefix": "/reports",
+          "endpoints": [
+            { "method": "GET", "path": "/general-analytics", "action": "GetGeneralAnalyticsAction", "dtoOut": "GeneralAnalyticsResponseDto", "summary": "Obtener KPIs y analíticas del sistema" }
+          ]
+        }
+      ],
+      "actions": {
+        "GetGeneralAnalyticsAction": {
+          "file": "src/modules/reports/actions/get-general-analytics.action.ts",
+          "dtoOut": "src/modules/reports/dto/general-analytics-response.dto.ts",
+          "dependsOn": ["PrismaService"]
+        }
+      }
+    },
+    "configuracion": {
+      "path": "src/modules/configuracion",
+      "moduleFile": "src/modules/configuracion/configuracion.module.ts",
+      "prismaModel": "prisma/schema.prisma:TerminoCondicion",
+      "controllers": [
+        {
+          "name": "ConfiguracionController",
+          "file": "src/modules/configuracion/controllers/configuracion.controller.ts",
+          "prefix": "/configuracion",
+          "endpoints": [
+            {
+              "method": "GET",
+              "path": "/terminos-condiciones",
+              "action": "GetTerminosCondicionesAction",
+              "dtoOut": "TerminoCondicionResponseDto[]",
+              "isPublic": true,
+              "summary": "Obtener listado de términos y condiciones vigentes para registro y consulta pública"
+            },
+            {
+              "method": "POST",
+              "path": "/terminos-condiciones",
+              "action": "CreateTerminoCondicionAction",
+              "dtoIn": "CreateTerminoCondicionDto",
+              "dtoOut": "TerminoCondicionResponseDto",
+              "guards": ["JwtAuthGuard", "RolesGuard"],
+              "roles": ["SUPER_ADMIN", "GENERAL_ADMIN"],
+              "summary": "Crear un nuevo término y condición"
+            },
+            {
+              "method": "PATCH",
+              "path": "/terminos-condiciones/:id",
+              "action": "UpdateTerminoCondicionAction",
+              "dtoIn": "UpdateTerminoCondicionDto",
+              "dtoOut": "TerminoCondicionResponseDto",
+              "guards": ["JwtAuthGuard", "RolesGuard"],
+              "roles": ["SUPER_ADMIN", "GENERAL_ADMIN"],
+              "summary": "Actualizar un término y condición existente"
+            },
+            {
+              "method": "DELETE",
+              "path": "/terminos-condiciones/:id",
+              "action": "DeleteTerminoCondicionAction",
+              "dtoOut": "TerminoCondicionResponseDto",
+              "guards": ["JwtAuthGuard", "RolesGuard"],
+              "roles": ["SUPER_ADMIN", "GENERAL_ADMIN"],
+              "summary": "Eliminar un término y condición"
+            }
+          ]
+        }
+      ],
+      "actions": {
+        "GetTerminosCondicionesAction": {
+          "file": "src/modules/configuracion/actions/get-terminos-condiciones.action.ts",
+          "dtoOut": "src/modules/configuracion/dto/termino-condicion-response.dto.ts",
+          "dependsOn": ["TerminosCondicionesRepository"]
+        },
+        "CreateTerminoCondicionAction": {
+          "file": "src/modules/configuracion/actions/create-termino-condicion.action.ts",
+          "dtoIn": "src/modules/configuracion/dto/create-termino-condicion.dto.ts",
+          "dtoOut": "src/modules/configuracion/dto/termino-condicion-response.dto.ts",
+          "dependsOn": ["TerminosCondicionesRepository"]
+        },
+        "UpdateTerminoCondicionAction": {
+          "file": "src/modules/configuracion/actions/update-termino-condicion.action.ts",
+          "dtoIn": "src/modules/configuracion/dto/update-termino-condicion.dto.ts",
+          "dtoOut": "src/modules/configuracion/dto/termino-condicion-response.dto.ts",
+          "dependsOn": ["TerminosCondicionesRepository"]
+        },
+        "DeleteTerminoCondicionAction": {
+          "file": "src/modules/configuracion/actions/delete-termino-condicion.action.ts",
+          "dtoOut": "src/modules/configuracion/dto/termino-condicion-response.dto.ts",
+          "dependsOn": ["TerminosCondicionesRepository"]
+        }
+      },
+      "repositories": {
+        "interface": "src/modules/configuracion/repositories/terminos-condiciones.repository.ts",
+        "implementation": "src/modules/configuracion/repositories/prisma-terminos-condiciones.repository.ts"
+      },
+      "mappers": [
+        "src/modules/configuracion/mappers/terminos-condiciones.mapper.ts"
+      ],
+      "entities": [
+        "src/modules/configuracion/entities/termino-condicion.entity.ts"
+      ]
+    },
+    "tenants": {
+      "path": "src/modules/tenants",
+      "moduleFile": "src/modules/tenants/tenants.module.ts",
+      "prismaModel": "prisma/schema.prisma:Tenant",
+      "controllers": [
+        {
+          "name": "TenantsController",
+          "file": "src/modules/tenants/controllers/tenants.controller.ts",
+          "prefix": "/tenants",
+          "endpoints": [
+            { "method": "POST", "path": "/", "action": "CreateTenantAction", "dtoIn": "CreateTenantDto", "dtoOut": "TenantResponseDto", "roles": ["PARKING_ADMIN"], "summary": "Registrar nueva empresa / tenant" },
+            { "method": "GET", "path": "/", "action": "GetTenantsAction", "dtoOut": "TenantResponseDto[]", "roles": ["PARKING_ADMIN", "GENERAL_ADMIN", "SUPER_ADMIN"], "summary": "Listar empresas / tenants según rol" },
+            { "method": "GET", "path": "/:id", "action": "GetTenantByIdAction", "dtoOut": "TenantResponseDto", "roles": ["PARKING_ADMIN", "GENERAL_ADMIN", "SUPER_ADMIN"], "summary": "Obtener detalle de empresa por ID" },
+            { "method": "PATCH", "path": "/:id", "action": "UpdateTenantAction", "dtoIn": "UpdateTenantDto", "dtoOut": "TenantResponseDto", "roles": ["PARKING_ADMIN", "GENERAL_ADMIN", "SUPER_ADMIN"], "summary": "Editar datos de empresa" },
+            { "method": "PATCH", "path": "/:id/baja", "action": "DarDeBajaTenantAction", "dtoOut": "TenantResponseDto", "roles": ["PARKING_ADMIN", "GENERAL_ADMIN", "SUPER_ADMIN"], "summary": "Dar de baja o reactivar empresa" },
+            { "method": "DELETE", "path": "/:id", "action": "DeleteTenantAction", "roles": ["GENERAL_ADMIN", "SUPER_ADMIN"], "summary": "Eliminar empresa del sistema" }
+          ]
+        }
+      ],
+      "actions": {
+        "CreateTenantAction": {
+          "file": "src/modules/tenants/actions/create-tenant.action.ts",
+          "dtoIn": "src/modules/tenants/dto/create-tenant.dto.ts",
+          "dtoOut": "src/modules/tenants/dto/tenant-response.dto.ts",
+          "dependsOn": ["TenantRepository", "MailerService"]
+        },
+        "GetTenantsAction": {
+          "file": "src/modules/tenants/actions/get-tenants.action.ts",
+          "dtoOut": "src/modules/tenants/dto/tenant-response.dto.ts",
+          "dependsOn": ["TenantRepository"]
+        },
+        "GetTenantByIdAction": {
+          "file": "src/modules/tenants/actions/get-tenant-by-id.action.ts",
+          "dtoOut": "src/modules/tenants/dto/tenant-response.dto.ts",
+          "dependsOn": ["TenantRepository"]
+        },
+        "UpdateTenantAction": {
+          "file": "src/modules/tenants/actions/update-tenant.action.ts",
+          "dtoIn": "src/modules/tenants/dto/update-tenant.dto.ts",
+          "dtoOut": "src/modules/tenants/dto/tenant-response.dto.ts",
+          "dependsOn": ["TenantRepository"]
+        },
+        "DarDeBajaTenantAction": {
+          "file": "src/modules/tenants/actions/dar-de-baja-tenant.action.ts",
+          "dtoOut": "src/modules/tenants/dto/tenant-response.dto.ts",
+          "dependsOn": ["TenantRepository"]
+        },
+        "DeleteTenantAction": {
+          "file": "src/modules/tenants/actions/delete-tenant.action.ts",
+          "dependsOn": ["TenantRepository"]
+        }
+      },
+      "repositories": {
+        "interface": "src/modules/tenants/repositories/tenant.repository.ts",
+        "implementation": "src/modules/tenants/repositories/prisma-tenant.repository.ts"
+      },
+      "mappers": [
+        "src/modules/tenants/mappers/tenant.mapper.ts"
+      ],
+      "dto": [
+        "src/modules/tenants/dto/create-tenant.dto.ts",
+        "src/modules/tenants/dto/update-tenant.dto.ts",
+        "src/modules/tenants/dto/tenant-response.dto.ts"
+      ]
+    }
+  }
+}

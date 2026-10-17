@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { CreateUsuarioAction } from "../actions/create-usuario.action.js";
 import { GetUsuariosAction } from "../actions/get-usuarios.action.js";
@@ -8,9 +8,12 @@ import { DeleteUsuarioAction } from "../actions/delete-usuario.action.js";
 import { CreateUsuarioDto } from "../dto/create-usuario.dto.js";
 import { UpdateUsuarioDto } from "../dto/update-usuario.dto.js";
 import { UsuarioMapper } from "../mappers/usuario.mapper.js";
+import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard.js";
+import { CurrentUser } from "../../auth/decorators/current-user.decorator.js";
 
 @ApiTags('Usuarios')
-@ApiBearerAuth() // Indica que todos los endpoints aquí (por convención) requieren token JWT
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard) // Protege todos los endpoints de este controlador
 @Controller('usuarios')
 export class UsuariosController {
     constructor(
@@ -25,8 +28,8 @@ export class UsuariosController {
     @ApiResponse({ status: 200, description: 'Lista de usuarios obtenida exitosamente.' })
     @Get()
     @HttpCode(HttpStatus.OK)
-    async findAll() {
-        const users = await this.getUsuariosAction.execute();
+    async findAll(@CurrentUser() user: any) {
+        const users = await this.getUsuariosAction.execute(user.userId, user.roleName);
         return {
             message: "Usuarios obtenidos exitosamente",
             data: { users: users.map(user => UsuarioMapper.toResponse(user)) }
@@ -47,17 +50,16 @@ export class UsuariosController {
         };
     }
 
-    //el create lo vamos a tener que suspender de este controlador ya que estamos usando el register
-    //aunque seria bueno mantenerlo para la creacion de operadores de parqueos
     @ApiOperation({ summary: 'Crear usuario manual', description: 'Permite crear usuarios desde la administración (Ej: Operadores).' })
     @ApiResponse({ status: 201, description: 'Usuario creado exitosamente.' })
     @Post()
     @HttpCode(HttpStatus.CREATED)
-    async create(@Body() dto: CreateUsuarioDto) {
-        const user = await this.createUsuarioAction.execute(dto);
+    async create(@Body() dto: CreateUsuarioDto, @CurrentUser() user: any) {
+        // user proviene del JwtStrategy tras validar el token
+        const createdUser = await this.createUsuarioAction.execute(dto, user.userId, user.roleId);
         return {
             message: "Usuario creado exitosamente",
-            data: { user: UsuarioMapper.toResponse(user) }
+            data: { user: UsuarioMapper.toResponse(createdUser) }
         };
     }
 
@@ -66,11 +68,11 @@ export class UsuariosController {
     @ApiResponse({ status: 200, description: 'Usuario actualizado exitosamente.' })
     @Patch(':id')
     @HttpCode(HttpStatus.OK)
-    async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateUsuarioDto) {
-        const user = await this.updateUsuarioAction.execute(id, dto);
+    async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateUsuarioDto, @CurrentUser() user: any) {
+        const updatedUser = await this.updateUsuarioAction.execute(id, dto, user.userId, user.roleName);
         return {
             message: "Usuario actualizado exitosamente",
-            data: { user: UsuarioMapper.toResponse(user) }
+            data: { user: UsuarioMapper.toResponse(updatedUser) }
         };
     }
 
@@ -79,11 +81,11 @@ export class UsuariosController {
     @ApiResponse({ status: 200, description: 'Usuario eliminado exitosamente.' })
     @Delete(':id')
     @HttpCode(HttpStatus.OK)
-    async delete(@Param('id', ParseUUIDPipe) id: string) {
-        const user = await this.deleteUsuarioAction.execute(id);
+    async delete(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: any) {
+        const deletedUser = await this.deleteUsuarioAction.execute(id, user.userId, user.roleName);
         return {
             message: "Usuario eliminado exitosamente",
-            data: { user: UsuarioMapper.toResponse(user) }
+            data: { user: UsuarioMapper.toResponse(deletedUser) }
         };
     }
 }

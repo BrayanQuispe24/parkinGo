@@ -1,6 +1,6 @@
 import { Transform } from "class-transformer";
 import { IsEmail, IsNotEmpty, IsOptional, IsString, IsUUID, MinLength, MaxLength } from "class-validator";
-import { UserGender } from "../entities/usuario.entity.js";
+import { UserGender, UserStatus } from "../entities/usuario.entity.js";
 
 export class CreateUsuarioDto {
     @IsEmail({}, { message: 'El correo electrónico no es válido' })
@@ -36,6 +36,13 @@ export class CreateUsuarioDto {
     @IsUUID('4', { message: 'El roleId debe ser un UUID válido' })
     @IsNotEmpty()
     roleId: string;
+
+    @IsOptional()
+    @IsUUID('4')
+    createdById?: string;
+
+    @IsOptional()
+    status?: UserStatus;
 
     // --- Atributos Opcionales ---
     @IsOptional()

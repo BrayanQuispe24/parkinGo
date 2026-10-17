@@ -1,6 +1,7 @@
-// src/modules/auth/dto/register-auth.dto.ts
-import { IsEmail, IsNotEmpty, IsString, MinLength, IsIn } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength, IsIn, IsOptional, IsEnum, IsDateString, IsBoolean, Equals } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { UserGender } from '../../usuarios/entities/usuario.entity.js';
 
 // Roles públicos permitidos para registro autónomo
 const PUBLIC_ROLES = ['HOST', 'PARKING_ADMIN', 'DRIVER'];
@@ -41,4 +42,42 @@ export class RegisterAuthDto {
         message: `El rol no es válido para registro. Debe ser: ${PUBLIC_ROLES.join(', ')}`,
     })
     roleName: string;
+
+    @ApiProperty({ 
+        example: 'M', 
+        description: 'Género del usuario: M (Masculino), F (Femenino), U (No especificado/Otro)', 
+        enum: UserGender,
+        required: false 
+    })
+    @IsOptional()
+    @IsEnum(UserGender, { message: 'El género debe ser M, F o U' })
+    gender?: UserGender;
+
+    @ApiProperty({ 
+        example: '1995-05-20', 
+        description: 'Fecha de nacimiento en formato YYYY-MM-DD o ISO', 
+        required: false 
+    })
+    @IsOptional()
+    @IsDateString({}, { message: 'La fecha de nacimiento debe ser una fecha válida (YYYY-MM-DD)' })
+    birthDate?: string;
+
+    @ApiProperty({ 
+        example: '+591 70012345', 
+        description: 'Teléfono o celular del usuario', 
+        required: false 
+    })
+    @IsOptional()
+    @IsString()
+    phone?: string;
+
+    @ApiProperty({ 
+        example: true, 
+        description: 'Aceptación obligatoria de los términos y condiciones de ParkinGo' 
+    })
+    @Transform(({ value }: { value: unknown }) => value === 'true' || value === true)
+    @IsBoolean({ message: 'Debe especificar la aceptación de los términos y condiciones' })
+    @Equals(true, { message: 'Es obligatorio aceptar los términos y condiciones para registrarse' })
+    acceptedTerms: boolean;
 }
+

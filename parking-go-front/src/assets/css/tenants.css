@@ -979,3 +979,160 @@
   background: #FEE2E2;
   border-color: #EF4444;
 }
+
+/* ==========================================================================
+   Tenant Form & Management Responsive Architecture
+   ========================================================================== */
+
+.tenant-page-container {
+  padding: 1.5rem 2rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .tenant-page-container {
+    padding: 1rem 0.75rem;
+  }
+}
+
+.tenant-form-panel {
+  background: #FFFFFF;
+  border-radius: 8px;
+  border: 1px solid #CBD5CE;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  max-width: 780px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.tenant-form-header {
+  padding: 1.25rem 1.75rem;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .tenant-form-header {
+    padding: 1rem;
+  }
+}
+
+.tenant-form-body {
+  padding: 1.75rem;
+  box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+  .tenant-form-body {
+    padding: 1rem;
+  }
+}
+
+.tenant-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .tenant-form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+  }
+}
+
+.tenant-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  border-top: 1px solid #E2E8F0;
+  padding-top: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 480px) {
+  .tenant-form-actions {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+    width: 100%;
+  }
+  .tenant-form-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.tenant-tabs-nav {
+  display: flex;
+  border-bottom: 1px solid #E2E8F0;
+  margin-bottom: 1.5rem;
+  gap: 1.5rem;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 640px) {
+  .tenant-tabs-nav {
+    gap: 0.85rem;
+  }
+}
+
+/* ==========================================================================
+   TENANTS MODULE - DARK THEME ADAPTATION
+   ========================================================================== */
+[data-theme="dark"] .tenant-tabs-nav {
+  border-bottom-color: var(--border-subtle);
+}
+
+[data-theme="dark"] .table-card,
+[data-theme="dark"] .tenant-form-panel,
+[data-theme="dark"] .tenant-detail-header-card,
+[data-theme="dark"] .summary-info-card,
+[data-theme="dark"] .timeline-content-card,
+[data-theme="dark"] .modal-box-lg,
+[data-theme="dark"] .parking-branch-card,
+[data-theme="dark"] .dropdown-popover,
+[data-theme="dark"] .table-pagination-footer {
+  background: var(--bg-card) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .tenants-data-table th {
+  background: var(--bg-primary) !important;
+  color: var(--text-muted) !important;
+  border-bottom-color: var(--border-subtle) !important;
+}
+
+[data-theme="dark"] .tenants-data-table td {
+  border-bottom-color: var(--border-subtle) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .tenants-data-table tr:hover {
+  background: var(--bg-card-hover) !important;
+}
+
+[data-theme="dark"] .search-input-group input,
+[data-theme="dark"] .filter-select,
+[data-theme="dark"] .btn-page,
+[data-theme="dark"] .btn-secondary-outline {
+  background: var(--bg-card) !important;
+  border-color: var(--border-strong) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .btn-page:hover:not(.active) {
+  background: var(--bg-card-hover) !important;
+}
+

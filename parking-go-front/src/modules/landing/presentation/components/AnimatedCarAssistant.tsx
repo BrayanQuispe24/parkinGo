@@ -3,14 +3,13 @@ import autoSinRuedasImg from '../../../../assets/autoSinRuedas.png';
 import ruedaImg from '../../../../assets/rueda.png';
 
 export function AnimatedCarAssistant() {
-    const [carState, setCarState] = useState('');
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const [carState, setCarState] = useState(prefersReducedMotion ? 'is-stopped' : '');
 
     useEffect(() => {
         let isMounted = true;
         
-        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (prefersReducedMotion) {
-            setCarState('is-stopped');
             return;
         }
 

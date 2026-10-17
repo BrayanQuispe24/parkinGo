@@ -26,9 +26,16 @@ model Permission {
 
 enum UserStatus {
   ACTIVE
+  PENDING_APPROVAL
   INACTIVE
   SUSPENDED
   DELETED
+}
+
+enum DocumentVerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum UserGender {
@@ -54,6 +61,91 @@ model User {
   roleId String
   role   Role   @relation(fields: [roleId], references: [id])
 
+  createdById  String?
+  createdBy    User?   @relation("UserHierarchy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdUsers User[]  @relation("UserHierarchy")
+
+  termsAccepted   Boolean   @default(false)
+  termsAcceptedAt DateTime?
+
+  verificationTokens    EmailVerificationToken[]
+  verificationDocuments UserVerificationDocument[]
+  tenants               Tenant[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model UserVerificationDocument {
+  id              String                     @id @default(uuid())
+  userId          String
+  user            User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileUrl         String
+  fileName        String
+  fileSize        Int
+  mimeType        String                     @default("application/pdf")
+  status          DocumentVerificationStatus @default(PENDING)
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
+
+  @@index([userId])
+  @@map("user_verification_documents")
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String
+  attempts  Int      @default(0)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("email_verification_tokens")
+}
+
+model TerminoCondicion {
+  id        String   @id @default(uuid())
+  title     String
+  content   String   @db.Text
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  version   String   @default("1.0")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("terminos_condiciones")
+}
+
+enum TenantStatus {
+  ACTIVO
+  INACTIVO
+}
+
+model Tenant {
+  id          String       @id @default(uuid())
+  nombre      String
+  nit         String       @unique
+  razonSocial String
+  estado      TenantStatus @default(ACTIVO)
+
+  direccion   String?
+  ciudad      String?
+  latitud     Float?
+  longitud    Float?
+
+  usuarioId   String
+  usuario     User         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([usuarioId])
+  @@map("tenants")
+}
+
+

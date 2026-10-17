@@ -3,6 +3,10 @@
 @import "./assets/css/main.css";
 @import "./assets/css/components.css";
 @import "./assets/css/interactive.css";
+@import "./assets/css/auth.css";
+@import "./assets/css/dashboard.css";
+@import "./assets/css/tenants.css";
+@import "./assets/css/settings.css";
 
 @theme {
   --font-heading: 'Outfit', sans-serif;

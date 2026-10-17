@@ -2,6 +2,7 @@ import { RoleEntity } from "../../roles/entities/role.entity.js";
 
 export enum UserStatus {
     ACTIVE = 'ACTIVE',
+    PENDING_APPROVAL = 'PENDING_APPROVAL',
     INACTIVE = 'INACTIVE',
     SUSPENDED = 'SUSPENDED',
     DELETED = 'DELETED',
@@ -29,6 +30,13 @@ export class UsuarioEntity {
 
     roleId: string;
     role?: RoleEntity;
+
+    createdById?: string | null;
+
+    termsAccepted?: boolean;
+    termsAcceptedAt?: Date;
+
+    verificationDocuments?: any[];
 
     createdAt: Date;
     updatedAt: Date;

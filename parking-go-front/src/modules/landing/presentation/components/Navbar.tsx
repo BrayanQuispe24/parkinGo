@@ -1,7 +1,34 @@
-import { Link } from 'react-router';
+import { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router';
 import logoImg from '../../../../assets/logo.png';
+import { useAuthStore } from '../../../../store/useAuthStore';
 
 export function Navbar() {
+  const { user, isAuthenticated, logoutState } = useAuthStore();
+  const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const handleLogout = () => {
+    logoutState();
+    setMenuOpen(false);
+    navigate('/auth?mode=login');
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const dashboardPath = user?.role === 'DRIVER' || user?.role === 'conductor'
+    ? '/dashboard'
+    : '/dashboard/admin';
+
   return (
     <header className="header classgo-pill-header" id="header">
         <div className="pill-header-wrapper">
@@ -26,14 +53,52 @@ export function Navbar() {
                     <span>Español</span>
                 </button>
 
-                <Link to="/auth?mode=login" className="btn-pill-login">Ingresar</Link>
+                {isAuthenticated ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <Link to={dashboardPath} className="btn-pill-login" style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }}>
+                      <i className="fa-solid fa-user" style={{ marginRight: '0.4rem' }}></i>
+                      {user?.firstName || 'Mi Panel'}
+                    </Link>
+                    <button 
+                      onClick={handleLogout} 
+                      className="btn-pill-login" 
+                      style={{ background: '#ef4444', borderColor: '#ef4444', color: '#ffffff', padding: '0.45rem 0.85rem', fontSize: '0.85rem' }}
+                      title="Cerrar Sesión"
+                    >
+                      <i className="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <Link to="/auth?mode=login" className="btn-pill-login">Ingresar</Link>
 
-                <div className="user-menu-dropdown-wrapper">
-                    <div className="user-avatar-circle-btn" id="user-menu-trigger" title="Cuenta de Usuario">
-                        {/* FontAwesome Placeholder */}
-                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    <div className="user-menu-dropdown-wrapper" ref={menuRef}>
+                        <div 
+                            className="user-avatar-circle-btn" 
+                            id="user-menu-trigger" 
+                            title="Cuenta de Usuario"
+                            onClick={() => setMenuOpen(!menuOpen)}
+                        >
+                            <i className="fa-solid fa-user-plus"></i>
+                        </div>
+                        <div className={`user-menu-popover ${menuOpen ? 'show' : ''}`} id="user-menu-popover">
+                            <Link to="/auth?mode=login" className="popover-item highlight" onClick={() => setMenuOpen(false)}>
+                                <i className="fa-solid fa-right-to-bracket"></i> Iniciar Sesión / Registro
+                            </Link>
+                            <Link to="/dashboard" className="popover-item" onClick={() => setMenuOpen(false)}>
+                                <i className="fa-solid fa-shield-halved"></i> Admin General
+                            </Link>
+                            <Link to="/dashboard/admin" className="popover-item" onClick={() => setMenuOpen(false)}>
+                                <i className="fa-solid fa-square-parking"></i> Admin de Parqueo
+                            </Link>
+                            <div className="popover-divider"></div>
+                            <a href="#calculadora" className="popover-item" onClick={() => setMenuOpen(false)}>
+                                <i className="fa-solid fa-house-circle-check"></i> Registrar mi Parqueo
+                            </a>
+                        </div>
                     </div>
-                </div>
+                  </>
+                )}
             </div>
         </div>
     </header>

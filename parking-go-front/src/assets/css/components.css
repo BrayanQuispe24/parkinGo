@@ -63,7 +63,8 @@
     font-size: 1.05rem;
 }
 
-.logo-text span {
+.navbar .logo-text span,
+.header .logo-text span {
     color: #17211B;
 }
 
@@ -1868,16 +1869,16 @@ body.is-scrolled .top-scroll-fade-overlay {
     width: 95%;
     max-width: 1440px;
     margin: 0 auto;
-    background: #006D36;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(0, 52, 26, 0.78);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-radius: var(--radius-max);
     padding: 0.75rem 2.8rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 @media (max-width: 992px) {
@@ -1940,8 +1941,8 @@ body.is-scrolled .top-scroll-fade-overlay {
 }
 
 .btn-pill-login {
-    border: 1.5px solid rgba(255, 255, 255, 0.9);
-    background: transparent;
+    border: 1.5px solid rgba(255, 255, 255, 0.7);
+    background: rgba(0, 36, 18, 0.3);
     color: #ffffff;
     font-size: 0.9rem;
     font-weight: 600;
@@ -1979,7 +1980,7 @@ body.is-scrolled .top-scroll-fade-overlay {
 /* ClassGo Full Hero 1:1 - ParkinGo Emerald Theme */
 .hero-classgo {
     min-height: 100vh;
-    background: radial-gradient(circle at 80% 25%, #003017 0%, #004724 30%, #006D36 65%, #008743 100%);
+    background: radial-gradient(ellipse 75% 65% at 65% 48%, #005629 0%, #00401d 42%, #002b13 75%, #001c0c 100%);
     display: flex;
     align-items: center;
     position: relative;
@@ -1990,23 +1991,28 @@ body.is-scrolled .top-scroll-fade-overlay {
     box-sizing: border-box;
 }
 
-/* Fondo con marca de agua sutil de logoSinFondo.png y difuminado suave */
-.hero-classgo::before {
-    content: '';
+/* Watermark emblem Santa Cruz / ParkinGo */
+.hero-watermark {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: clamp(340px, 48vw, 720px);
-    height: clamp(340px, 48vw, 720px);
-    background-image: url('../assets/logoSinFondo.png');
+    top: 48%;
+    right: 8%;
+    transform: translateY(-50%);
+    width: clamp(480px, 48vw, 760px);
+    height: clamp(480px, 48vw, 760px);
     background-repeat: no-repeat;
     background-position: center center;
     background-size: contain;
-    opacity: 0.07;
-    filter: blur(2.5px);
+    opacity: 0.22;
     pointer-events: none;
     z-index: 1;
+}
+
+@media (max-width: 992px) {
+    .hero-watermark {
+        right: 50%;
+        transform: translate(50%, -50%);
+        opacity: 0.12;
+    }
 }
 
 /* Hero Organic Wave Divider (Conexión suave y fluida entre verde y claro) */
@@ -2172,20 +2178,21 @@ body.is-scrolled .top-scroll-fade-overlay {
 }
 
 .classgo-hero-h1 {
-    font-size: clamp(1.8rem, 5vw, 3.8rem);
-    font-weight: 600;
+    font-size: clamp(2.2rem, 4.2vw, 3.8rem);
+    font-weight: 700;
     color: #ffffff;
-    line-height: 1.12;
+    line-height: 1.15;
     margin-bottom: 1.2rem;
 }
 
 .glow-cyan-text {
-    font-size: clamp(2.2rem, 6vw, 4.6rem);
+    font-size: clamp(2.4rem, 5.2vw, 4.8rem);
     font-weight: 800;
     color: #ffffff;
-    text-shadow: 0 0 18px rgba(74, 222, 128, 0.95), 0 0 40px rgba(34, 197, 94, 0.65), 0 0 65px rgba(16, 185, 129, 0.45);
+    text-shadow: 0 0 16px rgba(74, 222, 128, 0.95), 0 0 35px rgba(34, 197, 94, 0.75), 0 0 60px rgba(16, 185, 129, 0.5);
     display: inline-block;
     letter-spacing: -0.02em;
+    line-height: 1.12;
 }
 
 .classgo-hero-p {
@@ -2201,7 +2208,13 @@ body.is-scrolled .top-scroll-fade-overlay {
     align-items: center;
     gap: 1rem;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;
+}
+
+@media (max-width: 992px) {
+    .classgo-pill-btn-group {
+        justify-content: center;
+    }
 }
 
 .btn-classgo-outline {
@@ -2238,11 +2251,11 @@ body.is-scrolled .top-scroll-fade-overlay {
 }
 
 .mascot-img {
-    max-height: 670px;
+    max-height: 580px;
     width: auto;
     max-width: 100%;
     object-fit: contain;
-    filter: drop-shadow(0 0 25px rgba(0, 0, 0, 0.45)) drop-shadow(0 20px 40px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.45));
     animation: mascotFloat 4s ease-in-out infinite alternate;
 }
 
@@ -2257,11 +2270,12 @@ body.is-scrolled .top-scroll-fade-overlay {
 }
 
 .mascot-floor-shadow {
-    width: 220px;
-    height: 24px;
-    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.4) 0%, transparent 70%);
-    margin-top: -10px;
+    width: 320px;
+    height: 30px;
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.22) 45%, transparent 75%);
+    margin-top: -15px;
     border-radius: 50%;
+    filter: blur(3px);
 }
 
 /* Floating Corner Widgets (Bottom Right) */

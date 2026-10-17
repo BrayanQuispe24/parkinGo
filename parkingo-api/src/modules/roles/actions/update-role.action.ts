@@ -21,8 +21,8 @@ export class UpdateRoleAction {
         //vamos a buscar el rol con el id para verificar si que no sea el rol del superadmin
         const currentRole = await this.roleRepository.findById(id);
         //si el rol es igual al del superadmin lo rechazamos 
-        if (currentRole.name === "SUPERADMIN") {
-            throw new ForbiddenException("No esta permitido modificar el rol base del sistema(SUPERADMIN).");
+        if (currentRole.name === "SUPER_ADMIN") {
+            throw new ForbiddenException("No esta permitido modificar el rol base del sistema(SUPER_ADMIN).");
         }
         //ahora vamos a ver si el nombre que envia el cliente existe en la base de datos 
         if (name && name.toUpperCase() !== currentRole.name) {

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, UseGuards } from "@nestjs/common";
 import { CreateRoleAction } from "../actions/create-role.action.js";
 import { GetRolesAction } from "../actions/get-roles.action.js";
 import { CreateRoleDto } from "../dto/create-role.dto.js";
@@ -6,12 +6,16 @@ import { UpdateRoleDto } from "../dto/update-role.js";
 import { UpdateRoleAction } from "../actions/update-role.action.js";
 import { RoleMapper } from "../mappers/role.mapper.js";
 import { DeleteRoleAction } from "../actions/delete-role.action.js";
+import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard.js";
+import { RolesGuard } from "../../auth/guards/roles.guard.js";
+import { Roles } from "../../auth/decorators/roles.decorator.js";
 
 /**
  * Controlador de Roles.
  * Es la capa de presentación que recibe las peticiones HTTP.
  * NO debe contener lógica de negocio, solo delegar a los Actions correspondientes.
  */
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('roles')
 export class RolesController {
     constructor(
@@ -41,6 +45,7 @@ export class RolesController {
      * POST /roles
      * Endpoint para crear un nuevo rol.
      */
+    @Roles('SUPER_ADMIN')
     @Post()
     @HttpCode(HttpStatus.CREATED)
     async create(@Body() dto: CreateRoleDto) {
@@ -53,6 +58,7 @@ export class RolesController {
         }
     }
 
+    @Roles('SUPER_ADMIN')
     @Patch(':id')
     @HttpCode(HttpStatus.OK)
     async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateRoleDto) {
@@ -64,6 +70,8 @@ export class RolesController {
             }
         }
     }
+    
+    @Roles('SUPER_ADMIN')
     @Delete(':id')
     @HttpCode(HttpStatus.OK)
     async delete(@Param('id', ParseUUIDPipe) id: string) {
