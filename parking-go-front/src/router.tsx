@@ -16,6 +16,8 @@ import { ParkingOperatorProfilePage } from './modules/parking-operator/presentat
 import { AdminProfilePage } from './modules/admin/presentation/pages/AdminProfilePage';
 import { TenantsManagementPage } from './modules/tenants/presentation/pages/TenantsManagementPage';
 import { GeneralAdminLayout } from './modules/general-admin/presentation/layouts/GeneralAdminLayout';
+import { TenantEstacionamientoPage } from './modules/estacionamientos/presentation/pages/TenantEstacionamientoPage';
+import { AdminSolicitudesEstacionamientosPage } from './modules/estacionamientos/presentation/pages/AdminSolicitudesEstacionamientosPage';
 import About from './pages/About';
 
 export const router = createBrowserRouter([
@@ -66,6 +68,10 @@ export const router = createBrowserRouter([
               {
                 path: 'tenants',
                 element: <TenantsManagementPage />
+              },
+              {
+                path: 'estacionamiento',
+                element: <TenantEstacionamientoPage />
               },
               {
                 path: 'profile',
@@ -122,6 +128,14 @@ export const router = createBrowserRouter([
                 element: <TenantsManagementPage />
               },
               {
+                path: 'solicitudes',
+                element: <AdminSolicitudesEstacionamientosPage />
+              },
+              {
+                path: 'estacionamientos',
+                element: <Navigate to="/dashboard/general-admin/solicitudes" replace />
+              },
+              {
                 path: 'profile',
                 element: <AdminProfilePage />
               }
@@ -155,6 +169,14 @@ export const router = createBrowserRouter([
               {
                 path: 'tenants',
                 element: <TenantsManagementPage />
+              },
+              {
+                path: 'solicitudes',
+                element: <AdminSolicitudesEstacionamientosPage />
+              },
+              {
+                path: 'estacionamientos',
+                element: <Navigate to="/dashboard/admin/solicitudes" replace />
               },
               {
                 path: 'profile',

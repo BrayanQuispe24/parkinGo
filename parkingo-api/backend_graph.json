@@ -389,6 +389,493 @@
         "src/modules/tenants/dto/update-tenant.dto.ts",
         "src/modules/tenants/dto/tenant-response.dto.ts"
       ]
+    },
+    "estacionamientos": {
+      "path": "src/modules/estacionamientos",
+      "moduleFile": "src/modules/estacionamientos/estacionamientos.module.ts",
+      "prismaModels": [
+        "prisma/schema.prisma:Estacionamiento",
+        "prisma/schema.prisma:ServicioExtra",
+        "prisma/schema.prisma:Horario"
+      ],
+      "controllers": [
+        {
+          "name": "EstacionamientosController",
+          "file": "src/modules/estacionamientos/controllers/estacionamientos.controller.ts",
+          "prefix": "/estacionamientos",
+          "endpoints": [
+            {
+              "method": "POST",
+              "path": "/",
+              "action": "RegistrarEstacionamientoAction",
+              "dtoIn": "RegistrarEstacionamientoDto",
+              "dtoOut": "EstacionamientoResponseDto",
+              "summary": "Registrar solicitud de nuevo estacionamiento (solo 1 por tenant, estado PENDIENTE)"
+            },
+            {
+              "method": "GET",
+              "path": "/me",
+              "action": "GetMiEstacionamientoAction",
+              "dtoOut": "EstacionamientoResponseDto",
+              "summary": "Consultar estacionamiento del tenant autenticado"
+            },
+            {
+              "method": "PUT",
+              "path": "/me/horarios",
+              "action": "ActualizarHorariosAction",
+              "dtoIn": "ActualizarHorariosDto",
+              "dtoOut": "EstacionamientoResponseDto",
+              "summary": "Actualizar horarios de atención del estacionamiento del tenant"
+            },
+            {
+              "method": "POST",
+              "path": "/me/fotos",
+              "action": "SubirFotosAction",
+              "dtoOut": "FotoResponseDto[]",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Subir nuevas fotografías a la galería del estacionamiento"
+            },
+            {
+              "method": "DELETE",
+              "path": "/me/fotos/:fotoId",
+              "action": "EliminarFotoAction",
+              "dtoOut": "FotoResponseDto",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Eliminar permanentemente una fotografía de la galería del estacionamiento"
+            }
+          ]
+        },
+        {
+          "name": "AdminEstacionamientosController",
+          "file": "src/modules/estacionamientos/controllers/admin-estacionamientos.controller.ts",
+          "prefix": "/admin/estacionamientos",
+          "endpoints": [
+            {
+              "method": "GET",
+              "path": "/",
+              "action": "ListarSolicitudesAction",
+              "dtoOut": "EstacionamientoResponseDto[]",
+              "summary": "Listar solicitudes y estacionamientos con filtro opcional de estado"
+            },
+            {
+              "method": "PATCH",
+              "path": "/:id/aprobar",
+              "action": "AprobarEstacionamientoAction",
+              "dtoOut": "EstacionamientoResponseDto",
+              "summary": "Aprobar solicitud de estacionamiento"
+            },
+            {
+              "method": "PATCH",
+              "path": "/:id/rechazar",
+              "action": "RechazarEstacionamientoAction",
+              "dtoIn": "RechazarEstacionamientoDto",
+              "dtoOut": "EstacionamientoResponseDto",
+              "summary": "Rechazar solicitud de estacionamiento con motivo"
+            },
+            {
+              "method": "PATCH",
+              "path": "/:id/inhabilitar",
+              "action": "InhabilitarEstacionamientoAction",
+              "dtoOut": "EstacionamientoResponseDto",
+              "summary": "Inhabilitar estacionamiento activo"
+            }
+          ]
+        },
+        {
+          "name": "TenantHorariosController",
+          "file": "src/modules/estacionamientos/controllers/tenant-horarios.controller.ts",
+          "prefix": "/tenants/:tenantId/horarios",
+          "endpoints": [
+            {
+              "method": "GET",
+              "path": "/",
+              "action": "GetTenantHorariosAction",
+              "dtoOut": "HorarioResponseDto[]",
+              "summary": "Obtener horarios de atención establecidos para un Tenant"
+            },
+            {
+              "method": "PUT",
+              "path": "/",
+              "action": "ActualizarTenantHorariosAction",
+              "dtoIn": "ActualizarHorariosDto",
+              "dtoOut": "HorarioResponseDto[]",
+              "summary": "Actualizar horarios de atención de un Tenant"
+            }
+          ]
+        },
+        {
+          "name": "ServiciosExtrasController",
+          "file": "src/modules/estacionamientos/controllers/servicios-extras.controller.ts",
+          "prefix": "/estacionamientos",
+          "endpoints": [
+            {
+              "method": "POST",
+              "path": "/me/servicios",
+              "action": "CrearServicioExtraAction",
+              "dtoIn": "CreateServicioExtraDto",
+              "dtoOut": "ServicioExtraResponseDto",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Registrar un nuevo servicio extra para el estacionamiento del tenant"
+            },
+            {
+              "method": "GET",
+              "path": "/me/servicios",
+              "action": "GetMisServiciosExtrasAction",
+              "dtoOut": "ServicioExtraResponseDto[]",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Listar todos los servicios extras de mi estacionamiento"
+            },
+            {
+              "method": "GET",
+              "path": "/:estacionamientoId/servicios",
+              "action": "GetServiciosExtrasByEstacionamientoAction",
+              "dtoOut": "ServicioExtraResponseDto[]",
+              "isPublic": true,
+              "summary": "Listar servicios extras activos de un estacionamiento para conductores"
+            },
+            {
+              "method": "PATCH",
+              "path": "/me/servicios/:id",
+              "action": "ActualizarServicioExtraAction",
+              "dtoIn": "UpdateServicioExtraDto",
+              "dtoOut": "ServicioExtraResponseDto",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Actualizar datos y disponibilidad de un servicio extra existente"
+            },
+            {
+              "method": "DELETE",
+              "path": "/me/servicios/:id",
+              "action": "EliminarServicioExtraAction",
+              "dtoOut": "ServicioExtraResponseDto",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Eliminar permanentemente un servicio extra"
+            }
+          ]
+        },
+        {
+          "name": "TarifasController",
+          "file": "src/modules/estacionamientos/controllers/tarifas.controller.ts",
+          "prefix": "/estacionamientos",
+          "endpoints": [
+            {
+              "method": "POST",
+              "path": "/me/tarifas",
+              "action": "CrearTarifaAction",
+              "dtoIn": "CreateTarifaDto",
+              "dtoOut": "TarifaResponseDto",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Registrar una nueva tarifa para el estacionamiento del tenant"
+            },
+            {
+              "method": "GET",
+              "path": "/me/tarifas",
+              "action": "GetMisTarifasAction",
+              "dtoOut": "TarifaResponseDto[]",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Listar todas las tarifas de mi estacionamiento"
+            },
+            {
+              "method": "GET",
+              "path": "/:estacionamientoId/tarifas",
+              "action": "GetTarifasByEstacionamientoAction",
+              "dtoOut": "TarifaResponseDto[]",
+              "isPublic": true,
+              "summary": "Listar tarifas activas de un estacionamiento para conductores"
+            },
+            {
+              "method": "PATCH",
+              "path": "/me/tarifas/:id",
+              "action": "ActualizarTarifaAction",
+              "dtoIn": "UpdateTarifaDto",
+              "dtoOut": "TarifaResponseDto",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Actualizar una tarifa existente"
+            },
+            {
+              "method": "DELETE",
+              "path": "/me/tarifas/:id",
+              "action": "EliminarTarifaAction",
+              "dtoOut": "TarifaResponseDto",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Eliminar permanentemente una tarifa"
+            }
+          ]
+        },
+        {
+          "name": "NivelesController",
+          "file": "src/modules/estacionamientos/controllers/niveles.controller.ts",
+          "prefix": "/estacionamientos",
+          "endpoints": [
+            {
+              "method": "POST",
+              "path": "/me/niveles",
+              "action": "CrearNivelAction",
+              "dtoIn": "CreateNivelDto",
+              "dtoOut": "NivelResponseDto",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Registrar un nuevo nivel / piso en el estacionamiento"
+            },
+            {
+              "method": "GET",
+              "path": "/me/niveles",
+              "action": "GetMisNivelesAction",
+              "dtoOut": "NivelResponseDto[]",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Listar todos los niveles de mi estacionamiento"
+            },
+            {
+              "method": "DELETE",
+              "path": "/me/niveles/:id",
+              "action": "EliminarNivelAction",
+              "dtoOut": "NivelResponseDto",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Eliminar un nivel del estacionamiento"
+            }
+          ]
+        },
+        {
+          "name": "EspaciosController",
+          "file": "src/modules/estacionamientos/controllers/espacios.controller.ts",
+          "prefix": "/estacionamientos",
+          "endpoints": [
+            {
+              "method": "POST",
+              "path": "/me/espacios",
+              "action": "CrearEspacioAction",
+              "dtoIn": "CreateEspacioDto",
+              "dtoOut": "EspacioResponseDto",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Registrar un nuevo espacio / box de estacionamiento"
+            },
+            {
+              "method": "GET",
+              "path": "/me/espacios",
+              "action": "GetMisEspaciosAction",
+              "dtoOut": "EspacioResponseDto[]",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Listar espacios de mi estacionamiento con filtro opcional por nivel"
+            },
+            {
+              "method": "PATCH",
+              "path": "/me/espacios/:id",
+              "action": "ActualizarEspacioAction",
+              "dtoIn": "UpdateEspacioDto",
+              "dtoOut": "EspacioResponseDto",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Actualizar un espacio existente"
+            },
+            {
+              "method": "DELETE",
+              "path": "/me/espacios/:id",
+              "action": "EliminarEspacioAction",
+              "dtoOut": "EspacioResponseDto",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Eliminar permanentemente un espacio"
+            }
+          ]
+        }
+      ],
+      "actions": {
+        "RegistrarEstacionamientoAction": {
+          "file": "src/modules/estacionamientos/actions/registrar-estacionamiento.action.ts",
+          "dtoIn": "src/modules/estacionamientos/dto/registrar-estacionamiento.dto.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/estacionamiento-response.dto.ts",
+          "dependsOn": ["EstacionamientoRepository", "TenantRepository"]
+        },
+        "GetMiEstacionamientoAction": {
+          "file": "src/modules/estacionamientos/actions/get-mi-estacionamiento.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/estacionamiento-response.dto.ts",
+          "dependsOn": ["EstacionamientoRepository", "TenantRepository"]
+        },
+        "ActualizarHorariosAction": {
+          "file": "src/modules/estacionamientos/actions/actualizar-horarios.action.ts",
+          "dtoIn": "src/modules/estacionamientos/dto/actualizar-horarios.dto.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/estacionamiento-response.dto.ts",
+          "dependsOn": ["EstacionamientoRepository", "TenantRepository"]
+        },
+        "GetTenantHorariosAction": {
+          "file": "src/modules/estacionamientos/actions/get-tenant-horarios.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/estacionamiento-response.dto.ts",
+          "dependsOn": ["EstacionamientoRepository", "TenantRepository"]
+        },
+        "ActualizarTenantHorariosAction": {
+          "file": "src/modules/estacionamientos/actions/actualizar-tenant-horarios.action.ts",
+          "dtoIn": "src/modules/estacionamientos/dto/actualizar-horarios.dto.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/estacionamiento-response.dto.ts",
+          "dependsOn": ["EstacionamientoRepository", "TenantRepository"]
+        },
+        "ListarSolicitudesAction": {
+          "file": "src/modules/estacionamientos/actions/listar-solicitudes.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/estacionamiento-response.dto.ts",
+          "dependsOn": ["EstacionamientoRepository"]
+        },
+        "AprobarEstacionamientoAction": {
+          "file": "src/modules/estacionamientos/actions/aprobar-estacionamiento.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/estacionamiento-response.dto.ts",
+          "dependsOn": ["EstacionamientoRepository"]
+        },
+        "RechazarEstacionamientoAction": {
+          "file": "src/modules/estacionamientos/actions/rechazar-estacionamiento.action.ts",
+          "dtoIn": "src/modules/estacionamientos/dto/rechazar-estacionamiento.dto.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/estacionamiento-response.dto.ts",
+          "dependsOn": ["EstacionamientoRepository"]
+        },
+        "InhabilitarEstacionamientoAction": {
+          "file": "src/modules/estacionamientos/actions/inhabilitar-estacionamiento.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/estacionamiento-response.dto.ts",
+          "dependsOn": ["EstacionamientoRepository"]
+        },
+        "CrearServicioExtraAction": {
+          "file": "src/modules/estacionamientos/actions/crear-servicio-extra.action.ts",
+          "dtoIn": "src/modules/estacionamientos/dto/create-servicio-extra.dto.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/servicio-extra-response.dto.ts",
+          "dependsOn": ["ServicioExtraRepository", "EstacionamientoRepository", "TenantRepository"]
+        },
+        "GetMisServiciosExtrasAction": {
+          "file": "src/modules/estacionamientos/actions/get-mis-servicios-extras.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/servicio-extra-response.dto.ts",
+          "dependsOn": ["ServicioExtraRepository", "EstacionamientoRepository", "TenantRepository"]
+        },
+        "GetServiciosExtrasByEstacionamientoAction": {
+          "file": "src/modules/estacionamientos/actions/get-servicios-extras-by-estacionamiento.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/servicio-extra-response.dto.ts",
+          "dependsOn": ["ServicioExtraRepository"]
+        },
+        "ActualizarServicioExtraAction": {
+          "file": "src/modules/estacionamientos/actions/actualizar-servicio-extra.action.ts",
+          "dtoIn": "src/modules/estacionamientos/dto/update-servicio-extra.dto.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/servicio-extra-response.dto.ts",
+          "dependsOn": ["ServicioExtraRepository", "TenantRepository"]
+        },
+        "EliminarServicioExtraAction": {
+          "file": "src/modules/estacionamientos/actions/eliminar-servicio-extra.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/servicio-extra-response.dto.ts",
+          "dependsOn": ["ServicioExtraRepository", "TenantRepository"]
+        },
+        "SubirFotosAction": {
+          "file": "src/modules/estacionamientos/actions/subir-fotos.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/estacionamiento-response.dto.ts:FotoResponseDto[]",
+          "dependsOn": ["EstacionamientoRepository", "TenantRepository"]
+        },
+        "EliminarFotoAction": {
+          "file": "src/modules/estacionamientos/actions/eliminar-foto.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/estacionamiento-response.dto.ts:FotoResponseDto",
+          "dependsOn": ["EstacionamientoRepository", "TenantRepository"]
+        },
+        "CrearTarifaAction": {
+          "file": "src/modules/estacionamientos/actions/crear-tarifa.action.ts",
+          "dtoIn": "src/modules/estacionamientos/dto/create-tarifa.dto.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/tarifa-response.dto.ts",
+          "dependsOn": ["TarifaRepository", "EstacionamientoRepository", "TenantRepository"]
+        },
+        "GetMisTarifasAction": {
+          "file": "src/modules/estacionamientos/actions/get-mis-tarifas.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/tarifa-response.dto.ts",
+          "dependsOn": ["TarifaRepository", "EstacionamientoRepository", "TenantRepository"]
+        },
+        "GetTarifasByEstacionamientoAction": {
+          "file": "src/modules/estacionamientos/actions/get-tarifas-by-estacionamiento.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/tarifa-response.dto.ts",
+          "dependsOn": ["TarifaRepository"]
+        },
+        "ActualizarTarifaAction": {
+          "file": "src/modules/estacionamientos/actions/actualizar-tarifa.action.ts",
+          "dtoIn": "src/modules/estacionamientos/dto/update-tarifa.dto.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/tarifa-response.dto.ts",
+          "dependsOn": ["TarifaRepository", "TenantRepository"]
+        },
+        "EliminarTarifaAction": {
+          "file": "src/modules/estacionamientos/actions/eliminar-tarifa.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/tarifa-response.dto.ts",
+          "dependsOn": ["TarifaRepository", "TenantRepository"]
+        },
+        "CrearNivelAction": {
+          "file": "src/modules/estacionamientos/actions/crear-nivel.action.ts",
+          "dtoIn": "src/modules/estacionamientos/dto/create-nivel.dto.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/nivel-response.dto.ts",
+          "dependsOn": ["NivelRepository", "EstacionamientoRepository", "TenantRepository"]
+        },
+        "GetMisNivelesAction": {
+          "file": "src/modules/estacionamientos/actions/get-mis-niveles.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/nivel-response.dto.ts",
+          "dependsOn": ["NivelRepository", "EstacionamientoRepository", "TenantRepository"]
+        },
+        "EliminarNivelAction": {
+          "file": "src/modules/estacionamientos/actions/eliminar-nivel.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/nivel-response.dto.ts",
+          "dependsOn": ["NivelRepository", "TenantRepository"]
+        },
+        "CrearEspacioAction": {
+          "file": "src/modules/estacionamientos/actions/crear-espacio.action.ts",
+          "dtoIn": "src/modules/estacionamientos/dto/create-espacio.dto.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/espacio-response.dto.ts",
+          "dependsOn": ["EspacioRepository", "NivelRepository", "TenantRepository"]
+        },
+        "GetMisEspaciosAction": {
+          "file": "src/modules/estacionamientos/actions/get-mis-espacios.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/espacio-response.dto.ts",
+          "dependsOn": ["EspacioRepository", "NivelRepository", "EstacionamientoRepository", "TenantRepository"]
+        },
+        "ActualizarEspacioAction": {
+          "file": "src/modules/estacionamientos/actions/actualizar-espacio.action.ts",
+          "dtoIn": "src/modules/estacionamientos/dto/update-espacio.dto.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/espacio-response.dto.ts",
+          "dependsOn": ["EspacioRepository", "NivelRepository", "TenantRepository"]
+        },
+        "EliminarEspacioAction": {
+          "file": "src/modules/estacionamientos/actions/eliminar-espacio.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/espacio-response.dto.ts",
+          "dependsOn": ["EspacioRepository", "TenantRepository"]
+        }
+      },
+      "repositories": {
+        "estacionamiento": {
+          "interface": "src/modules/estacionamientos/repositories/estacionamiento.repository.ts",
+          "implementation": "src/modules/estacionamientos/repositories/prisma-estacionamiento.repository.ts"
+        },
+        "servicioExtra": {
+          "interface": "src/modules/estacionamientos/repositories/servicio-extra.repository.ts",
+          "implementation": "src/modules/estacionamientos/repositories/prisma-servicio-extra.repository.ts"
+        },
+        "tarifa": {
+          "interface": "src/modules/estacionamientos/repositories/tarifa.repository.ts",
+          "implementation": "src/modules/estacionamientos/repositories/prisma-tarifa.repository.ts"
+        },
+        "nivel": {
+          "interface": "src/modules/estacionamientos/repositories/nivel.repository.ts",
+          "implementation": "src/modules/estacionamientos/repositories/prisma-nivel.repository.ts"
+        },
+        "espacio": {
+          "interface": "src/modules/estacionamientos/repositories/espacio.repository.ts",
+          "implementation": "src/modules/estacionamientos/repositories/prisma-espacio.repository.ts"
+        }
+      },
+      "mappers": [
+        "src/modules/estacionamientos/mappers/estacionamiento.mapper.ts",
+        "src/modules/estacionamientos/mappers/servicio-extra.mapper.ts",
+        "src/modules/estacionamientos/mappers/tarifa.mapper.ts",
+        "src/modules/estacionamientos/mappers/nivel.mapper.ts",
+        "src/modules/estacionamientos/mappers/espacio.mapper.ts"
+      ],
+      "dto": [
+        "src/modules/estacionamientos/dto/registrar-estacionamiento.dto.ts",
+        "src/modules/estacionamientos/dto/actualizar-horarios.dto.ts",
+        "src/modules/estacionamientos/dto/horario-item.dto.ts",
+        "src/modules/estacionamientos/dto/rechazar-estacionamiento.dto.ts",
+        "src/modules/estacionamientos/dto/estacionamiento-response.dto.ts",
+        "src/modules/estacionamientos/dto/create-servicio-extra.dto.ts",
+        "src/modules/estacionamientos/dto/update-servicio-extra.dto.ts",
+        "src/modules/estacionamientos/dto/servicio-extra-response.dto.ts",
+        "src/modules/estacionamientos/dto/create-tarifa.dto.ts",
+        "src/modules/estacionamientos/dto/update-tarifa.dto.ts",
+        "src/modules/estacionamientos/dto/tarifa-response.dto.ts",
+        "src/modules/estacionamientos/dto/create-nivel.dto.ts",
+        "src/modules/estacionamientos/dto/update-nivel.dto.ts",
+        "src/modules/estacionamientos/dto/nivel-response.dto.ts",
+        "src/modules/estacionamientos/dto/create-espacio.dto.ts",
+        "src/modules/estacionamientos/dto/update-espacio.dto.ts",
+        "src/modules/estacionamientos/dto/espacio-response.dto.ts"
+      ]
     }
   }
 }

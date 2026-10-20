@@ -110,6 +110,16 @@ export const ParkingAdminSidebar = ({
                     <span>Empresas & Tenants</span>
                 </Link>
 
+                <Link
+                    to="/dashboard/parking-admin/estacionamiento"
+                    className={`nav-item ${isCurrent('/dashboard/parking-admin/estacionamiento') ? 'active' : ''}`}
+                    title="Mis Estacionamientos"
+                    onClick={handleLinkClick}
+                >
+                    <i className="fa-solid fa-square-parking"></i>
+                    <span>Mis Estacionamientos</span>
+                </Link>
+
                 <a
                     className="nav-item"
                     href="#croquis"

@@ -42,6 +42,32 @@ export class HttpTenantRepository implements TenantRepository {
             message: response.data.message,
         };
     }
+
+    async getTenantHorarios(tenantId: string): Promise<import('../../estacionamientos/domain/Estacionamiento').HorarioItemPayload[]> {
+        const response = await parkingoApi.get<Array<{ id: string; dia: string; horaInicio: string; horaCierre: string }>>(
+            `/tenants/${tenantId}/horarios`,
+        );
+        return (response.data ?? []).map((h) => ({
+            dia: h.dia as import('../../estacionamientos/domain/Estacionamiento').DiaSemana,
+            horaInicio: h.horaInicio,
+            horaCierre: h.horaCierre,
+        }));
+    }
+
+    async actualizarTenantHorarios(
+        tenantId: string,
+        horarios: import('../../estacionamientos/domain/Estacionamiento').HorarioItemPayload[],
+    ): Promise<import('../../estacionamientos/domain/Estacionamiento').HorarioItemPayload[]> {
+        const response = await parkingoApi.put<Array<{ id: string; dia: string; horaInicio: string; horaCierre: string }>>(
+            `/tenants/${tenantId}/horarios`,
+            { horarios },
+        );
+        return (response.data ?? []).map((h) => ({
+            dia: h.dia as import('../../estacionamientos/domain/Estacionamiento').DiaSemana,
+            horaInicio: h.horaInicio,
+            horaCierre: h.horaCierre,
+        }));
+    }
 }
 
 export const httpTenantRepository = new HttpTenantRepository();

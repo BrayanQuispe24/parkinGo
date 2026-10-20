@@ -26,6 +26,9 @@ export const AdminTopbar = ({ onToggleSidebar }: AdminTopbarProps) => {
     } else if (location.pathname.includes('/tenants')) {
         pageTitle = 'Gestión de Tenants & Empresas SaaS';
         breadcrumb = 'ParkinGo Enterprise / Gestión de Tenants';
+    } else if (location.pathname.includes('/solicitudes') || location.pathname.includes('/estacionamientos')) {
+        pageTitle = 'Solicitudes de Registro de Estacionamientos';
+        breadcrumb = 'ParkinGo Enterprise / Solicitudes';
     }
 
     return (

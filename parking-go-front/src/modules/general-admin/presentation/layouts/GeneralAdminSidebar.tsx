@@ -3,6 +3,7 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { useAuthStore } from '../../../../store/useAuthStore';
 import { useSettingsStore } from '../../../../store/useSettingsStore';
+import { useAdminEstacionamientosQuery } from '../../../estacionamientos/application/useEstacionamientosQuery';
 
 interface GeneralAdminSidebarProps {
     collapsed: boolean;
@@ -20,6 +21,9 @@ export const GeneralAdminSidebar: React.FC<GeneralAdminSidebarProps> = ({
     const navigate = useNavigate();
     const { user, logoutState } = useAuthStore();
     const openSettings = useSettingsStore((state) => state.openSettings);
+
+    const { data: solicitudesPendientes = [] } = useAdminEstacionamientosQuery('PENDIENTE');
+    const pendingCount = solicitudesPendientes.length;
 
     const handleLogout = () => {
         logoutState();
@@ -127,6 +131,21 @@ export const GeneralAdminSidebar: React.FC<GeneralAdminSidebarProps> = ({
                 </Link>
 
                 <Link
+                    to="/dashboard/general-admin/solicitudes"
+                    className={`nav-item ${isCurrent('/dashboard/general-admin/solicitudes') || isCurrent('/dashboard/general-admin/estacionamientos') ? 'active' : ''}`}
+                    title="Solicitudes de Registro de Estacionamientos"
+                    onClick={handleLinkClick}
+                >
+                    <i className="fa-solid fa-clipboard-check"></i>
+                    <span>Solicitudes</span>
+                    {pendingCount > 0 && (!collapsed || mobileOpen) && (
+                        <span className="badge badge-pending" id="pending-requests-count" style={{ marginLeft: 'auto', fontSize: '0.7rem', padding: '0.15rem 0.45rem' }}>
+                            {pendingCount}
+                        </span>
+                    )}
+                </Link>
+
+                <Link
                     to="/dashboard/general-admin/roles-permissions"
                     className={`nav-item ${isCurrent('/dashboard/general-admin/roles-permissions') ? 'active' : ''}`}
                     title="Roles y Permisos"
@@ -135,16 +154,6 @@ export const GeneralAdminSidebar: React.FC<GeneralAdminSidebarProps> = ({
                     <i className="fa-solid fa-shield-halved"></i>
                     <span>Roles y Permisos</span>
                 </Link>
-
-                <a className="nav-item" href="#solicitudes" title="Solicitudes de Registro" onClick={(e) => { e.preventDefault(); handleLinkClick(); }}>
-                    <i className="fa-solid fa-clipboard-check"></i>
-                    <span>Solicitudes</span>
-                    {!collapsed && (
-                        <span className="badge badge-pending" id="pending-requests-count" style={{ marginLeft: 'auto', fontSize: '0.7rem', padding: '0.15rem 0.45rem' }}>
-                            3
-                        </span>
-                    )}
-                </a>
 
                 <a className="nav-item" href="#planes" title="Planes y Suscripciones" onClick={(e) => { e.preventDefault(); handleLinkClick(); }}>
                     <i className="fa-solid fa-gem"></i>

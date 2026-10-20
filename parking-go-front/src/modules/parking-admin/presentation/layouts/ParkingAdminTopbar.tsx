@@ -24,6 +24,9 @@ export const ParkingAdminTopbar = ({
     } else if (location.pathname.includes('/tenants')) {
         pageTitle = 'Gestión de Empresas & Tenants';
         breadcrumb = 'ParkinGo Equipetrol / Empresas & Tenants';
+    } else if (location.pathname.includes('/estacionamiento')) {
+        pageTitle = 'Mis Estacionamientos';
+        breadcrumb = 'ParkinGo Equipetrol / Mis Estacionamientos';
     }
 
     return (

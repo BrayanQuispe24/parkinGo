@@ -1,0 +1,59 @@
+/* Toastr Custom Styling for ParkinGo Enterprise */
+#toast-container {
+  z-index: 999999 !important;
+}
+
+#toast-container > div {
+  opacity: 0.98 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.2) !important;
+  font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif !important;
+  font-size: 0.88rem !important;
+  padding: 14px 16px 14px 50px !important;
+  line-height: 1.4 !important;
+}
+
+#toast-container > .toast-success {
+  background-color: #064E3B !important;
+  border-left: 5px solid #10B981 !important;
+  color: #ECFDF5 !important;
+}
+
+#toast-container > .toast-error {
+  background-color: #7F1D1D !important;
+  border-left: 5px solid #EF4444 !important;
+  color: #FEF2F2 !important;
+}
+
+#toast-container > .toast-warning {
+  background-color: #78350F !important;
+  border-left: 5px solid #F59E0B !important;
+  color: #FFFBEB !important;
+}
+
+#toast-container > .toast-info {
+  background-color: #0C4A6E !important;
+  border-left: 5px solid #0EA5E9 !important;
+  color: #F0F9FF !important;
+}
+
+#toast-container .toast-title {
+  font-weight: 700 !important;
+  font-size: 0.92rem !important;
+  margin-bottom: 4px !important;
+}
+
+#toast-container .toast-close-button {
+  top: -2px !important;
+  right: -2px !important;
+  color: #FFFFFF !important;
+  opacity: 0.7 !important;
+}
+
+#toast-container .toast-close-button:hover {
+  opacity: 1 !important;
+}
+
+#toast-container .toast-progress {
+  background-color: rgba(255, 255, 255, 0.45) !important;
+}

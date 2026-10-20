@@ -1,0 +1,26 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { EstadoEstacionamiento } from '@prisma/client';
+import { EstacionamientoRepository } from '../repositories/estacionamiento.repository.js';
+import { EstacionamientoResponseDto } from '../dto/estacionamiento-response.dto.js';
+import { EstacionamientoMapper } from '../mappers/estacionamiento.mapper.js';
+
+@Injectable()
+export class AprobarEstacionamientoAction {
+  constructor(private readonly estacionamientoRepository: EstacionamientoRepository) {}
+
+  async execute(id: string): Promise<EstacionamientoResponseDto> {
+    const existing = await this.estacionamientoRepository.findById(id);
+    if (!existing) {
+      throw new NotFoundException(`No se encontró el estacionamiento con ID: ${id}`);
+    }
+
+    const updated = await this.estacionamientoRepository.updateEstado(
+      id,
+      EstadoEstacionamiento.APROBADO,
+      null,
+      new Date(),
+    );
+
+    return EstacionamientoMapper.toResponseDto(updated);
+  }
+}

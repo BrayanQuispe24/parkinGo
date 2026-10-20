@@ -1,0 +1,391 @@
+/* ==========================================================================
+   PARKINGO - ESTACIONAMIENTOS MODULE
+   Design System & Enterprise Views
+   ========================================================================== */
+
+.estacionamientos-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+/* Status Badges */
+.badge-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.badge-estado.pendiente {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+}
+
+.badge-estado.aprobado {
+  background: #D1FAE5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.badge-estado.rechazado {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+.badge-estado.inhabilitado {
+  background: #F3F4F6;
+  color: #4B5563;
+  border: 1px solid #E5E7EB;
+}
+
+/* Enterprise Card Panels */
+.estacionamiento-card {
+  background: var(--surface-card, #FFFFFF);
+  border: 1px solid var(--border-subtle, #E2E8E4);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.card-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main, #17211B);
+  margin: 0;
+}
+
+.card-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-muted, #66736B);
+  margin-top: 0.25rem;
+}
+
+/* Banner Alert */
+.banner-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.banner-alert.warning {
+  background: #FFFBEB;
+  border: 1px solid #FCD34D;
+  color: #92400E;
+}
+
+.banner-alert.danger {
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  color: #991B1B;
+}
+
+.banner-alert.success {
+  background: #ECFDF5;
+  border: 1px solid #6EE7B7;
+  color: #065F46;
+}
+
+/* Form Styles */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-main, #17211B);
+}
+
+.form-input, .form-textarea, .form-select {
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--border-subtle, #CBD5E1);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--text-main, #17211B);
+  background: var(--surface-card, #FFFFFF);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  outline: none;
+  border-color: #006D36;
+  box-shadow: 0 0 0 3px rgba(0, 109, 54, 0.15);
+}
+
+/* Horarios Table / Rows */
+.horarios-picker-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.75rem;
+}
+
+.horarios-picker-table th, .horarios-picker-table td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle, #E2E8E4);
+  font-size: 0.875rem;
+}
+
+.horarios-picker-table th {
+  background: var(--bg-subtle, #F8FAFC);
+  font-weight: 600;
+  color: var(--text-muted, #64748B);
+}
+
+.time-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Photo Gallery & Upload */
+.photos-grid-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.photo-preview-item {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle, #E2E8E4);
+}
+
+.photo-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.25s ease;
+}
+
+.photo-preview-item.clickable {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.photo-preview-item.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px -4px rgba(0, 109, 54, 0.25);
+  border-color: var(--accent-emerald, #006D36);
+}
+
+.photo-preview-item.clickable:hover img {
+  transform: scale(1.05);
+}
+
+.photo-preview-item.clickable .photo-zoom-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 61, 37, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  color: #FFFFFF;
+  font-size: 1.15rem;
+  backdrop-filter: blur(2px);
+}
+
+.photo-preview-item.clickable:hover .photo-zoom-overlay {
+  opacity: 1;
+}
+
+.photo-preview-item.clickable .photo-zoom-overlay span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+@keyframes fadeInLightbox {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.photo-remove-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s ease;
+}
+
+.photo-remove-btn:hover {
+  background: #EF4444;
+}
+
+.dropzone-box {
+  border: 2px dashed #94A3B8;
+  border-radius: 10px;
+  padding: 1.75rem;
+  text-align: center;
+  cursor: pointer;
+  background: var(--bg-subtle, #F8FAFC);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.dropzone-box:hover {
+  border-color: #006D36;
+  background: #F0FDF4;
+}
+
+/* Actions & Buttons */
+.btn-primary {
+  background: #006D36;
+  color: #FFFFFF;
+  font-weight: 600;
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #00562A;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-danger {
+  background: #DC2626;
+  color: #FFFFFF;
+  font-weight: 600;
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-danger:hover {
+  background: #B91C1C;
+}
+
+.btn-secondary {
+  background: #F1F5F9;
+  color: #334155;
+  font-weight: 600;
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid #CBD5E1;
+  cursor: pointer;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: var(--surface-card, #FFFFFF);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Dark mode support */
+[data-theme="dark"] .estacionamiento-card,
+[data-theme="dark"] .modal-content {
+  background: #1E293B;
+  border-color: #334155;
+  color: #F8FAFC;
+}
+
+[data-theme="dark"] .card-title,
+[data-theme="dark"] .form-label {
+  color: #F8FAFC;
+}
+
+[data-theme="dark"] .form-input,
+[data-theme="dark"] .form-textarea,
+[data-theme="dark"] .form-select {
+  background: #0F172A;
+  border-color: #334155;
+  color: #F8FAFC;
+}
+
+[data-theme="dark"] .horarios-picker-table th {
+  background: #0F172A;
+  color: #94A3B8;
+}
+
+[data-theme="dark"] .dropzone-box {
+  background: #0F172A;
+  border-color: #475569;
+}
+
+/* Ficha Técnica Enterprise Full-Width & Responsividad */
+.ficha-tecnica-enterprise-container {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .ficha-tecnica-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+

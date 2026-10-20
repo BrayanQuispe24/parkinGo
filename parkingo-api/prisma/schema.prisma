@@ -141,6 +141,9 @@ model Tenant {
   usuarioId   String
   usuario     User         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
+  estacionamiento Estacionamiento?
+  horarios        Horario[]
+
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
@@ -148,4 +151,201 @@ model Tenant {
   @@map("tenants")
 }
 
+enum EstadoEstacionamiento {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  INHABILITADO
+}
 
+enum DiaSemana {
+  LUNES
+  MARTES
+  MIERCOLES
+  JUEVES
+  VIERNES
+  SABADO
+  DOMINGO
+}
+
+model Estacionamiento {
+  id              String                @id @default(uuid())
+  nombre          String
+  direccion       String
+  longitud        Float
+  latitud         Float
+  estado          EstadoEstacionamiento @default(PENDIENTE)
+
+  tenantId        String                @unique @map("tenant_id")
+  tenant          Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  motivoRechazo   String?               @map("motivo_rechazo") @db.Text
+  fechaAprobacion DateTime?             @map("fecha_aprobacion")
+
+  fotos           FotoEstacionamiento[]
+  horarios        EstacionamientoHorario[]
+  serviciosExtras ServicioExtra[]
+  tarifas         Tarifa[]
+  niveles         Nivel[]
+
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @updatedAt @map("updated_at")
+
+  @@map("estacionamientos")
+}
+
+model FotoEstacionamiento {
+  id                String          @id @default(uuid())
+  url               String
+  estacionamientoId String          @map("estacionamiento_id")
+  estacionamiento   Estacionamiento @relation(fields: [estacionamientoId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime        @default(now()) @map("created_at")
+
+  @@index([estacionamientoId])
+  @@map("fotos")
+}
+
+model Horario {
+  id               String                   @id @default(uuid())
+  dia              DiaSemana
+  horaInicio       String                   @map("hora_inicio")
+  horaCierre       String                   @map("hora_cierre")
+
+  tenantId         String                   @map("tenant_id")
+  tenant           Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  estacionamientos EstacionamientoHorario[]
+
+  createdAt        DateTime                 @default(now()) @map("created_at")
+  updatedAt        DateTime                 @updatedAt @map("updated_at")
+
+  @@unique([tenantId, dia, horaInicio, horaCierre])
+  @@index([tenantId])
+  @@map("horarios")
+}
+
+model EstacionamientoHorario {
+  id                String          @id @default(uuid())
+
+  estacionamientoId String          @map("estacionamiento_id")
+  estacionamiento   Estacionamiento @relation(fields: [estacionamientoId], references: [id], onDelete: Cascade)
+
+  horarioId         String          @map("horario_id")
+  horario           Horario         @relation(fields: [horarioId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime        @default(now()) @map("created_at")
+
+  @@unique([estacionamientoId, horarioId])
+  @@index([estacionamientoId])
+  @@index([horarioId])
+  @@map("estacionamientos_horarios")
+}
+
+model ServicioExtra {
+  id                String          @id @default(uuid())
+  nombre            String
+  descripcion       String?         @db.Text
+  precio            Float
+  activo            Boolean         @default(true)
+
+  estacionamientoId String          @map("estacionamiento_id")
+  estacionamiento   Estacionamiento @relation(fields: [estacionamientoId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+
+  @@index([estacionamientoId])
+  @@map("servicios_extras")
+}
+
+enum ModalidadTarifa {
+  HORA
+  DIA
+  MES
+}
+
+enum EstadoTarifa {
+  ACTIVO
+  INACTIVO
+}
+
+model Tarifa {
+  id                String          @id @default(uuid())
+  descripcion       String          @db.Text
+  monto             Float
+  modalidad         ModalidadTarifa
+  estado            EstadoTarifa    @default(ACTIVO)
+
+  estacionamientoId String          @map("estacionamiento_id")
+  estacionamiento   Estacionamiento @relation(fields: [estacionamientoId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+
+  @@index([estacionamientoId])
+  @@map("tarifas")
+}
+
+enum TipoEspacio {
+  AUTO
+  MOTO
+  CAMIONETA
+  DISCAPACITADO
+  ELECTRICO
+}
+
+enum EstadoEspacio {
+  DISPONIBLE
+  OCUPADO
+  RESERVADO
+  MANTENIMIENTO
+}
+
+model Nivel {
+  id                String          @id @default(uuid())
+  codigo            String
+  estacionamientoId String          @map("estacionamiento_id")
+  estacionamiento   Estacionamiento @relation(fields: [estacionamientoId], references: [id], onDelete: Cascade)
+
+  espacios          Espacio[]
+  croquis           Croquis[]
+
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+
+  @@unique([estacionamientoId, codigo])
+  @@index([estacionamientoId])
+  @@map("niveles")
+}
+
+model Espacio {
+  id            String          @id @default(uuid())
+  codigoEspacio String          @map("codigo_espacio")
+  tipo          TipoEspacio     @default(AUTO)
+  modalidad     ModalidadTarifa @default(HORA)
+  estado        EstadoEspacio   @default(DISPONIBLE)
+
+  nivelId       String          @map("nivel_id")
+  nivel         Nivel           @relation(fields: [nivelId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  @@unique([nivelId, codigoEspacio])
+  @@index([nivelId])
+  @@map("espacios")
+}
+
+model Croquis {
+  id        String   @id @default(uuid())
+  codigo    String
+  nivelId   String   @map("nivel_id")
+  nivel     Nivel    @relation(fields: [nivelId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([nivelId])
+  @@map("croquis")
+}

@@ -51,3 +51,16 @@ export const useDeleteTenantMutation = () => {
         },
     });
 };
+
+export const useActualizarTenantHorariosMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ tenantId, horarios }: { tenantId: string; horarios: import('../../estacionamientos/domain/Estacionamiento').HorarioItemPayload[] }) =>
+            httpTenantRepository.actualizarTenantHorarios(tenantId, horarios),
+        onSuccess: (_data, variables) => {
+            queryClient.invalidateQueries({ queryKey: TENANTS_QUERY_KEYS.horarios(variables.tenantId) });
+            queryClient.invalidateQueries({ queryKey: ['estacionamientos', 'me'] });
+        },
+    });
+};

@@ -2,6 +2,7 @@
 import { Link, useLocation, useNavigate } from 'react-router';
 import { useAuthStore } from '../../../../store/useAuthStore';
 import { useSettingsStore } from '../../../../store/useSettingsStore';
+import { useAdminEstacionamientosQuery } from '../../../estacionamientos/application/useEstacionamientosQuery';
 
 interface AdminSidebarProps {
     collapsed: boolean;
@@ -19,6 +20,9 @@ export const AdminSidebar = ({
     const navigate = useNavigate();
     const { user, logoutState } = useAuthStore();
     const openSettings = useSettingsStore((state) => state.openSettings);
+
+    const { data: solicitudesPendientes = [] } = useAdminEstacionamientosQuery('PENDIENTE');
+    const pendingCount = solicitudesPendientes.length;
 
     const handleLogout = () => {
         logoutState();
@@ -154,6 +158,21 @@ export const AdminSidebar = ({
                 </Link>
 
                 <Link
+                    to="/dashboard/admin/solicitudes"
+                    className={`nav-item ${isCurrent('/dashboard/admin/solicitudes') || isCurrent('/dashboard/admin/estacionamientos') ? 'active' : ''}`}
+                    title="Solicitudes de Registro de Estacionamientos"
+                    onClick={handleLinkClick}
+                >
+                    <i className="fa-solid fa-clipboard-check"></i>
+                    <span>Solicitudes</span>
+                    {pendingCount > 0 && (!collapsed || mobileOpen) && (
+                        <span className="badge badge-pending" id="pending-requests-count" style={{ marginLeft: 'auto', fontSize: '0.7rem', padding: '0.15rem 0.45rem' }}>
+                            {pendingCount}
+                        </span>
+                    )}
+                </Link>
+
+                <Link
                     to="/dashboard/admin/roles-permissions"
                     className={`nav-item ${isCurrent('/dashboard/admin/roles-permissions') ? 'active' : ''}`}
                     title="Roles y Permisos"
@@ -162,16 +181,6 @@ export const AdminSidebar = ({
                     <i className="fa-solid fa-shield-halved"></i>
                     <span>Roles y Permisos</span>
                 </Link>
-
-                <a className="nav-item" href="#solicitudes" title="Solicitudes de Registro" onClick={(e) => { e.preventDefault(); handleLinkClick(); }}>
-                    <i className="fa-solid fa-clipboard-check"></i>
-                    <span>Solicitudes</span>
-                    {!collapsed && (
-                        <span className="badge badge-pending" id="pending-requests-count" style={{ marginLeft: 'auto', fontSize: '0.7rem', padding: '0.15rem 0.45rem' }}>
-                            3
-                        </span>
-                    )}
-                </a>
 
                 <a className="nav-item" href="#planes" title="Planes y Suscripciones" onClick={(e) => { e.preventDefault(); handleLinkClick(); }}>
                     <i className="fa-solid fa-gem"></i>
