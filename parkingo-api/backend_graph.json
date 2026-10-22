@@ -673,6 +673,77 @@
               "summary": "Eliminar permanentemente un espacio"
             }
           ]
+        },
+        {
+          "name": "CroquisController",
+          "file": "src/modules/estacionamientos/controllers/croquis.controller.ts",
+          "prefix": "/estacionamientos",
+          "endpoints": [
+            {
+              "method": "GET",
+              "path": "/me/niveles/:nivelId/croquis",
+              "action": "GetCroquisByNivelAction",
+              "dtoOut": "CroquisResponseDto",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Consultar el croquis / plano de un nivel específico"
+            },
+            {
+              "method": "PUT",
+              "path": "/me/niveles/:nivelId/croquis",
+              "action": "GuardarCroquisAction",
+              "dtoIn": "GuardarCroquisDto",
+              "dtoOut": "CroquisResponseDto",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Guardar o actualizar el croquis de un nivel"
+            },
+            {
+              "method": "POST",
+              "path": "/me/niveles/:nivelId/croquis/fondo-imagen",
+              "action": "SubirFondoCroquisAction",
+              "dtoOut": "CroquisResponseDto",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Subir imagen o plano arquitectónico de fondo para el croquis"
+            }
+          ]
+        },
+        {
+          "name": "EstacionamientoOperadoresController",
+          "file": "src/modules/estacionamientos/controllers/estacionamiento-operadores.controller.ts",
+          "prefix": "/estacionamientos",
+          "endpoints": [
+            {
+              "method": "GET",
+              "path": "/:id/operadores",
+              "action": "GetOperadoresEstacionamientoAction",
+              "dtoOut": "OperadorEstacionamientoResponseDto[]",
+              "roles": ["PARKING_ADMIN", "HOST", "GENERAL_ADMIN", "SUPER_ADMIN"],
+              "summary": "Listar operadores asignados a un estacionamiento"
+            },
+            {
+              "method": "GET",
+              "path": "/:id/operadores-disponibles",
+              "action": "GetOperadoresDisponiblesAction",
+              "dtoOut": "OperadorEstacionamientoResponseDto[]",
+              "roles": ["PARKING_ADMIN", "HOST", "GENERAL_ADMIN", "SUPER_ADMIN"],
+              "summary": "Listar operadores disponibles para asignación (estacionamientoId es null)"
+            },
+            {
+              "method": "POST",
+              "path": "/:id/operadores",
+              "action": "AsignarOperadoresAction",
+              "dtoIn": "AsignarOperadoresDto",
+              "dtoOut": "OperadorEstacionamientoResponseDto[]",
+              "roles": ["PARKING_ADMIN", "HOST", "GENERAL_ADMIN", "SUPER_ADMIN"],
+              "summary": "Asignar uno o más operadores al estacionamiento (regla estricta 1:N)"
+            },
+            {
+              "method": "DELETE",
+              "path": "/:id/operadores/:usuarioId",
+              "action": "DesasignarOperadorAction",
+              "roles": ["PARKING_ADMIN", "HOST", "GENERAL_ADMIN", "SUPER_ADMIN"],
+              "summary": "Desasignar un operador del estacionamiento (estacionamientoId pasa a null)"
+            }
+          ]
         }
       ],
       "actions": {
@@ -826,6 +897,42 @@
           "file": "src/modules/estacionamientos/actions/eliminar-espacio.action.ts",
           "dtoOut": "src/modules/estacionamientos/dto/espacio-response.dto.ts",
           "dependsOn": ["EspacioRepository", "TenantRepository"]
+        },
+        "GetCroquisByNivelAction": {
+          "file": "src/modules/estacionamientos/actions/get-croquis-by-nivel.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/croquis-response.dto.ts",
+          "dependsOn": ["CroquisRepository", "NivelRepository", "TenantRepository"]
+        },
+        "GuardarCroquisAction": {
+          "file": "src/modules/estacionamientos/actions/guardar-croquis.action.ts",
+          "dtoIn": "src/modules/estacionamientos/dto/guardar-croquis.dto.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/croquis-response.dto.ts",
+          "dependsOn": ["CroquisRepository", "NivelRepository", "TenantRepository"]
+        },
+        "SubirFondoCroquisAction": {
+          "file": "src/modules/estacionamientos/actions/subir-fondo-croquis.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/croquis-response.dto.ts",
+          "dependsOn": ["CroquisRepository", "NivelRepository", "TenantRepository"]
+        },
+        "GetOperadoresEstacionamientoAction": {
+          "file": "src/modules/estacionamientos/actions/get-operadores-estacionamiento.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/operador-estacionamiento-response.dto.ts",
+          "dependsOn": ["EstacionamientoRepository", "EstacionamientoOperadorRepository"]
+        },
+        "GetOperadoresDisponiblesAction": {
+          "file": "src/modules/estacionamientos/actions/get-operadores-disponibles.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/operador-estacionamiento-response.dto.ts",
+          "dependsOn": ["EstacionamientoRepository", "EstacionamientoOperadorRepository"]
+        },
+        "AsignarOperadoresAction": {
+          "file": "src/modules/estacionamientos/actions/asignar-operadores.action.ts",
+          "dtoIn": "src/modules/estacionamientos/dto/asignar-operadores.dto.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/operador-estacionamiento-response.dto.ts",
+          "dependsOn": ["EstacionamientoRepository", "EstacionamientoOperadorRepository"]
+        },
+        "DesasignarOperadorAction": {
+          "file": "src/modules/estacionamientos/actions/desasignar-operador.action.ts",
+          "dependsOn": ["EstacionamientoRepository", "EstacionamientoOperadorRepository"]
         }
       },
       "repositories": {
@@ -848,6 +955,14 @@
         "espacio": {
           "interface": "src/modules/estacionamientos/repositories/espacio.repository.ts",
           "implementation": "src/modules/estacionamientos/repositories/prisma-espacio.repository.ts"
+        },
+        "croquis": {
+          "interface": "src/modules/estacionamientos/repositories/croquis.repository.ts",
+          "implementation": "src/modules/estacionamientos/repositories/prisma-croquis.repository.ts"
+        },
+        "operador": {
+          "interface": "src/modules/estacionamientos/repositories/estacionamiento-operador.repository.ts",
+          "implementation": "src/modules/estacionamientos/repositories/prisma-estacionamiento-operador.repository.ts"
         }
       },
       "mappers": [
@@ -855,7 +970,9 @@
         "src/modules/estacionamientos/mappers/servicio-extra.mapper.ts",
         "src/modules/estacionamientos/mappers/tarifa.mapper.ts",
         "src/modules/estacionamientos/mappers/nivel.mapper.ts",
-        "src/modules/estacionamientos/mappers/espacio.mapper.ts"
+        "src/modules/estacionamientos/mappers/espacio.mapper.ts",
+        "src/modules/estacionamientos/mappers/croquis.mapper.ts",
+        "src/modules/estacionamientos/mappers/estacionamiento-operador.mapper.ts"
       ],
       "dto": [
         "src/modules/estacionamientos/dto/registrar-estacionamiento.dto.ts",
@@ -874,7 +991,11 @@
         "src/modules/estacionamientos/dto/nivel-response.dto.ts",
         "src/modules/estacionamientos/dto/create-espacio.dto.ts",
         "src/modules/estacionamientos/dto/update-espacio.dto.ts",
-        "src/modules/estacionamientos/dto/espacio-response.dto.ts"
+        "src/modules/estacionamientos/dto/espacio-response.dto.ts",
+        "src/modules/estacionamientos/dto/guardar-croquis.dto.ts",
+        "src/modules/estacionamientos/dto/croquis-response.dto.ts",
+        "src/modules/estacionamientos/dto/asignar-operadores.dto.ts",
+        "src/modules/estacionamientos/dto/operador-estacionamiento-response.dto.ts"
       ]
     }
   }

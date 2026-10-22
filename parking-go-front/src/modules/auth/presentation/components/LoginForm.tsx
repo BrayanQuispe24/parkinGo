@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../hooks/useAuth';
+import { showToast } from '../../../../core/utils/toastr';
 
 export const LoginForm = () => {
     const [email, setEmail] = useState('');
@@ -13,8 +14,10 @@ export const LoginForm = () => {
     const handleLoginSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        if (!email || !password) {
-            setError('Por favor complete el correo electrónico y la contraseña.');
+        if (!email.trim() || !password) {
+            const validationMessage = 'Por favor complete el correo electrónico y la contraseña.';
+            setError(validationMessage);
+            showToast.warning(validationMessage, 'Campos requeridos');
             return;
         }
 

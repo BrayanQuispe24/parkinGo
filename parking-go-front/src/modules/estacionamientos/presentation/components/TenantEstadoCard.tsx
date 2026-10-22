@@ -8,9 +8,11 @@ import { TenantServiciosExtrasPanel } from './TenantServiciosExtrasPanel';
 import { TenantNivelesPanel } from './TenantNivelesPanel';
 import { TenantEspaciosPanel } from './TenantEspaciosPanel';
 import { TenantCroquisPanel } from './TenantCroquisPanel';
+import { TenantOperadoresPanel } from './TenantOperadoresPanel';
 
 export type FichaTecnicaTab =
   | 'resumen'
+  | 'operadores'
   | 'tarifas'
   | 'servicios'
   | 'horarios'
@@ -107,6 +109,7 @@ export const TenantEstadoCard: React.FC<TenantEstadoCardProps> = ({
 
   const tabsConfig: { id: FichaTecnicaTab; label: string; icon: string; count?: number }[] = [
     { id: 'resumen', label: 'Resumen & Ubicación', icon: 'fa-solid fa-map-location-dot' },
+    { id: 'operadores', label: 'Operadores', icon: 'fa-solid fa-users-gear' },
     { id: 'tarifas', label: 'Esquema de Tarifas', icon: 'fa-solid fa-tags' },
     { id: 'servicios', label: 'Servicios Extras', icon: 'fa-solid fa-wand-magic-sparkles' },
     { id: 'horarios', label: 'Horarios de Atención', icon: 'fa-regular fa-clock', count: estacionamiento.horarios?.length },
@@ -126,24 +129,25 @@ export const TenantEstadoCard: React.FC<TenantEstadoCardProps> = ({
         gap: '0.75rem',
       }}
     >
-      {/* 1. Toolbar Superior Compacto Enterprise */}
+      {/* 1. Banner de Estado (Solo si es PENDIENTE, RECHAZADO o INHABILITADO) */}
+      {getBanner()}
+
+      {/* 2. Barra de Pestañas con Botón de Volver Integrado */}
       <div
         style={{
-          background: '#FFFFFF',
-          border: '1px solid #E2E8F0',
-          borderRadius: '4px',
-          padding: '0.65rem 1rem',
-          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
           display: 'flex',
-          justifyContent: 'space-between',
           alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '0.75rem',
+          borderBottom: '1px solid #CBD5E1',
+          gap: '0.35rem',
+          overflowX: 'auto',
+          background: '#FFFFFF',
+          borderRadius: '4px',
+          padding: '0.35rem 0.65rem',
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
         }}
       >
-        {/* Lado Izquierdo: Botón Volver + Nombre del Parqueo + Estado */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          {onBack && (
+        {onBack && (
+          <>
             <button
               type="button"
               onClick={onBack}
@@ -153,97 +157,42 @@ export const TenantEstadoCard: React.FC<TenantEstadoCardProps> = ({
                 border: '1px solid #CBD5E1',
                 color: '#0F172A',
                 fontWeight: 700,
-                fontSize: '0.75rem',
-                padding: '0.35rem 0.65rem',
-                borderRadius: '3px',
+                fontSize: '0.78rem',
+                padding: '0.45rem 0.85rem',
+                borderRadius: '4px',
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.4rem',
+                gap: '0.45rem',
+                flexShrink: 0,
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = '#E2E8F0';
                 e.currentTarget.style.borderColor = '#94A3B8';
+                e.currentTarget.style.color = '#006D36';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = '#F1F5F9';
                 e.currentTarget.style.borderColor = '#CBD5E1';
+                e.currentTarget.style.color = '#0F172A';
               }}
             >
               <i className="fa-solid fa-arrow-left"></i>
               <span>Volver</span>
             </button>
-          )}
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-            <i className="fa-solid fa-square-parking" style={{ color: '#006D36', fontSize: '1.1rem' }}></i>
-            <h1
+            <div
               style={{
-                margin: 0,
-                fontSize: '1.05rem',
-                fontWeight: 800,
-                color: '#0F172A',
-                lineHeight: 1.2,
+                width: '1px',
+                height: '24px',
+                background: '#CBD5E1',
+                margin: '0 0.35rem',
+                flexShrink: 0,
               }}
-            >
-              {estacionamiento.nombre}
-            </h1>
-          </div>
+            />
+          </>
+        )}
 
-          <EstadoBadge estado={estacionamiento.estado} />
-        </div>
-
-        {/* Lado Derecho: Dirección y Coordenadas con acceso directo a Maps */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
-          <div style={{ fontSize: '0.75rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <i className="fa-solid fa-location-dot" style={{ color: '#006D36' }}></i>
-            <span style={{ maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={estacionamiento.direccion}>
-              {estacionamiento.direccion}
-            </span>
-          </div>
-
-          <a
-            href={googleMapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Abrir ubicación en Google Maps"
-            style={{
-              fontSize: '0.72rem',
-              color: '#006D36',
-              fontWeight: 700,
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.3rem',
-              padding: '0.25rem 0.55rem',
-              borderRadius: '3px',
-              background: '#F0FDF4',
-              border: '1px solid #BBF7D0',
-            }}
-          >
-            <i className="fa-solid fa-map-pin"></i>
-            <span>{estacionamiento.latitud.toFixed(4)}, {estacionamiento.longitud.toFixed(4)}</span>
-            <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: '0.6rem' }}></i>
-          </a>
-        </div>
-      </div>
-
-      {/* 2. Banner de Estado (Solo si es PENDIENTE, RECHAZADO o INHABILITADO) */}
-      {getBanner()}
-
-      {/* 3. Barra de Pestañas Propias de la Ficha Técnica */}
-      <div
-        style={{
-          display: 'flex',
-          borderBottom: '1px solid #CBD5E1',
-          gap: '0.5rem',
-          overflowX: 'auto',
-          background: '#FFFFFF',
-          borderRadius: '4px 4px 0 0',
-          padding: '0 0.5rem',
-        }}
-      >
         {tabsConfig.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -257,7 +206,7 @@ export const TenantEstadoCard: React.FC<TenantEstadoCardProps> = ({
                 borderBottom: isActive ? '3px solid #006D36' : '3px solid transparent',
                 color: isActive ? '#006D36' : '#64748B',
                 fontWeight: isActive ? 800 : 600,
-                padding: '0.75rem 1rem',
+                padding: '0.65rem 0.95rem',
                 fontSize: '0.82rem',
                 cursor: 'pointer',
                 display: 'inline-flex',
@@ -294,7 +243,7 @@ export const TenantEstadoCard: React.FC<TenantEstadoCardProps> = ({
         })}
       </div>
 
-      {/* 4. Contenido Dinámico de la Pestaña Activa */}
+      {/* 3. Contenido Dinámico de la Pestaña Activa */}
       <div style={{ width: '100%' }}>
         {activeTab === 'resumen' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -316,29 +265,47 @@ export const TenantEstadoCard: React.FC<TenantEstadoCardProps> = ({
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '0.5rem',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                  <i className="fa-solid fa-map-location-dot" style={{ color: '#006D36', fontSize: '0.85rem' }}></i>
-                  <span
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 800,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      color: '#0F172A',
-                    }}
-                  >
-                    Ubicación Geográfica en Mapa Satelital / Callejero
-                  </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                    <i className="fa-solid fa-square-parking" style={{ color: '#006D36', fontSize: '1.15rem' }}></i>
+                    <h3
+                      style={{
+                        margin: 0,
+                        fontSize: '0.98rem',
+                        fontWeight: 800,
+                        color: '#0F172A',
+                      }}
+                    >
+                      {estacionamiento.nombre}
+                    </h3>
+                  </div>
+                  <EstadoBadge estado={estacionamiento.estado} />
                 </div>
                 <a
                   href={googleMapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ fontSize: '0.72rem', color: '#006D36', fontWeight: 700, textDecoration: 'none' }}
+                  style={{
+                    fontSize: '0.72rem',
+                    color: '#006D36',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    padding: '0.25rem 0.6rem',
+                    background: '#F0FDF4',
+                    border: '1px solid #BBF7D0',
+                    borderRadius: '3px',
+                  }}
                 >
-                  Abrir en Google Maps <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: '0.65rem' }}></i>
+                  <i className="fa-solid fa-map-location-dot"></i>
+                  <span>Abrir en Google Maps</span>
+                  <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: '0.6rem' }}></i>
                 </a>
               </div>
               <div style={{ padding: '0.75rem' }}>
@@ -362,50 +329,82 @@ export const TenantEstadoCard: React.FC<TenantEstadoCardProps> = ({
                 boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
               }}
             >
-              <h4
-                style={{
-                  margin: '0 0 1rem 0',
-                  fontSize: '0.75rem',
-                  fontWeight: 800,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  color: '#475569',
-                }}
-              >
-                Datos Técnicos del Estacionamiento
-              </h4>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '1rem' }}>
+                <i className="fa-solid fa-sliders" style={{ color: '#006D36', fontSize: '0.85rem' }}></i>
+                <h4
+                  style={{
+                    margin: 0,
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: '#475569',
+                  }}
+                >
+                  Datos Técnicos del Estacionamiento
+                </h4>
+              </div>
 
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
                   gap: '1rem',
                 }}
               >
-                <div style={{ padding: '0.75rem', background: '#F8FAFC', borderRadius: '3px', border: '1px solid #E2E8F0' }}>
-                  <span style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 800, textTransform: 'uppercase', color: '#64748B', marginBottom: '0.2rem' }}>
-                    Dirección Registrada
+                <div style={{ padding: '0.85rem', background: '#F8FAFC', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.6875rem', fontWeight: 800, textTransform: 'uppercase', color: '#64748B', marginBottom: '0.35rem' }}>
+                    <i className="fa-solid fa-square-parking" style={{ color: '#006D36' }}></i> Nombre del Establecimiento
                   </span>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0F172A' }}>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0F172A' }}>
+                    {estacionamiento.nombre}
+                  </div>
+                </div>
+
+                <div style={{ padding: '0.85rem', background: '#F8FAFC', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.6875rem', fontWeight: 800, textTransform: 'uppercase', color: '#64748B', marginBottom: '0.35rem' }}>
+                    <i className="fa-solid fa-shield-halved" style={{ color: '#006D36' }}></i> Estado Operativo Actual
+                  </span>
+                  <div style={{ marginTop: '0.2rem' }}>
+                    <EstadoBadge estado={estacionamiento.estado} />
+                  </div>
+                </div>
+
+                <div style={{ padding: '0.85rem', background: '#F8FAFC', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.6875rem', fontWeight: 800, textTransform: 'uppercase', color: '#64748B', marginBottom: '0.35rem' }}>
+                    <i className="fa-solid fa-location-dot" style={{ color: '#006D36' }}></i> Dirección Registrada
+                  </span>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0F172A', wordBreak: 'break-word' }}>
                     {estacionamiento.direccion}
                   </div>
                 </div>
 
-                <div style={{ padding: '0.75rem', background: '#F8FAFC', borderRadius: '3px', border: '1px solid #E2E8F0' }}>
-                  <span style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 800, textTransform: 'uppercase', color: '#64748B', marginBottom: '0.2rem' }}>
-                    Posicionamiento Global (Lat / Lng)
+                <div style={{ padding: '0.85rem', background: '#F8FAFC', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.6875rem', fontWeight: 800, textTransform: 'uppercase', color: '#64748B', marginBottom: '0.35rem' }}>
+                    <i className="fa-solid fa-map-pin" style={{ color: '#006D36' }}></i> Posicionamiento Global (Lat / Lng)
                   </span>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#006D36', fontFamily: 'monospace' }}>
-                    {estacionamiento.latitud} , {estacionamiento.longitud}
-                  </div>
-                </div>
-
-                <div style={{ padding: '0.75rem', background: '#F8FAFC', borderRadius: '3px', border: '1px solid #E2E8F0' }}>
-                  <span style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 800, textTransform: 'uppercase', color: '#64748B', marginBottom: '0.2rem' }}>
-                    Estado Operativo Actual
-                  </span>
-                  <div style={{ marginTop: '0.25rem' }}>
-                    <EstadoBadge estado={estacionamiento.estado} />
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#006D36', fontFamily: 'monospace' }}>
+                      {estacionamiento.latitud.toFixed(4)} , {estacionamiento.longitud.toFixed(4)}
+                    </span>
+                    <a
+                      href={googleMapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Ver en Google Maps"
+                      style={{
+                        fontSize: '0.7rem',
+                        color: '#006D36',
+                        fontWeight: 700,
+                        textDecoration: 'none',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                      }}
+                    >
+                      <span>Ver mapa</span>
+                      <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: '0.6rem' }}></i>
+                    </a>
                   </div>
                 </div>
               </div>
@@ -559,6 +558,10 @@ export const TenantEstadoCard: React.FC<TenantEstadoCardProps> = ({
             initialNivelId={selectedNivelIdForEspacios}
             onGoToNiveles={() => setActiveTab('niveles')}
           />
+        )}
+
+        {activeTab === 'operadores' && (
+          <TenantOperadoresPanel estacionamientoId={estacionamiento.id} />
         )}
 
         {activeTab === 'croquis' && (

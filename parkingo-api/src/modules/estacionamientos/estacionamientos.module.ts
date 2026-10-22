@@ -9,6 +9,8 @@ import { ServiciosExtrasController } from './controllers/servicios-extras.contro
 import { TarifasController } from './controllers/tarifas.controller.js';
 import { NivelesController } from './controllers/niveles.controller.js';
 import { EspaciosController } from './controllers/espacios.controller.js';
+import { CroquisController } from './controllers/croquis.controller.js';
+import { EstacionamientoOperadoresController } from './controllers/estacionamiento-operadores.controller.js';
 
 import { EstacionamientoRepository } from './repositories/estacionamiento.repository.js';
 import { PrismaEstacionamientoRepository } from './repositories/prisma-estacionamiento.repository.js';
@@ -20,6 +22,10 @@ import { NivelRepository } from './repositories/nivel.repository.js';
 import { PrismaNivelRepository } from './repositories/prisma-nivel.repository.js';
 import { EspacioRepository } from './repositories/espacio.repository.js';
 import { PrismaEspacioRepository } from './repositories/prisma-espacio.repository.js';
+import { CroquisRepository } from './repositories/croquis.repository.js';
+import { PrismaCroquisRepository } from './repositories/prisma-croquis.repository.js';
+import { EstacionamientoOperadorRepository } from './repositories/estacionamiento-operador.repository.js';
+import { PrismaEstacionamientoOperadorRepository } from './repositories/prisma-estacionamiento-operador.repository.js';
 
 import { RegistrarEstacionamientoAction } from './actions/registrar-estacionamiento.action.js';
 import { GetMiEstacionamientoAction } from './actions/get-mi-estacionamiento.action.js';
@@ -49,6 +55,13 @@ import { CrearEspacioAction } from './actions/crear-espacio.action.js';
 import { GetMisEspaciosAction } from './actions/get-mis-espacios.action.js';
 import { ActualizarEspacioAction } from './actions/actualizar-espacio.action.js';
 import { EliminarEspacioAction } from './actions/eliminar-espacio.action.js';
+import { GetCroquisByNivelAction } from './actions/get-croquis-by-nivel.action.js';
+import { GuardarCroquisAction } from './actions/guardar-croquis.action.js';
+import { SubirFondoCroquisAction } from './actions/subir-fondo-croquis.action.js';
+import { GetOperadoresEstacionamientoAction } from './actions/get-operadores-estacionamiento.action.js';
+import { GetOperadoresDisponiblesAction } from './actions/get-operadores-disponibles.action.js';
+import { AsignarOperadoresAction } from './actions/asignar-operadores.action.js';
+import { DesasignarOperadorAction } from './actions/desasignar-operador.action.js';
 
 @Module({
   imports: [PrismaModule, TenantsModule],
@@ -60,6 +73,8 @@ import { EliminarEspacioAction } from './actions/eliminar-espacio.action.js';
     TarifasController,
     NivelesController,
     EspaciosController,
+    CroquisController,
+    EstacionamientoOperadoresController,
   ],
   providers: [
     {
@@ -81,6 +96,14 @@ import { EliminarEspacioAction } from './actions/eliminar-espacio.action.js';
     {
       provide: EspacioRepository,
       useClass: PrismaEspacioRepository,
+    },
+    {
+      provide: CroquisRepository,
+      useClass: PrismaCroquisRepository,
+    },
+    {
+      provide: EstacionamientoOperadorRepository,
+      useClass: PrismaEstacionamientoOperadorRepository,
     },
     RegistrarEstacionamientoAction,
     GetMiEstacionamientoAction,
@@ -110,6 +133,13 @@ import { EliminarEspacioAction } from './actions/eliminar-espacio.action.js';
     GetMisEspaciosAction,
     ActualizarEspacioAction,
     EliminarEspacioAction,
+    GetCroquisByNivelAction,
+    GuardarCroquisAction,
+    SubirFondoCroquisAction,
+    GetOperadoresEstacionamientoAction,
+    GetOperadoresDisponiblesAction,
+    AsignarOperadoresAction,
+    DesasignarOperadorAction,
   ],
   exports: [
     EstacionamientoRepository,
@@ -117,6 +147,8 @@ import { EliminarEspacioAction } from './actions/eliminar-espacio.action.js';
     TarifaRepository,
     NivelRepository,
     EspacioRepository,
+    CroquisRepository,
+    EstacionamientoOperadorRepository,
   ],
 })
 export class EstacionamientosModule {}

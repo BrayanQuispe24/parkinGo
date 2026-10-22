@@ -29,13 +29,14 @@ parkingoApi.interceptors.request.use(
 parkingoApi.interceptors.response.use(
     (response) => response,
     (error) => {
-        // Manejar errores globales, por ejemplo token expirado (401)
-        if (error.response?.status === 401) {
-            console.error('No autorizado. Token expirado o inválido.');
-            // Aquí podríamos llamar a logout() de nuestro store
+        // Manejar errores globales de sesión expirada (401) en rutas protegidas
+        const isAuthRequest = error.config?.url?.includes('/auth/');
+        const isOnAuthPage = typeof window !== 'undefined' && window.location.pathname.startsWith('/auth');
+
+        if (error.response?.status === 401 && !isAuthRequest && !isOnAuthPage) {
+            console.warn('Sesión expirada o token inválido. Redirigiendo al login...');
             localStorage.removeItem('parkingo_token');
             localStorage.removeItem('parkingo_user');
-            // Y redirigir al login
             window.location.href = '/auth?mode=login';
         }
         return Promise.reject(error);

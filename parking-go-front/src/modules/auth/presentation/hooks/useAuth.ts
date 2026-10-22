@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuthStore } from '../../../../store/useAuthStore';
+import { showToast } from '../../../../core/utils/toastr';
 import { LoginUseCase } from '../../application/LoginUseCase';
 import { RegisterUseCase } from '../../application/RegisterUseCase';
 import type { User } from '../../domain/User';
@@ -25,10 +26,13 @@ export const useAuth = () => {
                 loginState(user, user.token);
             }
             setSuccess('¡Inicio de sesión exitoso! Redirigiendo a tu panel...');
+            showToast.success('¡Bienvenido de nuevo! Redirigiendo a tu panel...', 'Sesión iniciada');
             return user;
         } catch (err: unknown) {
             const e = err as Error;
-            setError(e.message || 'Error al iniciar sesión');
+            const message = e.message || 'Error al iniciar sesión';
+            setError(message);
+            showToast.error(message, 'Error de autenticación');
             return null;
         } finally {
             setLoading(false);

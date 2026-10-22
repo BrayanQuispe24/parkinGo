@@ -65,6 +65,9 @@ model User {
   createdBy    User?   @relation("UserHierarchy", fields: [createdById], references: [id], onDelete: SetNull)
   createdUsers User[]  @relation("UserHierarchy")
 
+  estacionamientoId String?          @map("estacionamiento_id")
+  estacionamiento   Estacionamiento? @relation("OperadoresEstacionamiento", fields: [estacionamientoId], references: [id], onDelete: SetNull)
+
   termsAccepted   Boolean   @default(false)
   termsAcceptedAt DateTime?
 
@@ -74,6 +77,8 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([estacionamientoId])
 }
 
 model UserVerificationDocument {
@@ -187,6 +192,7 @@ model Estacionamiento {
   serviciosExtras ServicioExtra[]
   tarifas         Tarifa[]
   niveles         Nivel[]
+  operadores      User[]                   @relation("OperadoresEstacionamiento")
 
   createdAt       DateTime              @default(now()) @map("created_at")
   updatedAt       DateTime              @updatedAt @map("updated_at")
@@ -338,13 +344,19 @@ model Espacio {
 }
 
 model Croquis {
-  id        String   @id @default(uuid())
-  codigo    String
-  nivelId   String   @map("nivel_id")
-  nivel     Nivel    @relation(fields: [nivelId], references: [id], onDelete: Cascade)
+  id             String   @id @default(uuid())
+  codigo         String   @default("PLANO-PRINCIPAL")
+  anchoLienzo    Int      @default(1200) @map("ancho_lienzo")
+  altoLienzo     Int      @default(800)  @map("alto_lienzo")
+  contenido      Json?    @map("contenido")
+  fondoTipo      String   @default("PLANO") @map("fondo_tipo")
+  fondoImagenUrl String?  @map("fondo_imagen_url")
+  fondoOpacidad  Float    @default(0.85)    @map("fondo_opacidad")
+  nivelId        String   @map("nivel_id")
+  nivel          Nivel    @relation(fields: [nivelId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   @@index([nivelId])
   @@map("croquis")

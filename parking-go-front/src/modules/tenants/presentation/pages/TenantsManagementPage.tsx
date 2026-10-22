@@ -14,7 +14,7 @@ import { TenantsEnterpriseTable } from '../components/TenantsEnterpriseTable';
 import { TenantFormPanel } from '../components/TenantFormPanel';
 import { TenantStatusConfirmModal } from '../components/TenantStatusConfirmModal';
 import { TenantDeleteConfirmModal } from '../components/TenantDeleteConfirmModal';
-import { TenantDetailModal } from '../components/TenantDetailModal';
+import { TenantDetailPanel } from '../components/TenantDetailPanel';
 
 export const TenantsManagementPage = () => {
     const { user } = useAuthStore();
@@ -22,11 +22,11 @@ export const TenantsManagementPage = () => {
     const isParkingAdmin = currentRole === 'PARKING_ADMIN';
     const isSuperOrGeneralAdmin = currentRole === 'SUPER_ADMIN' || currentRole === 'GENERAL_ADMIN';
 
-    // Tabs: Para PARKING_ADMIN 'list' | 'form'. Para GENERAL_ADMIN/SUPER_ADMIN siempre 'list'.
-    const [mainTab, setMainTab] = useState<'list' | 'form'>('list');
+    // Tabs: 'list' (tabla) | 'form' (crear/editar) | 'detail' (ficha completa de empresa)
+    const [mainTab, setMainTab] = useState<'list' | 'form' | 'detail'>('list');
     const [selectedTenantForEdit, setSelectedTenantForEdit] = useState<Tenant | null>(null);
 
-    // Modales de confirmación y vista
+    // Empresa seleccionada para la pestaña de visualización y modales de confirmación
     const [selectedTenantForView, setSelectedTenantForView] = useState<Tenant | null>(null);
     const [tenantForStatusModal, setTenantForStatusModal] = useState<Tenant | null>(null);
     const [tenantForDeleteModal, setTenantForDeleteModal] = useState<Tenant | null>(null);
@@ -140,9 +140,9 @@ export const TenantsManagementPage = () => {
                 </div>
             )}
 
-            {/* Pestañas de Navegación (Solo para Administrador de Parqueo) */}
-            {isParkingAdmin && (
-                <div className="tenant-tabs-nav">
+            {/* Pestañas de Navegación (Visibles para Admin de Parqueo o cuando hay una ficha de detalle abierta) */}
+            {(isParkingAdmin || selectedTenantForView !== null) && (
+                <div className="tenant-tabs-nav" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                     <button
                         type="button"
                         onClick={() => {
@@ -167,34 +167,103 @@ export const TenantsManagementPage = () => {
                         <span>Listado de Empresas ({tenants.length})</span>
                     </button>
 
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setSelectedTenantForEdit(null);
-                            setMainTab('form');
-                        }}
-                        style={{
-                            background: 'transparent',
-                            border: 'none',
-                            borderBottom: mainTab === 'form' ? '2.5px solid var(--accent-emerald)' : '2.5px solid transparent',
-                            color: mainTab === 'form' ? 'var(--accent-emerald)' : 'var(--text-muted)',
-                            fontWeight: mainTab === 'form' ? 800 : 600,
-                            padding: '0.65rem 0.25rem',
-                            fontSize: '0.88rem',
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.45rem',
-                        }}
-                    >
-                        <i className={`fa-solid ${selectedTenantForEdit ? 'fa-pen-to-square' : 'fa-building-circle-check'}`}></i>
-                        <span>{selectedTenantForEdit ? 'Editar Empresa' : 'Registrar Nueva Empresa'}</span>
-                    </button>
+                    {isParkingAdmin && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setSelectedTenantForEdit(null);
+                                setMainTab('form');
+                            }}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                borderBottom: mainTab === 'form' ? '2.5px solid var(--accent-emerald)' : '2.5px solid transparent',
+                                color: mainTab === 'form' ? 'var(--accent-emerald)' : 'var(--text-muted)',
+                                fontWeight: mainTab === 'form' ? 800 : 600,
+                                padding: '0.65rem 0.25rem',
+                                fontSize: '0.88rem',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.45rem',
+                            }}
+                        >
+                            <i className={`fa-solid ${selectedTenantForEdit ? 'fa-pen-to-square' : 'fa-building-circle-check'}`}></i>
+                            <span>{selectedTenantForEdit ? 'Editar Empresa' : 'Registrar Nueva Empresa'}</span>
+                        </button>
+                    )}
+
+                    {/* Pestaña Dinámica: Ficha Técnica de Empresa */}
+                    {selectedTenantForView && (
+                        <div
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                borderBottom: mainTab === 'detail' ? '2.5px solid var(--accent-emerald)' : '2.5px solid transparent',
+                                paddingRight: '0.2rem',
+                            }}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => setMainTab('detail')}
+                                style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: mainTab === 'detail' ? 'var(--accent-emerald)' : 'var(--text-muted)',
+                                    fontWeight: mainTab === 'detail' ? 800 : 600,
+                                    padding: '0.65rem 0.25rem',
+                                    fontSize: '0.88rem',
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.45rem',
+                                }}
+                            >
+                                <i className="fa-solid fa-building"></i>
+                                <span>Ficha: {selectedTenantForView.nombre}</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedTenantForView(null);
+                                    if (mainTab === 'detail') setMainTab('list');
+                                }}
+                                style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    color: 'var(--text-muted)',
+                                    padding: '0.2rem',
+                                    marginLeft: '0.15rem',
+                                    borderRadius: '50%',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '0.82rem',
+                                }}
+                                title="Cerrar pestaña de ficha técnica"
+                            >
+                                <i className="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
 
-            {/* Vista 1: Formulario (Creación o Edición) */}
-            {isParkingAdmin && mainTab === 'form' ? (
+            {/* Vista 1: Detalle Completo de la Empresa (Pestaña Dedicada) */}
+            {mainTab === 'detail' && selectedTenantForView ? (
+                <TenantDetailPanel
+                    tenant={selectedTenantForView}
+                    canEdit={isParkingAdmin}
+                    onBack={() => setMainTab('list')}
+                    onEdit={(tenant) => {
+                        setSelectedTenantForEdit(tenant);
+                        setMainTab('form');
+                    }}
+                />
+            ) : isParkingAdmin && mainTab === 'form' ? (
+                /* Vista 2: Formulario (Creación o Edición) */
                 <TenantFormPanel
                     tenantToEdit={selectedTenantForEdit}
                     isSubmitting={createMutation.isPending || updateMutation.isPending}
@@ -206,12 +275,15 @@ export const TenantsManagementPage = () => {
                     }}
                 />
             ) : (
-                /* Vista 2: Tabla de Empresas */
+                /* Vista 3: Tabla de Empresas */
                 <TenantsEnterpriseTable
                     tenants={tenants}
                     loading={isLoading}
                     currentRole={currentRole}
-                    onViewTenant={(tenant) => setSelectedTenantForView(tenant)}
+                    onViewTenant={(tenant) => {
+                        setSelectedTenantForView(tenant);
+                        setMainTab('detail');
+                    }}
                     onEditTenant={(tenant) => {
                         setSelectedTenantForEdit(tenant);
                         setMainTab('form');
@@ -220,18 +292,6 @@ export const TenantsManagementPage = () => {
                     onDeleteTenant={isSuperOrGeneralAdmin ? (tenant) => setTenantForDeleteModal(tenant) : undefined}
                 />
             )}
-
-            {/* Modal de Detalle Completo de la Empresa y Ubicación en Mapa */}
-            <TenantDetailModal
-                tenant={selectedTenantForView}
-                onClose={() => setSelectedTenantForView(null)}
-                canEdit={isParkingAdmin}
-                onEdit={(tenant) => {
-                    setSelectedTenantForView(null);
-                    setSelectedTenantForEdit(tenant);
-                    setMainTab('form');
-                }}
-            />
 
             {/* Modal de Confirmación de Estado (Dar de Baja / Reactivar) */}
             <TenantStatusConfirmModal
