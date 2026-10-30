@@ -3,7 +3,6 @@ import { useState, useMemo } from 'react';
 import type { DriverParking, ParkingTag } from '../../domain/DriverParking';
 import type { CreateBookingPayload } from '../../domain/DriverBooking';
 import type { CreateVehiclePayload } from '../../domain/DriverVehicle';
-import type { CreateReviewPayload } from '../../domain/DriverReview';
 import type { UpdateDriverProfilePayload } from '../../domain/DriverProfile';
 
 import { useAuthStore } from '../../../../store/useAuthStore';
@@ -12,16 +11,18 @@ import {
     useDriverVehiclesQuery,
     useDriverActiveBookingQuery,
     useDriverBookingsHistoryQuery,
-    useDriverReviewsQuery,
 } from '../../application/useDriverQueries';
 import {
     useCreateBookingMutation,
     useCancelBookingMutation,
     useAddVehicleMutation,
     useSetDefaultVehicleMutation,
-    useCreateReviewMutation,
+    useDeleteVehicleMutation,
     useUpdateDriverProfileMutation,
 } from '../../application/useDriverMutations';
+import { useMisCalificacionesQuery } from '../../../calificaciones/application/useCalificacionesQuery';
+import { useCrearCalificacionMutation } from '../../../calificaciones/application/useCalificacionesMutations';
+import type { CrearCalificacionPayload } from '../../../calificaciones/domain/Calificacion';
 
 import { DriverLayout } from '../layouts/DriverLayout';
 import type { DriverViewKey } from '../layouts/DriverSidebar';
@@ -30,6 +31,7 @@ import { CategoriesBar } from '../components/CategoriesBar';
 import { InteractiveGpsMap } from '../components/InteractiveGpsMap';
 import { ParkingCardGrid } from '../components/ParkingCardGrid';
 import { BookingModal } from '../components/BookingModal';
+import { DriverFichaTecnicaCard } from '../components/DriverFichaTecnicaCard';
 import { ActiveTicketCard } from '../components/ActiveTicketCard';
 import { VehiclesManager } from '../components/VehiclesManager';
 import { BookingHistoryTable } from '../components/BookingHistoryTable';
@@ -46,6 +48,9 @@ export const DriverDashboardPage = () => {
     const [showMap, setShowMap] = useState(true);
     const [selectedVehiclePlate, setSelectedVehiclePlate] = useState<string>('');
     const [selectedParkingForBooking, setSelectedParkingForBooking] = useState<DriverParking | null>(null);
+    const [selectedParkingForDetails, setSelectedParkingForDetails] = useState<DriverParking | null>(null);
+    const [selectedSpotForBooking, setSelectedSpotForBooking] = useState<string | null>(null);
+    const [hoveredParkingId, setHoveredParkingId] = useState<string | null>(null);
 
     // Feedback Toast Notifier
     const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -59,18 +64,19 @@ export const DriverDashboardPage = () => {
     const { user, updateUserProfile } = useAuthStore();
 
     // Consultas remotas con TanStack Query
-    const { data: parkings = [] } = useDriverParkingsQuery();
+    const { data: parkings = [], isLoading: isLoadingParkings } = useDriverParkingsQuery();
     const { data: vehicles = [] } = useDriverVehiclesQuery();
     const { data: activeBooking = null } = useDriverActiveBookingQuery();
     const { data: bookingsHistory = [] } = useDriverBookingsHistoryQuery();
-    const { data: reviews = [] } = useDriverReviewsQuery();
+    const { data: misCalificaciones = [] } = useMisCalificacionesQuery();
 
     // Mutaciones remotas con TanStack Query
     const createBookingMutation = useCreateBookingMutation();
     const cancelBookingMutation = useCancelBookingMutation();
     const addVehicleMutation = useAddVehicleMutation();
     const setDefaultVehicleMutation = useSetDefaultVehicleMutation();
-    const createReviewMutation = useCreateReviewMutation();
+    const deleteVehicleMutation = useDeleteVehicleMutation();
+    const crearCalificacionMutation = useCrearCalificacionMutation();
     const updateProfileMutation = useUpdateDriverProfileMutation();
 
     // Sincronizar placa seleccionada si está vacía
@@ -122,10 +128,15 @@ export const DriverDashboardPage = () => {
     const handleAddVehicle = async (payload: CreateVehiclePayload) => {
         try {
             await addVehicleMutation.mutateAsync(payload);
-            showToast(`Vehículo con placa ${payload.plate} registrado con éxito.`);
-        } catch (error) {
+            showToast(`¡Vehículo ${payload.plate} registrado con éxito!`);
+        } catch (error: unknown) {
             console.error('Error al registrar vehículo:', error);
-            showToast('No se pudo registrar el vehículo');
+            const errorMsg =
+                error && typeof error === 'object' && 'response' in error
+                    ? (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'No se pudo registrar el vehículo'
+                    : 'No se pudo registrar el vehículo';
+            showToast(errorMsg);
+            throw error;
         }
     };
 
@@ -139,13 +150,23 @@ export const DriverDashboardPage = () => {
         }
     };
 
-    const handleCreateReview = async (payload: CreateReviewPayload) => {
+    const handleDeleteVehicle = async (vehicleId: string) => {
         try {
-            await createReviewMutation.mutateAsync(payload);
+            await deleteVehicleMutation.mutateAsync(vehicleId);
+            showToast('Vehículo eliminado con éxito.');
+        } catch (error) {
+            console.error('Error al eliminar vehículo:', error);
+            showToast('No se pudo eliminar el vehículo');
+        }
+    };
+
+    const handleCreateReview = async (payload: CrearCalificacionPayload) => {
+        try {
+            await crearCalificacionMutation.mutateAsync(payload);
             showToast('¡Gracias por tu calificación! Reseña publicada con éxito.');
         } catch (error) {
-            console.error('Error al publicar reseña:', error);
-            showToast('No se pudo publicar la reseña');
+            console.error('Error al publicar calificación:', error);
+            showToast('No se pudo publicar la calificación.');
         }
     };
 
@@ -206,50 +227,66 @@ export const DriverDashboardPage = () => {
 
             {/* VISTA 1: BUSCAR PARQUEOS (AIRBNB DISCOVERY & MAPA) */}
             {activeView === 'mapa-busqueda' && (
-                <div>
-                    {/* Barra de Búsqueda Cápsula */}
-                    <div className="driver-stagger-1">
-                        <AirbnbSearchBar
-                            searchQuery={searchQuery}
-                            onSearchChange={setSearchQuery}
-                            vehicles={vehicles}
-                            selectedVehiclePlate={currentPlate}
-                            onSelectVehicle={setSelectedVehiclePlate}
-                            durationLabel="Hoy • 2 Horas"
-                            onOpenDurationModal={() => {
-                                if (parkings[0]) setSelectedParkingForBooking(parkings[0]);
-                            }}
-                        />
-                    </div>
-
-                    {/* Barra de Categorías */}
-                    <div className="driver-stagger-2">
-                        <CategoriesBar
-                            activeCategory={activeCategory}
-                            onSelectCategory={setActiveCategory}
-                            showMap={showMap}
-                            onToggleMap={() => setShowMap(!showMap)}
-                        />
-                    </div>
-
-                    {/* Mapa Interactivo */}
-                    {showMap && (
-                        <div className="driver-stagger-3">
-                            <InteractiveGpsMap
-                                parkings={filteredParkings}
-                                onSelectParking={(parking) => setSelectedParkingForBooking(parking)}
+                selectedParkingForDetails ? (
+                    <DriverFichaTecnicaCard
+                        parking={selectedParkingForDetails}
+                        onBack={() => setSelectedParkingForDetails(null)}
+                        onProceedToBooking={(parking, selectedSpaceCode) => {
+                            setSelectedSpotForBooking(selectedSpaceCode || null);
+                            setSelectedParkingForBooking(parking);
+                        }}
+                    />
+                ) : (
+                    <div>
+                        {/* Barra de Búsqueda Cápsula */}
+                        <div className="driver-stagger-1">
+                            <AirbnbSearchBar
+                                searchQuery={searchQuery}
+                                onSearchChange={setSearchQuery}
+                                vehicles={vehicles}
+                                selectedVehiclePlate={currentPlate}
+                                onSelectVehicle={setSelectedVehiclePlate}
+                                durationLabel="Hoy • 2 Horas"
+                                onOpenDurationModal={() => {
+                                    if (parkings[0]) setSelectedParkingForBooking(parkings[0]);
+                                }}
                             />
                         </div>
-                    )}
 
-                    {/* Grilla de Parqueos */}
-                    <div className="driver-stagger-4">
-                        <ParkingCardGrid
-                            parkings={filteredParkings}
-                            onReserveParking={(parking) => setSelectedParkingForBooking(parking)}
-                        />
+                        {/* Barra de Categorías */}
+                        <div className="driver-stagger-2">
+                            <CategoriesBar
+                                activeCategory={activeCategory}
+                                onSelectCategory={setActiveCategory}
+                                showMap={showMap}
+                                onToggleMap={() => setShowMap(!showMap)}
+                            />
+                        </div>
+
+                        {/* Mapa Interactivo */}
+                        {showMap && (
+                            <div className="driver-stagger-3">
+                                <InteractiveGpsMap
+                                    parkings={filteredParkings}
+                                    onSelectParking={(parking) => setSelectedParkingForBooking(parking)}
+                                    selectedParkingId={hoveredParkingId || undefined}
+                                />
+                            </div>
+                        )}
+
+                        {/* Grilla de Parqueos */}
+                        <div className="driver-stagger-4">
+                            <ParkingCardGrid
+                                parkings={filteredParkings}
+                                isLoading={isLoadingParkings}
+                                onReserveParking={(parking) => setSelectedParkingForBooking(parking)}
+                                onViewDetails={(parking) => setSelectedParkingForDetails(parking)}
+                                selectedParkingId={hoveredParkingId || undefined}
+                                onHoverParking={setHoveredParkingId}
+                            />
+                        </div>
                     </div>
-                </div>
+                )
             )}
 
             {/* VISTA 2: TICKET & RESERVA ACTIVA */}
@@ -268,6 +305,7 @@ export const DriverDashboardPage = () => {
                     vehicles={vehicles}
                     onAddVehicle={handleAddVehicle}
                     onSetDefaultVehicle={handleSetDefaultVehicle}
+                    onDeleteVehicle={handleDeleteVehicle}
                     isSubmitting={addVehicleMutation.isPending}
                 />
             )}
@@ -276,26 +314,16 @@ export const DriverDashboardPage = () => {
             {activeView === 'mis-reservas' && (
                 <BookingHistoryTable
                     bookings={bookingsHistory}
-                    onViewTicket={(booking) => {
-                        alert(
-                            `Detalle del Ticket ${booking.bookingNumber}:\n\n` +
-                            `Parqueo: ${booking.parkingName}\n` +
-                            `Plaza: ${booking.spotNumber}\n` +
-                            `Vehículo: ${booking.vehiclePlate}\n` +
-                            `Fecha: ${booking.entryTime}\n` +
-                            `Total Pagado: Bs ${booking.totalAmount}.00`
-                        );
-                    }}
                 />
             )}
 
             {/* VISTA 5: CALIFICAR SERVICIO */}
             {activeView === 'calificar' && (
                 <ServiceReviewPanel
-                    reviews={reviews}
-                    parkingNames={parkings.map((p) => p.name)}
+                    parkings={parkings}
+                    reviews={misCalificaciones}
                     onSubmitReview={handleCreateReview}
-                    isSubmitting={createReviewMutation.isPending}
+                    isSubmitting={crearCalificacionMutation.isPending}
                 />
             )}
 
@@ -313,9 +341,13 @@ export const DriverDashboardPage = () => {
                 isOpen={Boolean(selectedParkingForBooking)}
                 parking={selectedParkingForBooking}
                 vehicles={vehicles}
-                onClose={() => setSelectedParkingForBooking(null)}
+                onClose={() => {
+                    setSelectedParkingForBooking(null);
+                    setSelectedSpotForBooking(null);
+                }}
                 onConfirmBooking={handleConfirmBooking}
                 isSubmitting={createBookingMutation.isPending}
+                preselectedSpot={selectedSpotForBooking}
             />
         </DriverLayout>
     );

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import axios from 'axios';
+import { useAuthStore } from '../../../../store/useAuthStore';
 import { useMisNivelesQuery } from '../../application/useNivelesQuery';
 import { useMisEspaciosQuery } from '../../application/useEspaciosQuery';
 import {
@@ -43,6 +44,8 @@ export const TenantEspaciosPanel: React.FC<TenantEspaciosPanelProps> = ({
   initialNivelId,
   onGoToNiveles,
 }) => {
+  const { user } = useAuthStore();
+  const isHost = user?.role === 'HOST' || user?.role === 'anfitrion';
   const { data: niveles = [], isLoading: isLoadingNiveles } = useMisNivelesQuery();
   const [selectedNivelId, setSelectedNivelId] = useState<string>(initialNivelId || 'ALL');
   const [filterEstado, setFilterEstado] = useState<string>('ALL');
@@ -56,6 +59,8 @@ export const TenantEspaciosPanel: React.FC<TenantEspaciosPanelProps> = ({
     error,
   } = useMisEspaciosQuery(queryNivelParam);
 
+  const hasReachedHostSpaceLimit = isHost && espacios.length >= 1;
+
   const crearMutation = useCrearEspacioMutation();
   const actualizarMutation = useActualizarEspacioMutation();
   const eliminarMutation = useEliminarEspacioMutation();
@@ -68,6 +73,10 @@ export const TenantEspaciosPanel: React.FC<TenantEspaciosPanelProps> = ({
   const [quickUpdatingId, setQuickUpdatingId] = useState<string | null>(null);
 
   const openCreateModal = () => {
+    if (hasReachedHostSpaceLimit) {
+      showToast.warning('El rol Anfitrión solo tiene permitido registrar 1 espacio o plaza de parqueo.', 'Límite C2C');
+      return;
+    }
     setEditingEspacio(null);
     setFormState({
       ...INITIAL_FORM,
@@ -331,40 +340,68 @@ export const TenantEspaciosPanel: React.FC<TenantEspaciosPanelProps> = ({
             <button
               type="button"
               onClick={openCreateModal}
-              disabled={niveles.length === 0}
+              disabled={niveles.length === 0 || hasReachedHostSpaceLimit}
               title={
-                niveles.length === 0
+                hasReachedHostSpaceLimit
+                  ? 'Límite de 1 espacio alcanzado para el rol Anfitrión'
+                  : niveles.length === 0
                   ? 'Debes crear primero al menos un nivel o piso'
                   : 'Crear nuevo espacio'
               }
               style={{
-                background: niveles.length === 0 ? '#94A3B8' : '#006D36',
+                background: (niveles.length === 0 || hasReachedHostSpaceLimit) ? '#94A3B8' : '#006D36',
                 color: '#FFFFFF',
                 border: 'none',
                 borderRadius: '3px',
                 padding: '0.4rem 0.85rem',
                 fontSize: '0.78rem',
                 fontWeight: 700,
-                cursor: niveles.length === 0 ? 'not-allowed' : 'pointer',
+                cursor: (niveles.length === 0 || hasReachedHostSpaceLimit) ? 'not-allowed' : 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.4rem',
                 boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                 transition: 'background 0.15s ease',
+                opacity: hasReachedHostSpaceLimit ? 0.7 : 1,
               }}
               onMouseEnter={(e) => {
-                if (niveles.length > 0) e.currentTarget.style.backgroundColor = '#005429';
+                if (niveles.length > 0 && !hasReachedHostSpaceLimit) e.currentTarget.style.backgroundColor = '#005429';
               }}
               onMouseLeave={(e) => {
-                if (niveles.length > 0) e.currentTarget.style.backgroundColor = '#006D36';
+                if (niveles.length > 0 && !hasReachedHostSpaceLimit) e.currentTarget.style.backgroundColor = '#006D36';
               }}
             >
               <i className="fa-solid fa-plus"></i>
-              <span>Nuevo Espacio</span>
+              <span>{hasReachedHostSpaceLimit ? 'Espacio Máximo (1)' : 'Nuevo Espacio'}</span>
             </button>
           )}
         </div>
       </div>
+
+      {/* Banner Informativo para Rol Anfitrión */}
+      {isHost && (
+        <div
+          style={{
+            padding: '0.55rem 0.85rem',
+            borderRadius: '3px',
+            fontSize: '0.78rem',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            background: hasReachedHostSpaceLimit ? '#FEF3C7' : '#DCFCE7',
+            color: hasReachedHostSpaceLimit ? '#92400E' : '#166534',
+            border: hasReachedHostSpaceLimit ? '1px solid #FCD34D' : '1px solid #BBF7D0',
+          }}
+        >
+          <i className={`fa-solid ${hasReachedHostSpaceLimit ? 'fa-circle-exclamation' : 'fa-circle-info'}`}></i>
+          <span>
+            {hasReachedHostSpaceLimit
+              ? 'Has alcanzado el límite de 1 plaza/box configurado para tu cochera particular (Plan Anfitrión C2C).'
+              : 'Como Anfitrión particular tienes habilitado registrar 1 espacio de parqueo (ej. Box 1).'}
+          </span>
+        </div>
+      )}
 
       {/* Alerta si no hay niveles registrados aún */}
       {niveles.length === 0 && !isLoadingNiveles && (

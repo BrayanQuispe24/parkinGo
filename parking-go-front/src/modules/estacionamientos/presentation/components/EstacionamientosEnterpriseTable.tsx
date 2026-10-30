@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import type { EstacionamientoModel, EstadoEstacionamiento } from '../../domain/Estacionamiento';
 import { EstadoBadge } from './EstadoBadge';
+import { useHostParkingPolicy } from '../../../host/application/useHostParkingPolicy';
 
 interface EstacionamientosEnterpriseTableProps {
   estacionamientos: EstacionamientoModel[];
@@ -15,6 +16,7 @@ export const EstacionamientosEnterpriseTable: React.FC<EstacionamientosEnterpris
   onViewEstacionamiento,
   onGoToRegister,
 }) => {
+  const { isHost } = useHostParkingPolicy();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | EstadoEstacionamiento>('ALL');
 
@@ -143,10 +145,12 @@ export const EstacionamientosEnterpriseTable: React.FC<EstacionamientosEnterpris
             <i className="fa-solid fa-square-parking"></i>
           </div>
           <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#0F172A' }}>
-            No se encontraron estacionamientos
+            {isHost ? 'Aún no has publicado tu Cochera Residencial' : 'No se encontraron estacionamientos'}
           </h3>
           <p style={{ margin: '0.35rem 0 1.25rem 0', fontSize: '0.85rem', color: '#64748B' }}>
-            Aún no tienes estacionamientos registrados. Utiliza la pestaña de registro para crear tu solicitud.
+            {isHost
+              ? 'Publica el espacio libre o garaje de tu domicilio en 3 sencillos pasos para comenzar a recibir reservas de conductores.'
+              : 'Aún no tienes estacionamientos registrados. Utiliza la pestaña de registro para crear tu solicitud.'}
           </p>
           <button
             type="button"
@@ -165,8 +169,8 @@ export const EstacionamientosEnterpriseTable: React.FC<EstacionamientosEnterpris
               gap: '0.45rem',
             }}
           >
-            <i className="fa-solid fa-plus"></i>
-            <span>Registrar Nuevo Estacionamiento</span>
+            <i className={isHost ? 'fa-solid fa-house-chimney-window' : 'fa-solid fa-plus'}></i>
+            <span>{isHost ? 'Publicar Mi Cochera en 3 Pasos' : 'Registrar Nuevo Estacionamiento'}</span>
           </button>
         </div>
       ) : (

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -22,6 +23,7 @@ export class CrearNivelAction {
   async execute(
     dto: CreateNivelDto,
     userId: string,
+    roleName?: string,
   ): Promise<NivelResponseDto> {
     const tenants = await this.tenantRepository.findByUsuarioId(userId);
     if (!tenants || tenants.length === 0) {
@@ -43,6 +45,17 @@ export class CrearNivelAction {
       throw new BadRequestException(
         'Debes contar con un estacionamiento registrado para añadir niveles.',
       );
+    }
+
+    if (roleName === 'HOST') {
+      const existingNiveles = await this.nivelRepository.findByEstacionamientoId(
+        estacionamiento.id,
+      );
+      if (existingNiveles && existingNiveles.length >= 1) {
+        throw new ForbiddenException(
+          'El rol Anfitrión está limitado a registrar un único nivel de estacionamiento.',
+        );
+      }
     }
 
     const codigoTrim = dto.codigo.trim();

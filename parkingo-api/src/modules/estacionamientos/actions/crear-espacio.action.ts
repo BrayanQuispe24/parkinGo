@@ -23,6 +23,7 @@ export class CrearEspacioAction {
   async execute(
     dto: CreateEspacioDto,
     userId: string,
+    roleName?: string,
   ): Promise<EspacioResponseDto> {
     const nivel = await this.nivelRepository.findById(dto.nivelId);
     if (!nivel) {
@@ -39,6 +40,17 @@ export class CrearEspacioAction {
       throw new ForbiddenException(
         'No tienes permisos para agregar espacios a este nivel.',
       );
+    }
+
+    if (roleName === 'HOST') {
+      const existingEspacios = await this.espacioRepository.findByEstacionamientoId(
+        nivel.estacionamiento.id,
+      );
+      if (existingEspacios && existingEspacios.length >= 1) {
+        throw new ForbiddenException(
+          'El rol Anfitrión está limitado a registrar un único espacio o plaza de parqueo.',
+        );
+      }
     }
 
     const codigoTrim = dto.codigoEspacio.trim();

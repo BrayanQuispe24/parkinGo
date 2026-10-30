@@ -56,12 +56,18 @@ import { GetMisEspaciosAction } from './actions/get-mis-espacios.action.js';
 import { ActualizarEspacioAction } from './actions/actualizar-espacio.action.js';
 import { EliminarEspacioAction } from './actions/eliminar-espacio.action.js';
 import { GetCroquisByNivelAction } from './actions/get-croquis-by-nivel.action.js';
+import { GetCroquisPublicoByNivelAction } from './actions/get-croquis-publico-by-nivel.action.js';
 import { GuardarCroquisAction } from './actions/guardar-croquis.action.js';
 import { SubirFondoCroquisAction } from './actions/subir-fondo-croquis.action.js';
 import { GetOperadoresEstacionamientoAction } from './actions/get-operadores-estacionamiento.action.js';
 import { GetOperadoresDisponiblesAction } from './actions/get-operadores-disponibles.action.js';
 import { AsignarOperadoresAction } from './actions/asignar-operadores.action.js';
 import { DesasignarOperadorAction } from './actions/desasignar-operador.action.js';
+import { ListarEstacionamientosCatalogoAction } from './actions/listar-estacionamientos-catalogo.action.js';
+import { HostDefaultStructureFactory } from './factories/host-default-structure.factory.js';
+import { CommercialParkingProvisioningStrategy } from './strategies/commercial-parking-provisioning.strategy.js';
+import { HostResidentialProvisioningStrategy } from './strategies/host-residential-provisioning.strategy.js';
+import { EstacionamientoProvisioningContext } from './strategies/estacionamiento-provisioning.context.js';
 
 @Module({
   imports: [PrismaModule, TenantsModule],
@@ -134,12 +140,18 @@ import { DesasignarOperadorAction } from './actions/desasignar-operador.action.j
     ActualizarEspacioAction,
     EliminarEspacioAction,
     GetCroquisByNivelAction,
+    GetCroquisPublicoByNivelAction,
     GuardarCroquisAction,
     SubirFondoCroquisAction,
     GetOperadoresEstacionamientoAction,
     GetOperadoresDisponiblesAction,
     AsignarOperadoresAction,
     DesasignarOperadorAction,
+    ListarEstacionamientosCatalogoAction,
+    HostDefaultStructureFactory,
+    CommercialParkingProvisioningStrategy,
+    HostResidentialProvisioningStrategy,
+    EstacionamientoProvisioningContext,
   ],
   exports: [
     EstacionamientoRepository,
@@ -149,6 +161,7 @@ import { DesasignarOperadorAction } from './actions/desasignar-operador.action.j
     EspacioRepository,
     CroquisRepository,
     EstacionamientoOperadorRepository,
+    EstacionamientoProvisioningContext,
   ],
 })
 export class EstacionamientosModule {}

@@ -1,0 +1,228 @@
+/* ==========================================================================
+   ParkinGo - Driver GPS Map Modern Leaflet Theme
+   ========================================================================== */
+
+/* Contenedor del Mapa Leaflet */
+.driver-map-leaflet-container {
+  width: 100%;
+  height: 380px;
+  position: relative;
+  background: #f8fafc;
+  z-index: 1;
+}
+
+/* Ocultar watermark o links invasivos si no son necesarios, mantener atribución compacta */
+.driver-map-leaflet-container .leaflet-control-attribution {
+  font-size: 0.65rem;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(4px);
+  color: #64748b;
+  padding: 2px 6px;
+  border-radius: 4px 0 0 0;
+}
+
+/* Custom Pin Contenedor sin márgenes raros de Leaflet */
+.driver-leaflet-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Pin del Parqueo */
+.driver-map-pin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  border: 2px solid #ffffff;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, filter 0.15s ease;
+  user-select: none;
+  transform: translate(-50%, -50%);
+}
+
+.driver-map-pin-badge:hover {
+  transform: translate(-50%, -55%) scale(1.08);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+  filter: brightness(1.08);
+  z-index: 9999 !important;
+}
+
+.driver-map-pin-badge.is-selected {
+  transform: translate(-50%, -55%) scale(1.12);
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.4), 0 8px 20px rgba(0, 0, 0, 0.35);
+  border-color: #ffffff;
+  z-index: 10000 !important;
+}
+
+/* Pin del Conductor (Tu Ubicación GPS) */
+.driver-gps-user-pin {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3), 0 4px 10px rgba(0, 0, 0, 0.25);
+  position: relative;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+}
+
+.driver-gps-user-pulse {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.35);
+  animation: driverGpsRadar 2s infinite ease-out;
+  pointer-events: none;
+}
+
+@keyframes driverGpsRadar {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+/* Popups Modernos ParkinGo */
+.driver-map-leaflet-container .leaflet-popup-content-wrapper {
+  padding: 0;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.driver-map-leaflet-container .leaflet-popup-content {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.driver-map-leaflet-container .leaflet-popup-tip {
+  background: #ffffff;
+}
+
+.driver-leaflet-popup-card {
+  width: 260px;
+  background: #ffffff;
+}
+
+.driver-leaflet-popup-img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  display: block;
+}
+
+.driver-leaflet-popup-body {
+  padding: 0.85rem;
+}
+
+.driver-leaflet-popup-title {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.driver-leaflet-popup-address {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.74rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.driver-leaflet-popup-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0;
+  border-top: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 0.65rem;
+}
+
+.driver-leaflet-popup-price {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #006d36;
+}
+
+.driver-leaflet-popup-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.driver-leaflet-popup-badge.avail {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.driver-leaflet-popup-badge.low {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.driver-leaflet-popup-btn {
+  width: 100%;
+  background: #006d36;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: background 0.2s ease;
+}
+
+.driver-leaflet-popup-btn:hover {
+  background: #063d25;
+}
+
+/* Botón flotante para recentrar ubicación */
+.driver-map-recenter-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 1000;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+  padding: 0.45rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+}
+
+.driver-map-recenter-btn:hover {
+  background: #f8fafc;
+  color: #006d36;
+  border-color: #006d36;
+}

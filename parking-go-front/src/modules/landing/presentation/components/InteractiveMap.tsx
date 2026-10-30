@@ -109,8 +109,8 @@ export function InteractiveMap() {
                         <div className="map-canvas-wrapper" style={{ height: '500px' }}>
                             <MapContainer center={[-17.7833, -63.1880]} zoom={13} style={{ height: '100%', width: '100%', borderRadius: '12px' }}>
                                 <TileLayer
-                                    attribution='&copy; OpenStreetMap &copy; CARTO'
-                                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                 />
                                 <MapUpdater spots={filteredSpots} />
                                 {filteredSpots.map(spot => (

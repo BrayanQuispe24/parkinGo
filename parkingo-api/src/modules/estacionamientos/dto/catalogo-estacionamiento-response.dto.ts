@@ -40,6 +40,26 @@ export class TarifaCatalogoDto {
   modalidad: string;
 }
 
+export class EspacioCatalogoDto {
+  @ApiProperty({ example: '4650a72e-4353-4bd2-b2e0-6632e0fa0a7a' })
+  id: string;
+
+  @ApiProperty({ example: '1B-1' })
+  codigoEspacio: string;
+
+  @ApiProperty({ example: 'AUTO' })
+  tipo: string;
+
+  @ApiProperty({ example: 'Nivel 1B' })
+  nivel: string;
+
+  @ApiProperty({ example: 'n1v3l-1d-1234' })
+  nivelId: string;
+
+  @ApiProperty({ example: 'DISPONIBLE' })
+  estado: string;
+}
+
 export class CatalogoEstacionamientoResponseDto {
   @ApiProperty({ example: 'f3e2d1c0-b9a8-7654-3210-fedcba987654' })
   id: string;
@@ -89,6 +109,9 @@ export class CatalogoEstacionamientoResponseDto {
 
   @ApiProperty({ type: [ServicioExtraCatalogoDto] })
   serviciosExtras: ServicioExtraCatalogoDto[];
+
+  @ApiProperty({ type: [EspacioCatalogoDto], description: 'Listado de plazas/espacios del parqueo' })
+  espacios: EspacioCatalogoDto[];
 
   @ApiProperty({ example: 'tenant-uuid-1234' })
   tenantId: string;

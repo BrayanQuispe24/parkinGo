@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { Stage, Layer, Transformer } from 'react-konva';
 import type Konva from 'konva';
 import axios from 'axios';
+import { useAuthStore } from '../../../../store/useAuthStore';
 
 import { useMisNivelesQuery } from '../../application/useNivelesQuery';
 import { useMisEspaciosQuery } from '../../application/useEspaciosQuery';
@@ -44,6 +45,8 @@ export interface TenantCroquisPanelProps {
 export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
   onGoToNiveles,
 }) => {
+  const { user } = useAuthStore();
+  const isHost = user?.role === 'HOST' || user?.role === 'anfitrion';
   const { data: niveles = [], isLoading: isLoadingNiveles, refetch: refetchNiveles } = useMisNivelesQuery();
   const [selectedNivelId, setSelectedNivelId] = useState<string>('');
 
@@ -426,6 +429,17 @@ export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
 
   // Agregar un espacio al plano
   const handleColocarEspacio = (espacio: EspacioModel) => {
+    if (isHost) {
+      const plazasActuales = nodos.filter((n) => n.tipo === 'ESPACIO');
+      if (plazasActuales.length >= 1) {
+        showToast.warning(
+          'El rol Anfitrión está limitado a diagramar un único espacio o plaza en el croquis.',
+          'Límite C2C',
+        );
+        return;
+      }
+    }
+
     const defaultWidth = espacio.tipo === 'MOTO' ? 50 : 70;
     const defaultHeight = espacio.tipo === 'MOTO' ? 90 : 120;
 
@@ -539,6 +553,17 @@ export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
     if (!selectedNivelId) {
       showToast.error('Debes seleccionar un nivel para guardar el croquis.', 'Error');
       return;
+    }
+
+    if (isHost) {
+      const plazas = nodos.filter((n) => n.tipo === 'ESPACIO');
+      if (plazas.length > 1) {
+        showToast.error(
+          'No puedes guardar el croquis: como Anfitrión solo puedes diagramar una única plaza (ESPACIO).',
+          'Límite de Plazas',
+        );
+        return;
+      }
     }
 
     const payloadContent: CroquisCanvasContent = {
@@ -764,6 +789,28 @@ export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
               );
             })}
           </div>
+
+          {isHost && (
+            <span
+              style={{
+                marginLeft: '0.5rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                padding: '0.2rem 0.55rem',
+                borderRadius: '12px',
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                background: '#DCFCE7',
+                color: '#166534',
+                border: '1px solid #BBF7D0',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <i className="fa-solid fa-house-chimney"></i>
+              <span>Plan Anfitrión: 1 Plaza en Croquis</span>
+            </span>
+          )}
         </div>
 
         {/* Leyenda de Estados en Modo Monitoreo */}
@@ -864,7 +911,32 @@ export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
           </div>
         )}
 
-        {/* Feedback de error */}
+        {/* Feedback cuando el nivel aún no tiene un croquis diseñado */}
+        {!croquisRemoto && !isLoadingCroquis && !errorCroquis && selectedNivelId && nodos.length === 0 && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              zIndex: 20,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              padding: '0.45rem 0.75rem',
+              background: '#F0FDF4',
+              border: '1px solid #BBF7D0',
+              borderRadius: '3px',
+              color: '#166534',
+              fontSize: '0.74rem',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            }}
+          >
+            <i className="fa-solid fa-compass-drafting" style={{ color: '#16A34A' }}></i>
+            <span>Nivel sin plano diseñado. Usa las herramientas de la barra para crear la distribución.</span>
+          </div>
+        )}
+
+        {/* Feedback de error real de red */}
         {errorCroquis && !isLoadingCroquis && (
           <div
             style={{
@@ -872,15 +944,20 @@ export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
               top: '10px',
               right: '10px',
               zIndex: 20,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
               padding: '0.45rem 0.75rem',
               background: '#FEF2F2',
               border: '1px solid #FECACA',
               borderRadius: '3px',
               color: '#991B1B',
               fontSize: '0.74rem',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
             }}
           >
-            Error al consultar el plano. Puedes diseñar uno nuevo y guardarlo.
+            <i className="fa-solid fa-circle-exclamation" style={{ color: '#DC2626' }}></i>
+            <span>Error al consultar el plano remoto. Puedes diseñar uno nuevo y guardarlo.</span>
           </div>
         )}
 

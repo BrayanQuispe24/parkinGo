@@ -1,15 +1,24 @@
 // src/modules/driver/presentation/components/ParkingCardGrid.tsx
 import React, { useState } from 'react';
 import type { DriverParking } from '../../domain/DriverParking';
+import imgEmpresarial from '../../../../assets/parking_empresarial_1789393502203.png';
 
 interface ParkingCardGridProps {
     parkings: DriverParking[];
+    isLoading?: boolean;
     onReserveParking: (parking: DriverParking) => void;
+    onViewDetails?: (parking: DriverParking) => void;
+    selectedParkingId?: string;
+    onHoverParking?: (parkingId: string | null) => void;
 }
 
 export const ParkingCardGrid: React.FC<ParkingCardGridProps> = ({
     parkings,
+    isLoading = false,
     onReserveParking,
+    onViewDetails,
+    selectedParkingId,
+    onHoverParking,
 }) => {
     const [favorites, setFavorites] = useState<Record<string, boolean>>({
         'p-102': true,
@@ -19,6 +28,46 @@ export const ParkingCardGrid: React.FC<ParkingCardGridProps> = ({
         e.stopPropagation();
         setFavorites((prev) => ({ ...prev, [parkingId]: !prev[parkingId] }));
     };
+
+    if (isLoading) {
+        return (
+            <div>
+                <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ width: '180px', height: '24px', background: '#E2E8F0', borderRadius: '4px', animation: 'pulse 1.5s infinite' }}></div>
+                    <div style={{ width: '120px', height: '16px', background: '#E2E8F0', borderRadius: '4px', animation: 'pulse 1.5s infinite' }}></div>
+                </div>
+                <div
+                    style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
+                        gap: '1.5rem',
+                    }}
+                >
+                    {[1, 2, 3].map((n) => (
+                        <div
+                            key={n}
+                            style={{
+                                background: '#FFFFFF',
+                                borderRadius: '12px',
+                                overflow: 'hidden',
+                                border: '1px solid #E2E8F0',
+                                height: '320px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                            }}
+                        >
+                            <div style={{ width: '100%', height: '175px', background: '#F1F5F9', animation: 'pulse 1.5s infinite' }}></div>
+                            <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                                <div style={{ width: '70%', height: '18px', background: '#E2E8F0', borderRadius: '4px' }}></div>
+                                <div style={{ width: '90%', height: '14px', background: '#F1F5F9', borderRadius: '4px' }}></div>
+                                <div style={{ width: '40%', height: '14px', background: '#F1F5F9', borderRadius: '4px', marginTop: '0.5rem' }}></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     if (parkings.length === 0) {
         return (
@@ -56,26 +105,40 @@ export const ParkingCardGrid: React.FC<ParkingCardGridProps> = ({
                     const isFav = Boolean(favorites[p.id]);
                     const isLow = p.availableSpots <= 10;
 
+                    const isSelected = p.id === selectedParkingId;
+
                     return (
                         <div
                             key={p.id}
-                            className="driver-card-item"
+                            className={`driver-card-item ${isSelected ? 'is-selected' : ''}`}
+                            onMouseEnter={() => onHoverParking?.(p.id)}
+                            onMouseLeave={() => onHoverParking?.(null)}
                             style={{
                                 background: '#FFFFFF',
                                 borderRadius: '12px',
                                 overflow: 'hidden',
-                                border: '1px solid #E2E8F0',
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                                border: isSelected ? '2px solid #006D36' : '1px solid #E2E8F0',
+                                boxShadow: isSelected
+                                    ? '0 0 0 3px rgba(0, 109, 54, 0.2), 0 8px 20px rgba(0, 0, 0, 0.08)'
+                                    : '0 2px 8px rgba(0,0,0,0.04)',
                                 display: 'flex',
                                 flexDirection: 'column',
+                                transition: 'all 0.25s ease',
                             }}
                         >
                             {/* Imagen y Badges */}
-                            <div style={{ position: 'relative', width: '100%', height: '175px', overflow: 'hidden' }}>
+                            <div
+                                onClick={() => onViewDetails?.(p)}
+                                style={{ position: 'relative', width: '100%', height: '175px', overflow: 'hidden', cursor: 'pointer' }}
+                                title="Clic para ver detalles completos del parqueo"
+                            >
                                 <img
                                     src={p.photoUrl}
                                     alt={p.name}
                                     className="driver-card-img"
+                                    onError={(e) => {
+                                        (e.currentTarget as HTMLImageElement).src = imgEmpresarial;
+                                    }}
                                     style={{
                                         width: '100%',
                                         height: '100%',
@@ -182,28 +245,54 @@ export const ParkingCardGrid: React.FC<ParkingCardGridProps> = ({
                                         <span style={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 600 }}> / hora</span>
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        onClick={() => onReserveParking(p)}
-                                        className="driver-btn-reserve"
-                                        style={{
-                                            background: '#006D36',
-                                            color: '#FFFFFF',
-                                            border: 'none',
-                                            borderRadius: '6px',
-                                            padding: '0.45rem 0.95rem',
-                                            fontSize: '0.78rem',
-                                            fontWeight: 700,
-                                            cursor: 'pointer',
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            gap: '0.35rem',
-                                            boxShadow: '0 2px 4px rgba(0, 109, 54, 0.2)',
-                                        }}
-                                    >
-                                        <i className="fa-solid fa-calendar-plus"></i>
-                                        <span>Reservar</span>
-                                    </button>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => onViewDetails?.(p)}
+                                            className="driver-btn-view"
+                                            style={{
+                                                background: '#F1F5F9',
+                                                color: '#1E293B',
+                                                border: '1px solid #CBD5E1',
+                                                borderRadius: '6px',
+                                                padding: '0.45rem 0.75rem',
+                                                fontSize: '0.76rem',
+                                                fontWeight: 700,
+                                                cursor: 'pointer',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '0.35rem',
+                                                transition: 'background 0.2s ease',
+                                            }}
+                                            title="Ver información y servicios del parqueo"
+                                        >
+                                            <i className="fa-solid fa-eye" style={{ color: '#006D36' }}></i>
+                                            <span>Ver Parqueo</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => onReserveParking(p)}
+                                            className="driver-btn-reserve"
+                                            style={{
+                                                background: '#006D36',
+                                                color: '#FFFFFF',
+                                                border: 'none',
+                                                borderRadius: '6px',
+                                                padding: '0.45rem 0.85rem',
+                                                fontSize: '0.78rem',
+                                                fontWeight: 700,
+                                                cursor: 'pointer',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '0.35rem',
+                                                boxShadow: '0 2px 4px rgba(0, 109, 54, 0.2)',
+                                            }}
+                                        >
+                                            <i className="fa-solid fa-calendar-plus"></i>
+                                            <span>Reservar</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

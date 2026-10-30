@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useAuthStore } from '../../../../store/useAuthStore';
 import { useMisNivelesQuery } from '../../application/useNivelesQuery';
 import {
   useCrearNivelMutation,
@@ -18,9 +19,13 @@ export const TenantNivelesPanel: React.FC<TenantNivelesPanelProps> = ({
   readOnly = false,
   onSelectNivelParaEspacios,
 }) => {
+  const { user } = useAuthStore();
+  const isHost = user?.role === 'HOST' || user?.role === 'anfitrion';
   const { data: niveles = [], isLoading, error } = useMisNivelesQuery();
   const crearMutation = useCrearNivelMutation();
   const eliminarMutation = useEliminarNivelMutation();
+
+  const hasReachedHostLevelLimit = isHost && niveles.length >= 1;
 
   const [modalOpen, setModalOpen] = useState(false);
   const [codigoInput, setCodigoInput] = useState('');
@@ -28,6 +33,10 @@ export const TenantNivelesPanel: React.FC<TenantNivelesPanelProps> = ({
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const openCreateModal = () => {
+    if (hasReachedHostLevelLimit) {
+      showToast.warning('El rol Anfitrión solo tiene permitido registrar 1 nivel de estacionamiento.', 'Límite C2C');
+      return;
+    }
     setCodigoInput('');
     setFormError(null);
     setModalOpen(true);
@@ -176,31 +185,63 @@ export const TenantNivelesPanel: React.FC<TenantNivelesPanelProps> = ({
           {!readOnly && (
             <button
               type="button"
+              disabled={hasReachedHostLevelLimit}
               onClick={openCreateModal}
+              title={hasReachedHostLevelLimit ? 'Límite de 1 nivel alcanzado para el rol Anfitrión' : undefined}
               style={{
-                background: '#006D36',
+                background: hasReachedHostLevelLimit ? '#94A3B8' : '#006D36',
                 color: '#FFFFFF',
                 border: 'none',
                 borderRadius: '3px',
                 padding: '0.4rem 0.85rem',
                 fontSize: '0.78rem',
                 fontWeight: 700,
-                cursor: 'pointer',
+                cursor: hasReachedHostLevelLimit ? 'not-allowed' : 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.4rem',
                 boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                 transition: 'background 0.15s ease',
+                opacity: hasReachedHostLevelLimit ? 0.7 : 1,
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#005429')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#006D36')}
+              onMouseEnter={(e) => {
+                if (!hasReachedHostLevelLimit) e.currentTarget.style.backgroundColor = '#005429';
+              }}
+              onMouseLeave={(e) => {
+                if (!hasReachedHostLevelLimit) e.currentTarget.style.backgroundColor = '#006D36';
+              }}
             >
               <i className="fa-solid fa-plus"></i>
-              <span>Nuevo Nivel</span>
+              <span>{hasReachedHostLevelLimit ? 'Nivel Máximo (1)' : 'Nuevo Nivel'}</span>
             </button>
           )}
         </div>
       </div>
+
+      {/* Banner Informativo para Rol Anfitrión */}
+      {isHost && (
+        <div
+          style={{
+            padding: '0.55rem 0.85rem',
+            borderRadius: '3px',
+            fontSize: '0.78rem',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            background: hasReachedHostLevelLimit ? '#FEF3C7' : '#DCFCE7',
+            color: hasReachedHostLevelLimit ? '#92400E' : '#166534',
+            border: hasReachedHostLevelLimit ? '1px solid #FCD34D' : '1px solid #BBF7D0',
+          }}
+        >
+          <i className={`fa-solid ${hasReachedHostLevelLimit ? 'fa-circle-exclamation' : 'fa-circle-info'}`}></i>
+          <span>
+            {hasReachedHostLevelLimit
+              ? 'Has alcanzado el límite de 1 nivel configurado para tu cochera particular (Plan Anfitrión C2C).'
+              : 'Como Anfitrión particular tienes habilitado registrar 1 nivel único (ej. Planta Baja o Cochera).'}
+          </span>
+        </div>
+      )}
 
       {/* Estado de Carga / Error */}
       {isLoading && (

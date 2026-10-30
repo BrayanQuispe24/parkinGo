@@ -756,7 +756,7 @@ export const TenantServiciosExtrasPanel: React.FC<TenantServiciosExtrasPanelProp
                   <input
                     id="servicio-precio"
                     type="number"
-                    step="0.5"
+                    step="any"
                     min="0"
                     placeholder="0.00"
                     value={formState.precio}

@@ -5,12 +5,15 @@ import { useRegistrarEstacionamientoMutation } from '../../application/useEstaci
 import type { EstacionamientoModel, RegistrarEstacionamientoPayload } from '../../domain/Estacionamiento';
 import { TenantEstadoCard } from '../components/TenantEstadoCard';
 import { FormularioEstacionamiento } from '../components/FormularioEstacionamiento';
+import { HostOnboardingWizard } from '../../../host/presentation/components/HostOnboardingWizard';
+import { useHostParkingPolicy } from '../../../host/application/useHostParkingPolicy';
 import { EstacionamientosEnterpriseTable } from '../components/EstacionamientosEnterpriseTable';
 import { TenantHorariosPanel } from '../components/TenantHorariosPanel';
 import { showToast } from '../../../../core/utils/toastr';
 import '../styles/estacionamientos.css';
 
 export const TenantEstacionamientoPage: React.FC = () => {
+  const { isHost } = useHostParkingPolicy();
   const { data: miEstacionamiento, isLoading, error } = useMiEstacionamientoQuery();
   const registrarMutation = useRegistrarEstacionamientoMutation();
 
@@ -71,27 +74,29 @@ export const TenantEstacionamientoPage: React.FC = () => {
               <span>Listado de Estacionamientos ({estacionamientos.length})</span>
             </button>
 
-            {/* Pestaña de Registro */}
-            <button
-              type="button"
-              onClick={() => setMainTab('form')}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                borderBottom: mainTab === 'form' ? '2.5px solid var(--accent-emerald, #006D36)' : '2.5px solid transparent',
-                color: mainTab === 'form' ? 'var(--accent-emerald, #006D36)' : 'var(--text-muted, #66736B)',
-                fontWeight: mainTab === 'form' ? 800 : 600,
-                padding: '0.65rem 0.25rem',
-                fontSize: '0.88rem',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.45rem',
-              }}
-            >
-              <i className="fa-solid fa-plus-circle"></i>
-              <span>Registrar Nuevo Estacionamiento</span>
-            </button>
+            {/* Pestaña de Registro (Solo si no es host o si es host y aún no tiene cochera registrada) */}
+            {(!isHost || !miEstacionamiento) && (
+              <button
+                type="button"
+                onClick={() => setMainTab('form')}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: mainTab === 'form' ? '2.5px solid var(--accent-emerald, #006D36)' : '2.5px solid transparent',
+                  color: mainTab === 'form' ? 'var(--accent-emerald, #006D36)' : 'var(--text-muted, #66736B)',
+                  fontWeight: mainTab === 'form' ? 800 : 600,
+                  padding: '0.65rem 0.25rem',
+                  fontSize: '0.88rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                }}
+              >
+                <i className={isHost ? 'fa-solid fa-house-chimney-window' : 'fa-solid fa-plus-circle'}></i>
+                <span>{isHost ? 'Publicar Mi Cochera' : 'Registrar Nuevo Estacionamiento'}</span>
+              </button>
+            )}
 
             {/* Pestaña de Horarios de Atención */}
             <button
@@ -153,12 +158,20 @@ export const TenantEstacionamientoPage: React.FC = () => {
               </div>
             </div>
           ) : mainTab === 'form' ? (
-            /* Vista Formulario de Registro */
-            <FormularioEstacionamiento
-              onSubmit={handleRegisterSubmit}
-              isLoading={registrarMutation.isPending}
-              onCancel={() => setMainTab('list')}
-            />
+            /* Vista Formulario de Registro (Wizard para Anfitrión, Formulario estándar para Administrador Comercial) */
+            isHost ? (
+              <HostOnboardingWizard
+                onSubmit={handleRegisterSubmit}
+                isLoading={registrarMutation.isPending}
+                onCancel={() => setMainTab('list')}
+              />
+            ) : (
+              <FormularioEstacionamiento
+                onSubmit={handleRegisterSubmit}
+                isLoading={registrarMutation.isPending}
+                onCancel={() => setMainTab('list')}
+              />
+            )
           ) : mainTab === 'horarios' ? (
             /* Vista Gestión de Horarios */
             <TenantHorariosPanel />

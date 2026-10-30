@@ -783,8 +783,8 @@ export const TenantTarifasPanel: React.FC<TenantTarifasPanelProps> = ({
                   </span>
                   <input
                     type="number"
-                    step="0.5"
-                    min="0.01"
+                    step="any"
+                    min="0"
                     required
                     placeholder="0.00"
                     value={formState.monto}

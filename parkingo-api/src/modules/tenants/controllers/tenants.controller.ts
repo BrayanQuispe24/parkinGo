@@ -54,12 +54,12 @@ export class TenantsController {
   @ApiOperation({
     summary: 'Registrar nueva empresa / tenant',
     description:
-      'Exclusivo para Administrador de Parqueo. Se habilita automáticamente en estado ACTIVO y se despacha un correo de confirmación.',
+      'Exclusivo para Administrador de Parqueo (PARKING_ADMIN) y Anfitriones Particulares (HOST). Para Anfitriones rige un límite estricto de máximo 1 empresa/propiedad.',
   })
   @ApiResponse({ status: 201, description: 'Empresa registrada exitosamente.', type: TenantResponseDto })
-  @ApiResponse({ status: 403, description: 'No autorizado (rol distinto a PARKING_ADMIN).' })
+  @ApiResponse({ status: 403, description: 'No autorizado o límite de 1 empresa alcanzado para el rol Anfitrión.' })
   @ApiResponse({ status: 409, description: 'NIT ya registrado en el sistema.' })
-  @Roles('PARKING_ADMIN')
+  @Roles('PARKING_ADMIN', 'HOST')
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() dto: CreateTenantDto, @CurrentUser() user: any) {
@@ -76,7 +76,7 @@ export class TenantsController {
       'Para PARKING_ADMIN devuelve solo sus empresas registradas. Para GENERAL_ADMIN y SUPER_ADMIN devuelve todas las empresas.',
   })
   @ApiResponse({ status: 200, description: 'Lista de empresas obtenida.', type: [TenantResponseDto] })
-  @Roles('PARKING_ADMIN', 'GENERAL_ADMIN', 'SUPER_ADMIN')
+  @Roles('PARKING_ADMIN', 'HOST', 'GENERAL_ADMIN', 'SUPER_ADMIN')
   @Get()
   @HttpCode(HttpStatus.OK)
   async findAll(@CurrentUser() user: any) {
@@ -93,7 +93,7 @@ export class TenantsController {
   @ApiParam({ name: 'id', description: 'UUID de la empresa' })
   @ApiResponse({ status: 200, description: 'Detalle de la empresa.', type: TenantResponseDto })
   @ApiResponse({ status: 404, description: 'Empresa no encontrada.' })
-  @Roles('PARKING_ADMIN', 'GENERAL_ADMIN', 'SUPER_ADMIN')
+  @Roles('PARKING_ADMIN', 'HOST', 'GENERAL_ADMIN', 'SUPER_ADMIN')
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async findOne(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: any) {
@@ -106,11 +106,11 @@ export class TenantsController {
 
   @ApiOperation({
     summary: 'Editar datos de una empresa',
-    description: 'Permite al Administrador de Parqueo propietario editar el nombre, NIT o razón social.',
+    description: 'Permite al Administrador de Parqueo o Anfitrión propietario editar el nombre, NIT o razón social.',
   })
   @ApiParam({ name: 'id', description: 'UUID de la empresa' })
   @ApiResponse({ status: 200, description: 'Empresa actualizada.', type: TenantResponseDto })
-  @Roles('PARKING_ADMIN', 'GENERAL_ADMIN', 'SUPER_ADMIN')
+  @Roles('PARKING_ADMIN', 'HOST', 'GENERAL_ADMIN', 'SUPER_ADMIN')
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   async update(
@@ -128,12 +128,12 @@ export class TenantsController {
   @ApiOperation({
     summary: 'Dar de baja o reactivar empresa',
     description:
-      'Permite al Administrador de Parqueo cambiar el estado de la empresa a INACTIVO (dar de baja) o reactivarla.',
+      'Permite al Administrador de Parqueo o Anfitrión cambiar el estado de la empresa a INACTIVO (dar de baja) o reactivarla.',
   })
   @ApiParam({ name: 'id', description: 'UUID de la empresa' })
   @ApiQuery({ name: 'estado', required: false, enum: TenantStatus, description: 'Estado explícito deseado' })
   @ApiResponse({ status: 200, description: 'Estado de la empresa actualizado.', type: TenantResponseDto })
-  @Roles('PARKING_ADMIN', 'GENERAL_ADMIN', 'SUPER_ADMIN')
+  @Roles('PARKING_ADMIN', 'HOST', 'GENERAL_ADMIN', 'SUPER_ADMIN')
   @Patch(':id/baja')
   @HttpCode(HttpStatus.OK)
   async darDeBaja(

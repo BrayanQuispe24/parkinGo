@@ -3,13 +3,21 @@ import { parkingoApi } from '../../../core/api/parkingoApi';
 import type { DriverRepository } from '../domain/DriverRepository';
 import type { DriverParking } from '../domain/DriverParking';
 import type { DriverVehicle, CreateVehiclePayload } from '../domain/DriverVehicle';
-import type { DriverBooking, CreateBookingPayload } from '../domain/DriverBooking';
+import type {
+    DriverBooking,
+    CreateBookingPayload,
+    BoletaReserva,
+    CotizarReservaPayload,
+    CotizacionReservaResult,
+    CrearReservaPayload,
+} from '../domain/DriverBooking';
 import type { DriverReview, CreateReviewPayload } from '../domain/DriverReview';
 import type { UpdateDriverProfilePayload } from '../domain/DriverProfile';
 
 import imgCentro from '../../../assets/parking_centro_1789393632373.png';
 import imgEmpresarial from '../../../assets/parking_empresarial_1789393502203.png';
 import imgAeropuerto from '../../../assets/parking_aeropuerto_1789393564642.png';
+import { DriverParkingMapper, type CatalogoEstacionamientoApiDto } from './mappers/DriverParkingMapper';
 
 export class HttpDriverRepository implements DriverRepository {
     // Datos en memoria reactivos para soportar interacción completa del conductor
@@ -162,55 +170,298 @@ export class HttpDriverRepository implements DriverRepository {
 
     async getParkings(): Promise<DriverParking[]> {
         try {
-            // Intenta consultar la API si existe endpoint /parqueos
-            const response = await parkingoApi.get('/parqueos').catch(() => null);
+            const response = await parkingoApi.get<CatalogoEstacionamientoApiDto[]>('/estacionamientos/catalogo');
             if (response?.data && Array.isArray(response.data) && response.data.length > 0) {
-                return response.data;
+                return DriverParkingMapper.toDomainList(response.data);
             }
-        } catch {
-            // Fallback a los datos iniciales de diseño
+        } catch (error) {
+            console.warn('No se pudo obtener el catálogo de estacionamientos de la API. Usando respaldo de diseño.', error);
         }
         return [...HttpDriverRepository.parkingsState];
     }
 
     async getVehicles(): Promise<DriverVehicle[]> {
+        try {
+            const response = await parkingoApi.get<Array<{
+                id: string;
+                tipo: 'SEDAN' | 'SUV' | 'CAMIONETA' | 'MOTO' | 'ELECTRICO' | 'OTRO';
+                placa: string;
+                modelo: string;
+                color: string;
+                propietarioId: string;
+                esPredeterminado: boolean;
+                fechaCreado: string;
+                fechaActualizado: string;
+            }>>('/vehiculos/mis-vehiculos');
+
+            if (response?.data && Array.isArray(response.data)) {
+                return response.data.map((v) => ({
+                    id: v.id,
+                    plate: v.placa,
+                    model: v.modelo,
+                    color: v.color,
+                    vehicleType: v.tipo,
+                    isDefault: v.esPredeterminado,
+                    createdAt: v.fechaCreado,
+                }));
+            }
+        } catch (error) {
+            console.warn('Error al obtener vehículos del backend. Usando respaldo de diseño:', error);
+        }
         return [...HttpDriverRepository.vehiclesState];
     }
 
     async addVehicle(payload: CreateVehiclePayload): Promise<DriverVehicle> {
-        const newVehicle: DriverVehicle = {
-            id: `veh-${Date.now()}`,
-            plate: payload.plate.toUpperCase().trim(),
-            brand: payload.brand.trim(),
-            model: payload.model.trim(),
-            color: payload.color.trim(),
-            vehicleType: payload.vehicleType,
-            isDefault: HttpDriverRepository.vehiclesState.length === 0,
-            createdAt: new Date().toISOString().split('T')[0],
-        };
-        HttpDriverRepository.vehiclesState = [newVehicle, ...HttpDriverRepository.vehiclesState];
-        return newVehicle;
+        try {
+            const modeloFinal = payload.brand
+                ? `${payload.brand} ${payload.model}`.trim()
+                : payload.model.trim();
+
+            const response = await parkingoApi.post<{
+                id: string;
+                tipo: 'SEDAN' | 'SUV' | 'CAMIONETA' | 'MOTO' | 'ELECTRICO' | 'OTRO';
+                placa: string;
+                modelo: string;
+                color: string;
+                propietarioId: string;
+                esPredeterminado: boolean;
+                fechaCreado: string;
+                fechaActualizado: string;
+            }>('/vehiculos', {
+                tipo: payload.vehicleType,
+                placa: payload.plate.toUpperCase().trim(),
+                modelo: modeloFinal,
+                color: payload.color.trim(),
+                esPredeterminado: payload.isDefault,
+            });
+
+            const v = response.data;
+            const newVehicle: DriverVehicle = {
+                id: v.id,
+                plate: v.placa,
+                brand: payload.brand?.trim() ?? '',
+                model: v.modelo,
+                color: v.color,
+                vehicleType: v.tipo,
+                isDefault: v.esPredeterminado,
+                createdAt: v.fechaCreado,
+            };
+            HttpDriverRepository.vehiclesState = [newVehicle, ...HttpDriverRepository.vehiclesState];
+            return newVehicle;
+        } catch (error) {
+            console.error('Error al registrar vehículo en la API:', error);
+            throw error;
+        }
     }
 
     async setDefaultVehicle(vehicleId: string): Promise<DriverVehicle> {
-        HttpDriverRepository.vehiclesState = HttpDriverRepository.vehiclesState.map((v) => ({
-            ...v,
-            isDefault: v.id === vehicleId,
-        }));
-        const found = HttpDriverRepository.vehiclesState.find((v) => v.id === vehicleId);
-        if (!found) throw new Error('Vehículo no encontrado');
-        return found;
+        try {
+            const response = await parkingoApi.patch<{
+                id: string;
+                tipo: 'SEDAN' | 'SUV' | 'CAMIONETA' | 'MOTO' | 'ELECTRICO' | 'OTRO';
+                placa: string;
+                modelo: string;
+                color: string;
+                propietarioId: string;
+                esPredeterminado: boolean;
+                fechaCreado: string;
+                fechaActualizado: string;
+            }>(`/vehiculos/${vehicleId}/predeterminado`);
+
+            const v = response.data;
+            return {
+                id: v.id,
+                plate: v.placa,
+                model: v.modelo,
+                color: v.color,
+                vehicleType: v.tipo,
+                isDefault: v.esPredeterminado,
+                createdAt: v.fechaCreado,
+            };
+        } catch (error) {
+            console.error('Error al establecer vehículo predeterminado en la API:', error);
+            throw error;
+        }
+    }
+
+    async deleteVehicle(vehicleId: string): Promise<void> {
+        try {
+            await parkingoApi.delete(`/vehiculos/${vehicleId}`);
+            HttpDriverRepository.vehiclesState = HttpDriverRepository.vehiclesState.filter(
+                (v) => v.id !== vehicleId,
+            );
+        } catch (error) {
+            console.error('Error al eliminar vehículo en la API:', error);
+            throw error;
+        }
+    }
+
+    private static mapBoletaToDriverBooking(b: BoletaReserva): DriverBooking {
+        const primerDetalle = b.detalles[0];
+        const spotNumber =
+            b.detalles.length === 1
+                ? `Plaza ${primerDetalle?.codigoEspacio || 'Asignada'}`
+                : `${b.detalles.length} Plazas (${b.detalles.map((d) => d.codigoEspacio).join(', ')})`;
+
+        const fechaIngreso = new Date(primerDetalle?.inicioReserva || b.fechaCreacion);
+        const fechaFin = new Date(primerDetalle?.finReserva || b.fechaCreacion);
+        const duracionHoras = Math.max(
+            1,
+            Math.round((fechaFin.getTime() - fechaIngreso.getTime()) / (1000 * 60 * 60)) || 1,
+        );
+
+        return {
+            id: b.id,
+            bookingNumber: b.codigoReserva,
+            parkingId: b.estacionamientoId,
+            parkingName: b.estacionamientoNombre,
+            parkingAddress: b.estacionamientoDireccion,
+            spotNumber,
+            vehiclePlate: primerDetalle?.vehiculoPlaca || 'Sin vehículo',
+            vehicleModel: primerDetalle?.vehiculoModelo || 'Vehículo Registrado',
+            entryTime: fechaIngreso.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }),
+            durationHours: duracionHoras,
+            pricePerHour: primerDetalle?.precioUnitarioAplicado || 10,
+            totalAmount: b.total,
+            status:
+                b.estado === 'CANCELADA'
+                    ? 'CANCELLED'
+                    : b.estado === 'COMPLETADA'
+                      ? 'COMPLETED'
+                      : 'ACTIVE',
+            qrCodeText: b.qrToken,
+            createdAt: b.fechaCreacion,
+            boletaOriginal: b,
+        };
+    }
+
+    async getMisReservas(): Promise<BoletaReserva[]> {
+        try {
+            const response = await parkingoApi.get<BoletaReserva[]>('/reservas/mis-reservas');
+            if (response?.data && Array.isArray(response.data)) {
+                return response.data;
+            }
+        } catch (error) {
+            console.warn('Error al obtener mis reservas de la API:', error);
+        }
+        return [];
+    }
+
+    async cotizarReserva(payload: CotizarReservaPayload): Promise<CotizacionReservaResult> {
+        const response = await parkingoApi.post<CotizacionReservaResult>('/reservas/cotizar', payload);
+        return response.data;
+    }
+
+    async crearReserva(payload: CrearReservaPayload): Promise<BoletaReserva> {
+        const response = await parkingoApi.post<BoletaReserva>('/reservas', payload);
+        return response.data;
+    }
+
+    async cancelarReserva(reservaId: string): Promise<BoletaReserva> {
+        const response = await parkingoApi.patch<BoletaReserva>(`/reservas/${reservaId}/cancelar`);
+        return response.data;
     }
 
     async getActiveBooking(): Promise<DriverBooking | null> {
+        try {
+            const boletas = await this.getMisReservas();
+            const activa = boletas.find(
+                (b) =>
+                    b.estado === 'PENDIENTE_PAGO' ||
+                    b.estado === 'CONFIRMADA' ||
+                    b.estado === 'EN_CURSO',
+            );
+            if (activa) {
+                return HttpDriverRepository.mapBoletaToDriverBooking(activa);
+            }
+        } catch (error) {
+            console.warn('No se pudo cargar la reserva activa de la API. Usando estado local:', error);
+        }
         return HttpDriverRepository.activeBookingState;
     }
 
     async getBookingsHistory(): Promise<DriverBooking[]> {
+        try {
+            const boletas = await this.getMisReservas();
+            const historicas = boletas.filter(
+                (b) => b.estado === 'COMPLETADA' || b.estado === 'CANCELADA',
+            );
+            if (historicas.length > 0) {
+                return historicas.map((b) => HttpDriverRepository.mapBoletaToDriverBooking(b));
+            }
+        } catch (error) {
+            console.warn('No se pudo cargar el historial de reservas de la API:', error);
+        }
         return [...HttpDriverRepository.bookingsHistoryState];
     }
 
     async createBooking(payload: CreateBookingPayload): Promise<DriverBooking> {
+        try {
+            // Intentar registrar mediante el endpoint real de la API si es posible
+            const ahora = new Date();
+            const fin = new Date(ahora.getTime() + payload.durationHours * 60 * 60 * 1000);
+
+            // Obtener espacios disponibles del estacionamiento si no se envió espacioId
+            let espacioId = payload.espacioId;
+            if (!espacioId) {
+                try {
+                    const catalogoRes = await parkingoApi.get<Array<{
+                        id: string;
+                        niveles?: Array<{
+                            espacios?: Array<{ id: string; estado: string }>;
+                        }>;
+                    }>>('/estacionamientos/catalogo');
+                    const parqueo = catalogoRes.data?.find((p) => p.id === payload.parkingId);
+                    const primerEspacio = parqueo?.niveles
+                        ?.flatMap((n) => n.espacios || [])
+                        ?.find((e) => e.estado === 'DISPONIBLE');
+                    if (primerEspacio) {
+                        espacioId = primerEspacio.id;
+                    }
+                } catch (e) {
+                    console.warn('No se pudo autoseleccionar espacio del catálogo:', e);
+                }
+            }
+
+            if (payload.detallesEspacios && payload.detallesEspacios.length > 0) {
+                const boleta = await this.crearReserva({
+                    estacionamientoId: payload.parkingId,
+                    espacios: payload.detallesEspacios.map((d) => ({
+                        espacioId: d.espacioId,
+                        inicioReserva: ahora.toISOString(),
+                        finReserva: fin.toISOString(),
+                        serviciosExtras: (d.serviciosExtrasIds || []).map((id) => ({
+                            servicioExtraId: id,
+                            cantidad: 1,
+                        })),
+                    })),
+                });
+                return HttpDriverRepository.mapBoletaToDriverBooking(boleta);
+            }
+
+            if (espacioId) {
+                const boleta = await this.crearReserva({
+                    estacionamientoId: payload.parkingId,
+                    espacios: [
+                        {
+                            espacioId,
+                            inicioReserva: ahora.toISOString(),
+                            finReserva: fin.toISOString(),
+                            serviciosExtras: (payload.serviciosExtrasIds || []).map((id) => ({
+                                servicioExtraId: id,
+                                cantidad: 1,
+                            })),
+                        },
+                    ],
+                });
+
+                return HttpDriverRepository.mapBoletaToDriverBooking(boleta);
+            }
+        } catch (error) {
+            console.warn('Error al registrar reserva en el endpoint real de la API:', error);
+        }
+
+        // Respaldo reactivo local si la llamada no cuenta con espacioId
         const parking = HttpDriverRepository.parkingsState.find((p) => p.id === payload.parkingId);
         const parkingName = parking?.name ?? 'ParkinGo Estación';
         const price = parking?.pricePerHour ?? 10;
@@ -239,12 +490,20 @@ export class HttpDriverRepository implements DriverRepository {
     }
 
     async cancelBooking(bookingId: string): Promise<void> {
+        try {
+            await this.cancelarReserva(bookingId);
+        } catch (error) {
+            console.warn('No se pudo cancelar la reserva en la API:', error);
+        }
         if (HttpDriverRepository.activeBookingState?.id === bookingId) {
             const finishedBooking: DriverBooking = {
                 ...HttpDriverRepository.activeBookingState,
-                status: 'COMPLETED',
+                status: 'CANCELLED',
             };
-            HttpDriverRepository.bookingsHistoryState = [finishedBooking, ...HttpDriverRepository.bookingsHistoryState];
+            HttpDriverRepository.bookingsHistoryState = [
+                finishedBooking,
+                ...HttpDriverRepository.bookingsHistoryState,
+            ];
             HttpDriverRepository.activeBookingState = null;
         }
     }

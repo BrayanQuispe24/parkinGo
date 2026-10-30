@@ -30,6 +30,7 @@ import { GuardarCroquisDto } from '../dto/guardar-croquis.dto.js';
 import { CroquisResponseDto } from '../dto/croquis-response.dto.js';
 
 import { GetCroquisByNivelAction } from '../actions/get-croquis-by-nivel.action.js';
+import { GetCroquisPublicoByNivelAction } from '../actions/get-croquis-publico-by-nivel.action.js';
 import { GuardarCroquisAction } from '../actions/guardar-croquis.action.js';
 import { SubirFondoCroquisAction } from '../actions/subir-fondo-croquis.action.js';
 import type { UploadedPhotoFile } from '../actions/registrar-estacionamiento.action.js';
@@ -39,6 +40,7 @@ import type { UploadedPhotoFile } from '../actions/registrar-estacionamiento.act
 export class CroquisController {
   constructor(
     private readonly getCroquisByNivelAction: GetCroquisByNivelAction,
+    private readonly getCroquisPublicoByNivelAction: GetCroquisPublicoByNivelAction,
     private readonly guardarCroquisAction: GuardarCroquisAction,
     private readonly subirFondoCroquisAction: SubirFondoCroquisAction,
   ) {}
@@ -69,6 +71,34 @@ export class CroquisController {
   }
 
   @ApiOperation({
+    summary: 'Consultar el croquis arquitectónico de un nivel de estacionamiento',
+    description:
+      'Permite a conductores y clientes consultar la distribución gráfica 2D (muros, plazas, vías) de un nivel de estacionamiento.',
+  })
+  @ApiParam({
+    name: 'estacionamientoId',
+    description: 'UUID del estacionamiento',
+  })
+  @ApiParam({
+    name: 'nivelId',
+    description: 'UUID del nivel del estacionamiento',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Croquis encontrado o null si no se ha diseñado aún.',
+    type: CroquisResponseDto,
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get(':estacionamientoId/niveles/:nivelId/croquis')
+  async getCroquisPublicoByNivel(
+    @Param('estacionamientoId') estacionamientoId: string,
+    @Param('nivelId') nivelId: string,
+  ): Promise<CroquisResponseDto | null> {
+    return this.getCroquisPublicoByNivelAction.execute(estacionamientoId, nivelId);
+  }
+
+  @ApiOperation({
     summary: 'Guardar o actualizar el croquis de un nivel',
     description:
       'Guarda las dimensiones del lienzo, fondo y la distribución espacial de nodos (boxes, muros, vías).',
@@ -90,9 +120,9 @@ export class CroquisController {
   async guardarCroquis(
     @Param('nivelId') nivelId: string,
     @Body() dto: GuardarCroquisDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string; roleName?: string },
   ): Promise<CroquisResponseDto> {
-    return this.guardarCroquisAction.execute(nivelId, dto, user.userId);
+    return this.guardarCroquisAction.execute(nivelId, dto, user.userId, user.roleName);
   }
 
   @ApiOperation({

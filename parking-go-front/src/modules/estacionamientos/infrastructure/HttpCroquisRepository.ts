@@ -10,6 +10,16 @@ export class HttpCroquisRepository implements CroquisRepository {
     return response.data;
   }
 
+  async getCroquisByEstacionamientoYNivel(
+    estacionamientoId: string,
+    nivelId: string,
+  ): Promise<CroquisModel | null> {
+    const response = await parkingoApi.get<CroquisModel | null>(
+      `/estacionamientos/${estacionamientoId}/niveles/${nivelId}/croquis`,
+    );
+    return response.data;
+  }
+
   async guardarCroquis(
     nivelId: string,
     payload: GuardarCroquisPayload,

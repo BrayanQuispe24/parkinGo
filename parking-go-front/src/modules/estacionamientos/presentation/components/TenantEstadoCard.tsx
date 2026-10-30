@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { EstacionamientoModel } from '../../domain/Estacionamiento';
+import { useAuthStore } from '../../../../store/useAuthStore';
 import { EstadoBadge } from './EstadoBadge';
 import { GaleriaFotosEnterprise } from './GaleriaFotosEnterprise';
 import { EstacionamientoMapViewer } from './EstacionamientoMapViewer';
@@ -9,6 +10,8 @@ import { TenantNivelesPanel } from './TenantNivelesPanel';
 import { TenantEspaciosPanel } from './TenantEspaciosPanel';
 import { TenantCroquisPanel } from './TenantCroquisPanel';
 import { TenantOperadoresPanel } from './TenantOperadoresPanel';
+import { CalificacionesListPanel } from '../../../calificaciones/presentation/components/CalificacionesListPanel';
+import { useCalificacionesTenantQuery } from '../../../calificaciones/application/useCalificacionesQuery';
 
 export type FichaTecnicaTab =
   | 'resumen'
@@ -19,7 +22,8 @@ export type FichaTecnicaTab =
   | 'galeria'
   | 'niveles'
   | 'espacios'
-  | 'croquis';
+  | 'croquis'
+  | 'calificaciones';
 
 interface TenantEstadoCardProps {
   estacionamiento: EstacionamientoModel;
@@ -32,8 +36,11 @@ export const TenantEstadoCard: React.FC<TenantEstadoCardProps> = ({
   onBack,
   initialTab = 'resumen',
 }) => {
+  const { user } = useAuthStore();
+  const isHost = user?.role === 'HOST' || user?.role === 'anfitrion';
   const [activeTab, setActiveTab] = useState<FichaTecnicaTab>(initialTab);
   const [selectedNivelIdForEspacios, setSelectedNivelIdForEspacios] = useState<string | undefined>(undefined);
+  const { data: tenantCalificaciones = [], isLoading: isLoadingCalif } = useCalificacionesTenantQuery();
   const googleMapsUrl = `https://www.google.com/maps?q=${estacionamiento.latitud},${estacionamiento.longitud}`;
 
   const getBanner = () => {
@@ -109,14 +116,15 @@ export const TenantEstadoCard: React.FC<TenantEstadoCardProps> = ({
 
   const tabsConfig: { id: FichaTecnicaTab; label: string; icon: string; count?: number }[] = [
     { id: 'resumen', label: 'Resumen & Ubicación', icon: 'fa-solid fa-map-location-dot' },
-    { id: 'operadores', label: 'Operadores', icon: 'fa-solid fa-users-gear' },
+    ...(!isHost ? [{ id: 'operadores' as FichaTecnicaTab, label: 'Operadores', icon: 'fa-solid fa-users-gear' }] : []),
     { id: 'tarifas', label: 'Esquema de Tarifas', icon: 'fa-solid fa-tags' },
     { id: 'servicios', label: 'Servicios Extras', icon: 'fa-solid fa-wand-magic-sparkles' },
     { id: 'horarios', label: 'Horarios de Atención', icon: 'fa-regular fa-clock', count: estacionamiento.horarios?.length },
     { id: 'galeria', label: 'Galería Multimedia', icon: 'fa-solid fa-camera', count: estacionamiento.fotos?.length },
-    { id: 'niveles', label: 'Niveles / Pisos', icon: 'fa-solid fa-layer-group' },
-    { id: 'espacios', label: 'Espacios & Boxes', icon: 'fa-solid fa-square-parking' },
-    { id: 'croquis', label: 'Croquis (Próximamente)', icon: 'fa-solid fa-map' },
+    { id: 'niveles', label: isHost ? 'Nivel (1 Máx)' : 'Niveles / Pisos', icon: 'fa-solid fa-layer-group' },
+    { id: 'espacios', label: isHost ? 'Espacio (1 Máx)' : 'Espacios & Boxes', icon: 'fa-solid fa-square-parking' },
+    { id: 'croquis', label: isHost ? 'Croquis Residencial' : 'Croquis', icon: 'fa-solid fa-map' },
+    { id: 'calificaciones', label: 'Calificaciones', icon: 'fa-solid fa-star', count: tenantCalificaciones.length },
   ];
 
   return (
@@ -241,6 +249,28 @@ export const TenantEstadoCard: React.FC<TenantEstadoCardProps> = ({
             </button>
           );
         })}
+
+        {isHost && (
+          <span
+            style={{
+              marginLeft: 'auto',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.25rem 0.65rem',
+              borderRadius: '12px',
+              fontSize: '0.74rem',
+              fontWeight: 700,
+              background: '#DCFCE7',
+              color: '#166534',
+              border: '1px solid #BBF7D0',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <i className="fa-solid fa-house-chimney"></i>
+            <span>Plan Anfitrión: 1 Nivel · 1 Croquis · 1 Espacio</span>
+          </span>
+        )}
       </div>
 
       {/* 3. Contenido Dinámico de la Pestaña Activa */}
@@ -568,6 +598,15 @@ export const TenantEstadoCard: React.FC<TenantEstadoCardProps> = ({
           <TenantCroquisPanel
             onGoToNiveles={() => setActiveTab('niveles')}
             onGoToEspacios={() => setActiveTab('espacios')}
+          />
+        )}
+
+        {activeTab === 'calificaciones' && (
+          <CalificacionesListPanel
+            calificaciones={tenantCalificaciones}
+            isLoading={isLoadingCalif}
+            title={`Calificaciones y Reseñas Recibidas (${tenantCalificaciones.length})`}
+            subtitle="Opiniones y valoraciones exclusivas de los conductores que utilizaron tu estacionamiento."
           />
         )}
       </div>

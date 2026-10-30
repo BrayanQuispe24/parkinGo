@@ -22,10 +22,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!role) throw new UnauthorizedException('Rol inválido asignado al usuario.');
 
     return { 
+        id: payload.sub,
         userId: payload.sub, 
         email: payload.email, 
         roleId: payload.roleId, 
-        roleName: role.name 
+        roleName: role.name,
+        role: role.name,
     };
   }
 }

@@ -3,6 +3,7 @@ import { EstadoEstacionamiento, DiaSemana, FotoEstacionamiento } from '@prisma/c
 import { PrismaService } from '../../../database/prisma/prisma.service.js';
 import {
   CreateEstacionamientoData,
+  EstacionamientoCatalogoRecord,
   EstacionamientoRepository,
   EstacionamientoWithRelations,
 } from './estacionamiento.repository.js';
@@ -118,6 +119,42 @@ export class PrismaEstacionamientoRepository implements EstacionamientoRepositor
       where: estado ? { estado } : undefined,
       orderBy: { createdAt: 'desc' },
       include: ESTACIONAMIENTO_INCLUDES,
+    });
+  }
+
+  async findCatalogo(): Promise<EstacionamientoCatalogoRecord[]> {
+    return this.prisma.estacionamiento.findMany({
+      where: {
+        estado: EstadoEstacionamiento.APROBADO,
+      },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        fotos: true,
+        horarios: {
+          include: {
+            horario: true,
+          },
+        },
+        tarifas: {
+          where: { estado: 'ACTIVO' },
+        },
+        serviciosExtras: {
+          where: { activo: true },
+        },
+        tenant: {
+          select: {
+            id: true,
+            nombre: true,
+            ciudad: true,
+            direccion: true,
+          },
+        },
+        niveles: {
+          include: {
+            espacios: true,
+          },
+        },
+      },
     });
   }
 

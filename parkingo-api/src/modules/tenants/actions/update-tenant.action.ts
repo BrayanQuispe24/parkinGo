@@ -19,8 +19,8 @@ export class UpdateTenantAction {
       throw new NotFoundException(`Empresa con ID ${id} no encontrada.`);
     }
 
-    // El administrador de parqueo solo puede editar sus propios tenants
-    if (user.roleName === 'PARKING_ADMIN' && existing.usuarioId !== user.userId) {
+    // El administrador de parqueo o anfitrión solo puede editar sus propios tenants
+    if ((user.roleName === 'PARKING_ADMIN' || user.roleName === 'HOST') && existing.usuarioId !== user.userId) {
       throw new ForbiddenException('No tiene permisos para modificar esta empresa.');
     }
 

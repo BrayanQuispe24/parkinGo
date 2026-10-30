@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -23,22 +24,47 @@ export class GuardarCroquisAction {
     nivelId: string,
     dto: GuardarCroquisDto,
     userId: string,
+    roleName?: string,
   ): Promise<CroquisResponseDto> {
     const nivel = await this.nivelRepository.findById(nivelId);
     if (!nivel) {
       throw new NotFoundException('El nivel indicado no existe.');
     }
 
-    const tenants = await this.tenantRepository.findByUsuarioId(userId);
-    const userTenantIds = (tenants || []).map((t) => t.id);
+    if (!nivel.estacionamiento) {
+      throw new ForbiddenException(
+        'El nivel no está asociado a un estacionamiento válido.',
+      );
+    }
 
-    if (
-      !nivel.estacionamiento ||
-      !userTenantIds.includes(nivel.estacionamiento.tenantId)
-    ) {
+    const esDuenoTenant = nivel.estacionamiento.tenant?.usuarioId === userId;
+    const esOperador = (nivel.estacionamiento.operadores || []).some(
+      (op) => op.id === userId,
+    );
+
+    let tienePermiso = esDuenoTenant || esOperador;
+    if (!tienePermiso) {
+      const tenants = await this.tenantRepository.findByUsuarioId(userId);
+      const userTenantIds = (tenants || []).map((t) => t.id);
+      tienePermiso = userTenantIds.includes(nivel.estacionamiento.tenantId);
+    }
+
+    if (!tienePermiso) {
       throw new ForbiddenException(
         'No tienes permisos para modificar el croquis de este nivel.',
       );
+    }
+
+    if (roleName === 'HOST' && dto.contenido && typeof dto.contenido === 'object') {
+      const nodos = (dto.contenido as { nodos?: Array<{ tipo?: string }> }).nodos;
+      if (Array.isArray(nodos)) {
+        const espaciosEnCroquis = nodos.filter((n) => n && n.tipo === 'ESPACIO');
+        if (espaciosEnCroquis.length > 1) {
+          throw new BadRequestException(
+            'El plano arquitectónico para el rol Anfitrión solo puede contener una única plaza de parqueo (ESPACIO).',
+          );
+        }
+      }
     }
 
     const saved = await this.croquisRepository.upsertByNivelId(nivelId, {

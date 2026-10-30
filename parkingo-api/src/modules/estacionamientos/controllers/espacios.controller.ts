@@ -54,6 +54,10 @@ export class EspaciosController {
     type: EspacioResponseDto,
   })
   @ApiResponse({
+    status: 403,
+    description: 'No autorizado o límite de 1 espacio alcanzado para el rol Anfitrión.',
+  })
+  @ApiResponse({
     status: 409,
     description: 'Ya existe un espacio con ese código en el nivel seleccionado.',
   })
@@ -64,9 +68,9 @@ export class EspaciosController {
   @Post('me/espacios')
   async crearEspacio(
     @Body() dto: CreateEspacioDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string; roleName?: string },
   ): Promise<EspacioResponseDto> {
-    return this.crearEspacioAction.execute(dto, user.userId);
+    return this.crearEspacioAction.execute(dto, user.userId, user.roleName);
   }
 
   @ApiOperation({

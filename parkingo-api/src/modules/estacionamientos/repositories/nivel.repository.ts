@@ -15,11 +15,20 @@ export type NivelWithCount = Nivel & {
   };
 };
 
+export type NivelWithEstacionamiento = Nivel & {
+  estacionamiento: {
+    id: string;
+    tenantId: string;
+    tenant?: {
+      usuarioId: string;
+    };
+    operadores: { id: string }[];
+  };
+};
+
 export abstract class NivelRepository {
   abstract create(data: CreateNivelData): Promise<Nivel>;
-  abstract findById(
-    id: string,
-  ): Promise<(Nivel & { estacionamiento: { tenantId: string } }) | null>;
+  abstract findById(id: string): Promise<NivelWithEstacionamiento | null>;
   abstract findByEstacionamientoId(
     estacionamientoId: string,
   ): Promise<NivelWithCount[]>;

@@ -117,36 +117,35 @@ export const HostSidebar: React.FC<HostSidebarProps> = ({
             <nav className="sidebar-nav">
                 <div className="nav-section-label">Mi Espacio Particular</div>
 
-                <a
-                    className={`nav-item ${isCurrent('/dashboard/parking-admin/users') || isCurrent('/dashboard/parking-admin') ? 'active' : ''}`}
-                    href="#mis-espacios"
-                    title="Mis Cocheras y Garajes Residenciales"
-                    onClick={(e) => {
-                        e.preventDefault();
-                        handleLinkClick();
-                    }}
+                <Link
+                    to="/dashboard/parking-admin/estacionamiento"
+                    className={`nav-item ${isCurrent('/dashboard/parking-admin/estacionamiento') || isCurrent('/dashboard/parking-admin') || isCurrent('/dashboard/parking-admin/users') ? 'active' : ''}`}
+                    title="Mi Garaje & Cochera Residencial"
+                    onClick={handleLinkClick}
                 >
                     <i className="fa-solid fa-warehouse"></i>
-                    <span>Mis Garajes & Espacios</span>
+                    <span>Mi Cochera & Garaje</span>
                     {!collapsed && (
                         <span className="badge badge-success" style={{ marginLeft: 'auto', fontSize: '0.7rem' }}>
-                            1 Activo
+                            1 Espacio
                         </span>
                     )}
-                </a>
+                </Link>
 
-                <a
-                    className="nav-item"
-                    href="#disponibilidad"
-                    title="Control de Horarios y Disponibilidad"
-                    onClick={(e) => {
-                        e.preventDefault();
-                        handleLinkClick();
-                    }}
+                <Link
+                    to="/dashboard/parking-admin/tenants"
+                    className={`nav-item ${isCurrent('/dashboard/parking-admin/tenants') ? 'active' : ''}`}
+                    title="Mi Empresa o Propiedad Registrada"
+                    onClick={handleLinkClick}
                 >
-                    <i className="fa-solid fa-calendar-days"></i>
-                    <span>Disponibilidad & Cupos</span>
-                </a>
+                    <i className="fa-solid fa-building"></i>
+                    <span>Mi Empresa / Propiedad</span>
+                    {!collapsed && (
+                        <span className="badge badge-success" style={{ marginLeft: 'auto', fontSize: '0.65rem' }}>
+                            1 Max
+                        </span>
+                    )}
+                </Link>
 
                 <div className="nav-section-label">Gestión de Reservas C2C</div>
 

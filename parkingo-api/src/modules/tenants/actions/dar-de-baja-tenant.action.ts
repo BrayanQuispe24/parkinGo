@@ -19,7 +19,7 @@ export class DarDeBajaTenantAction {
       throw new NotFoundException(`Empresa con ID ${id} no encontrada.`);
     }
 
-    if (user.roleName === 'PARKING_ADMIN' && existing.usuarioId !== user.userId) {
+    if ((user.roleName === 'PARKING_ADMIN' || user.roleName === 'HOST') && existing.usuarioId !== user.userId) {
       throw new ForbiddenException('No tiene permisos para cambiar el estado de esta empresa.');
     }
 

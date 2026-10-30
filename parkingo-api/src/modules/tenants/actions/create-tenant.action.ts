@@ -22,10 +22,19 @@ export class CreateTenantAction {
   ) {}
 
   async execute(dto: CreateTenantDto, user: RequestingUser): Promise<TenantResponseDto> {
-    if (user.roleName !== 'PARKING_ADMIN') {
+    if (user.roleName !== 'PARKING_ADMIN' && user.roleName !== 'HOST') {
       throw new ForbiddenException(
-        'Únicamente los Administradores de Parqueo están autorizados para registrar nuevas empresas / tenants.'
+        'Únicamente los Administradores de Parqueo y Anfitriones están autorizados para registrar nuevas empresas / tenants.'
       );
+    }
+
+    if (user.roleName === 'HOST') {
+      const existingUserTenants = await this.tenantRepository.findByUsuarioId(user.userId);
+      if (existingUserTenants && existingUserTenants.length >= 1) {
+        throw new ForbiddenException(
+          'Como Anfitrión particular solo tienes permitido registrar una única empresa o propiedad.'
+        );
+      }
     }
 
     const existingByNit = await this.tenantRepository.findByNit(dto.nit.trim());

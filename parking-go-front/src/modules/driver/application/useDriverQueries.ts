@@ -8,6 +8,7 @@ export const DRIVER_KEYS = {
     vehicles: () => [...DRIVER_KEYS.all, 'vehicles'] as const,
     activeBooking: () => [...DRIVER_KEYS.all, 'activeBooking'] as const,
     bookingsHistory: () => [...DRIVER_KEYS.all, 'bookingsHistory'] as const,
+    boletas: () => [...DRIVER_KEYS.all, 'boletas'] as const,
     reviews: () => [...DRIVER_KEYS.all, 'reviews'] as const,
 };
 
@@ -50,3 +51,12 @@ export const useDriverReviewsQuery = () => {
         staleTime: 1000 * 60 * 5,
     });
 };
+
+export const useDriverBoletasQuery = () => {
+    return useQuery({
+        queryKey: DRIVER_KEYS.boletas(),
+        queryFn: () => driverRepository.getMisReservas(),
+        staleTime: 1000 * 30,
+    });
+};
+

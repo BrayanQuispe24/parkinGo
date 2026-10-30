@@ -73,7 +73,11 @@ model User {
 
   verificationTokens    EmailVerificationToken[]
   verificationDocuments UserVerificationDocument[]
+  calificaciones        Calificacion[]
+  vehiculos             Vehiculo[]
   tenants               Tenant[]
+  reservacionesCliente  Reservacion[]             @relation("ClienteReservaciones")
+  reservacionesOperador Reservacion[]             @relation("OperadorReservaciones")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -193,6 +197,8 @@ model Estacionamiento {
   tarifas         Tarifa[]
   niveles         Nivel[]
   operadores      User[]                   @relation("OperadoresEstacionamiento")
+  calificaciones  Calificacion[]
+  reservaciones   Reservacion[]
 
   createdAt       DateTime              @default(now()) @map("created_at")
   updatedAt       DateTime              @updatedAt @map("updated_at")
@@ -258,6 +264,8 @@ model ServicioExtra {
   estacionamientoId String          @map("estacionamiento_id")
   estacionamiento   Estacionamiento @relation(fields: [estacionamientoId], references: [id], onDelete: Cascade)
 
+  detallesExtras    DetalleServicioExtra[]
+
   createdAt         DateTime        @default(now()) @map("created_at")
   updatedAt         DateTime        @updatedAt @map("updated_at")
 
@@ -285,6 +293,8 @@ model Tarifa {
 
   estacionamientoId String          @map("estacionamiento_id")
   estacionamiento   Estacionamiento @relation(fields: [estacionamientoId], references: [id], onDelete: Cascade)
+
+  detallesReservacion DetalleReservacion[]
 
   createdAt         DateTime        @default(now()) @map("created_at")
   updatedAt         DateTime        @updatedAt @map("updated_at")
@@ -335,6 +345,8 @@ model Espacio {
   nivelId       String          @map("nivel_id")
   nivel         Nivel           @relation(fields: [nivelId], references: [id], onDelete: Cascade)
 
+  detallesReservacion DetalleReservacion[]
+
   createdAt     DateTime        @default(now()) @map("created_at")
   updatedAt     DateTime        @updatedAt @map("updated_at")
 
@@ -361,3 +373,163 @@ model Croquis {
   @@index([nivelId])
   @@map("croquis")
 }
+
+model Calificacion {
+  id                String          @id @default(uuid())
+  puntaje           Int             // 1 a 5 estrellas
+  comentario        String          @db.Text
+  clienteId         String          @map("cliente_id")
+  cliente           User            @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  estacionamientoId String          @map("estacionamiento_id")
+  estacionamiento   Estacionamiento @relation(fields: [estacionamientoId], references: [id], onDelete: Cascade)
+  fechaCreado       DateTime        @default(now()) @map("fecha_creado")
+
+  @@index([estacionamientoId])
+  @@index([clienteId])
+  @@map("calificaciones")
+}
+
+enum TipoVehiculo {
+  SEDAN
+  SUV
+  CAMIONETA
+  MOTO
+  ELECTRICO
+  OTRO
+}
+
+model Vehiculo {
+  id               String       @id @default(uuid())
+  tipo             TipoVehiculo @default(SEDAN)
+  placa            String       @unique
+  modelo           String
+  color            String
+  propietarioId    String       @map("propietario_id")
+  propietario      User         @relation(fields: [propietarioId], references: [id], onDelete: Cascade)
+  esPredeterminado Boolean      @default(false) @map("es_predeterminado")
+  fechaCreado      DateTime     @default(now()) @map("fecha_creado")
+  fechaActualizado DateTime     @updatedAt @map("fecha_actualizado")
+
+  detallesReservacion DetalleReservacion[]
+
+  @@index([propietarioId])
+  @@map("vehiculos")
+}
+
+enum EstadoReserva {
+  PENDIENTE_PAGO
+  CONFIRMADA
+  EN_CURSO
+  COMPLETADA
+  CANCELADA
+}
+
+enum EstadoDetalleReserva {
+  ACTIVO
+  CANCELADO
+}
+
+enum EstadoPago {
+  PENDIENTE
+  COMPLETADO
+  FALLIDO
+  REEMBOLSADO
+}
+
+model Reservacion {
+  id                String             @id @default(uuid())
+  codigoReserva     String             @unique @map("codigo_reserva")
+  qrToken           String             @map("qr_token")
+  total             Float
+  estado            EstadoReserva      @default(PENDIENTE_PAGO)
+  modalidad         ModalidadTarifa    @default(HORA)
+
+  estacionamientoId String             @map("estacionamiento_id")
+  estacionamiento   Estacionamiento    @relation(fields: [estacionamientoId], references: [id], onDelete: Cascade)
+
+  clienteId         String             @map("cliente_id")
+  cliente           User               @relation("ClienteReservaciones", fields: [clienteId], references: [id], onDelete: Cascade)
+
+  operadorId        String?            @map("operador_id")
+  operador          User?              @relation("OperadorReservaciones", fields: [operadorId], references: [id], onDelete: SetNull)
+
+  detalles          DetalleReservacion[]
+  pagos             Pago[]
+
+  fechaCreacion     DateTime           @default(now()) @map("fecha_creacion")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  @@index([estacionamientoId])
+  @@index([clienteId])
+  @@index([operadorId])
+  @@index([estado])
+  @@map("reservaciones")
+}
+
+model DetalleReservacion {
+  id                    String                 @id @default(uuid())
+  inicioReserva         DateTime               @map("inicio_reserva")
+  finReserva            DateTime               @map("fin_reserva")
+  precioUnitarioAplicado Float                 @map("precio_unitario_aplicado")
+  subtotal              Float
+  estado                EstadoDetalleReserva   @default(ACTIVO)
+
+  reservacionId         String                 @map("reservacion_id")
+  reservacion           Reservacion            @relation(fields: [reservacionId], references: [id], onDelete: Cascade)
+
+  espacioId             String                 @map("espacio_id")
+  espacio               Espacio                @relation(fields: [espacioId], references: [id], onDelete: Cascade)
+
+  vehiculoId            String?                @map("vehiculo_id")
+  vehiculo              Vehiculo?              @relation(fields: [vehiculoId], references: [id], onDelete: SetNull)
+
+  tarifaId              String?                @map("tarifa_id")
+  tarifa                Tarifa?                @relation(fields: [tarifaId], references: [id], onDelete: SetNull)
+
+  serviciosExtras       DetalleServicioExtra[]
+
+  createdAt             DateTime               @default(now()) @map("created_at")
+  updatedAt             DateTime               @updatedAt @map("updated_at")
+
+  @@index([reservacionId])
+  @@index([espacioId])
+  @@index([inicioReserva, finReserva])
+  @@map("detalles_reservaciones")
+}
+
+model DetalleServicioExtra {
+  id                    String             @id @default(uuid())
+  cantidad              Int                @default(1)
+  precioUnitarioAplicado Float             @map("precio_unitario_aplicado")
+  subtotal              Float
+
+  detalleReservacionId  String             @map("detalle_reservacion_id")
+  detalleReservacion    DetalleReservacion @relation(fields: [detalleReservacionId], references: [id], onDelete: Cascade)
+
+  servicioExtraId       String             @map("servicio_extra_id")
+  servicioExtra         ServicioExtra      @relation(fields: [servicioExtraId], references: [id], onDelete: Cascade)
+
+  createdAt             DateTime           @default(now()) @map("created_at")
+
+  @@index([detalleReservacionId])
+  @@index([servicioExtraId])
+  @@map("detalles_servicios_extras")
+}
+
+model Pago {
+  id            String      @id @default(uuid())
+  monto         Float
+  metodoPago    String      @default("QR") @map("metodo_pago")
+  estado        EstadoPago  @default(PENDIENTE)
+  fechaPago     DateTime?   @map("fecha_pago")
+
+  reservacionId String      @map("reservacion_id")
+  reservacion   Reservacion @relation(fields: [reservacionId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  @@index([reservacionId])
+  @@map("pagos")
+}
+

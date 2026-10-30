@@ -18,7 +18,7 @@ export class GetTenantByIdAction {
       throw new NotFoundException(`Empresa con ID ${id} no encontrada.`);
     }
 
-    if (user.roleName === 'PARKING_ADMIN' && tenant.usuarioId !== user.userId) {
+    if ((user.roleName === 'PARKING_ADMIN' || user.roleName === 'HOST') && tenant.usuarioId !== user.userId) {
       throw new ForbiddenException('No tiene permisos para acceder a esta empresa.');
     }
 

@@ -23,13 +23,33 @@ export class PrismaNivelRepository implements NivelRepository {
 
   async findById(
     id: string,
-  ): Promise<(Nivel & { estacionamiento: { tenantId: string } }) | null> {
+  ): Promise<(Nivel & {
+    estacionamiento: {
+      id: string;
+      tenantId: string;
+      tenant?: {
+        usuarioId: string;
+      };
+      operadores: { id: string }[];
+    };
+  }) | null> {
     return this.prisma.nivel.findUnique({
       where: { id },
       include: {
         estacionamiento: {
           select: {
+            id: true,
             tenantId: true,
+            tenant: {
+              select: {
+                usuarioId: true,
+              },
+            },
+            operadores: {
+              select: {
+                id: true,
+              },
+            },
           },
         },
       },

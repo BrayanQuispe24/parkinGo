@@ -120,30 +120,6 @@ export const ParkingAdminSidebar = ({
                     <span>Mis Estacionamientos</span>
                 </Link>
 
-                <a
-                    className="nav-item"
-                    href="#croquis"
-                    title="Croquis & Monitoreo 24/7"
-                    onClick={(e) => e.preventDefault()}
-                >
-                    <i className="fa-solid fa-border-all"></i>
-                    <span>Croquis & Plazas</span>
-                    {!collapsed && (
-                        <span className="badge badge-success" style={{ marginLeft: 'auto', fontSize: '0.7rem' }}>
-                            24
-                        </span>
-                    )}
-                </a>
-
-                <a
-                    className="nav-item"
-                    href="#reservas"
-                    title="Gestión de Reservas y Abonados"
-                    onClick={(e) => e.preventDefault()}
-                >
-                    <i className="fa-solid fa-calendar-check"></i>
-                    <span>Reservas & Abonados</span>
-                </a>
 
                 <a
                     className="nav-item"

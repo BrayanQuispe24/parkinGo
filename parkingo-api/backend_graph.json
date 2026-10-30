@@ -2,7 +2,7 @@
   "$schema": "parkingo-backend-architecture-graph",
   "version": "1.0.0",
   "description": "Grafo de arquitectura y dependencias de parkingo-api para navegación y cambios quirúrgicos sin sobrecosto de tokens.",
-  "lastUpdated": "2026-10-15",
+  "lastUpdated": "2026-10-22",
   "meta": {
     "framework": "NestJS",
     "orm": "Prisma",
@@ -335,11 +335,11 @@
           "file": "src/modules/tenants/controllers/tenants.controller.ts",
           "prefix": "/tenants",
           "endpoints": [
-            { "method": "POST", "path": "/", "action": "CreateTenantAction", "dtoIn": "CreateTenantDto", "dtoOut": "TenantResponseDto", "roles": ["PARKING_ADMIN"], "summary": "Registrar nueva empresa / tenant" },
-            { "method": "GET", "path": "/", "action": "GetTenantsAction", "dtoOut": "TenantResponseDto[]", "roles": ["PARKING_ADMIN", "GENERAL_ADMIN", "SUPER_ADMIN"], "summary": "Listar empresas / tenants según rol" },
-            { "method": "GET", "path": "/:id", "action": "GetTenantByIdAction", "dtoOut": "TenantResponseDto", "roles": ["PARKING_ADMIN", "GENERAL_ADMIN", "SUPER_ADMIN"], "summary": "Obtener detalle de empresa por ID" },
-            { "method": "PATCH", "path": "/:id", "action": "UpdateTenantAction", "dtoIn": "UpdateTenantDto", "dtoOut": "TenantResponseDto", "roles": ["PARKING_ADMIN", "GENERAL_ADMIN", "SUPER_ADMIN"], "summary": "Editar datos de empresa" },
-            { "method": "PATCH", "path": "/:id/baja", "action": "DarDeBajaTenantAction", "dtoOut": "TenantResponseDto", "roles": ["PARKING_ADMIN", "GENERAL_ADMIN", "SUPER_ADMIN"], "summary": "Dar de baja o reactivar empresa" },
+            { "method": "POST", "path": "/", "action": "CreateTenantAction", "dtoIn": "CreateTenantDto", "dtoOut": "TenantResponseDto", "roles": ["PARKING_ADMIN", "HOST"], "summary": "Registrar nueva empresa / tenant (máximo 1 para HOST)" },
+            { "method": "GET", "path": "/", "action": "GetTenantsAction", "dtoOut": "TenantResponseDto[]", "roles": ["PARKING_ADMIN", "HOST", "GENERAL_ADMIN", "SUPER_ADMIN"], "summary": "Listar empresas / tenants según rol" },
+            { "method": "GET", "path": "/:id", "action": "GetTenantByIdAction", "dtoOut": "TenantResponseDto", "roles": ["PARKING_ADMIN", "HOST", "GENERAL_ADMIN", "SUPER_ADMIN"], "summary": "Obtener detalle de empresa por ID" },
+            { "method": "PATCH", "path": "/:id", "action": "UpdateTenantAction", "dtoIn": "UpdateTenantDto", "dtoOut": "TenantResponseDto", "roles": ["PARKING_ADMIN", "HOST", "GENERAL_ADMIN", "SUPER_ADMIN"], "summary": "Editar datos de empresa" },
+            { "method": "PATCH", "path": "/:id/baja", "action": "DarDeBajaTenantAction", "dtoOut": "TenantResponseDto", "roles": ["PARKING_ADMIN", "HOST", "GENERAL_ADMIN", "SUPER_ADMIN"], "summary": "Dar de baja o reactivar empresa" },
             { "method": "DELETE", "path": "/:id", "action": "DeleteTenantAction", "roles": ["GENERAL_ADMIN", "SUPER_ADMIN"], "summary": "Eliminar empresa del sistema" }
           ]
         }
@@ -442,6 +442,13 @@
               "dtoOut": "FotoResponseDto",
               "roles": ["PARKING_ADMIN", "HOST"],
               "summary": "Eliminar permanentemente una fotografía de la galería del estacionamiento"
+            },
+            {
+              "method": "GET",
+              "path": "/catalogo",
+              "action": "ListarEstacionamientosCatalogoAction",
+              "dtoOut": "CatalogoEstacionamientoResponseDto[]",
+              "summary": "Listar catálogo de estacionamientos aprobados para conductores con disponibilidad y tarifas en tiempo real"
             }
           ]
         },
@@ -681,6 +688,14 @@
           "endpoints": [
             {
               "method": "GET",
+              "path": "/:estacionamientoId/niveles/:nivelId/croquis",
+              "action": "GetCroquisPublicoByNivelAction",
+              "dtoOut": "CroquisResponseDto",
+              "roles": ["AUTHENTICATED"],
+              "summary": "Consultar el croquis arquitectónico de un nivel de estacionamiento"
+            },
+            {
+              "method": "GET",
               "path": "/me/niveles/:nivelId/croquis",
               "action": "GetCroquisByNivelAction",
               "dtoOut": "CroquisResponseDto",
@@ -751,7 +766,11 @@
           "file": "src/modules/estacionamientos/actions/registrar-estacionamiento.action.ts",
           "dtoIn": "src/modules/estacionamientos/dto/registrar-estacionamiento.dto.ts",
           "dtoOut": "src/modules/estacionamientos/dto/estacionamiento-response.dto.ts",
-          "dependsOn": ["EstacionamientoRepository", "TenantRepository"]
+          "dependsOn": [
+            "EstacionamientoProvisioningContext",
+            "EstacionamientoRepository",
+            "TenantRepository"
+          ]
         },
         "GetMiEstacionamientoAction": {
           "file": "src/modules/estacionamientos/actions/get-mi-estacionamiento.action.ts",
@@ -903,6 +922,11 @@
           "dtoOut": "src/modules/estacionamientos/dto/croquis-response.dto.ts",
           "dependsOn": ["CroquisRepository", "NivelRepository", "TenantRepository"]
         },
+        "GetCroquisPublicoByNivelAction": {
+          "file": "src/modules/estacionamientos/actions/get-croquis-publico-by-nivel.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/croquis-response.dto.ts",
+          "dependsOn": ["CroquisRepository", "NivelRepository"]
+        },
         "GuardarCroquisAction": {
           "file": "src/modules/estacionamientos/actions/guardar-croquis.action.ts",
           "dtoIn": "src/modules/estacionamientos/dto/guardar-croquis.dto.ts",
@@ -933,6 +957,11 @@
         "DesasignarOperadorAction": {
           "file": "src/modules/estacionamientos/actions/desasignar-operador.action.ts",
           "dependsOn": ["EstacionamientoRepository", "EstacionamientoOperadorRepository"]
+        },
+        "ListarEstacionamientosCatalogoAction": {
+          "file": "src/modules/estacionamientos/actions/listar-estacionamientos-catalogo.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/catalogo-estacionamiento-response.dto.ts",
+          "dependsOn": ["EstacionamientoRepository"]
         }
       },
       "repositories": {
@@ -974,6 +1003,15 @@
         "src/modules/estacionamientos/mappers/croquis.mapper.ts",
         "src/modules/estacionamientos/mappers/estacionamiento-operador.mapper.ts"
       ],
+      "strategies": {
+        "EstacionamientoProvisioningStrategy": "src/modules/estacionamientos/strategies/estacionamiento-provisioning.strategy.ts",
+        "CommercialParkingProvisioningStrategy": "src/modules/estacionamientos/strategies/commercial-parking-provisioning.strategy.ts",
+        "HostResidentialProvisioningStrategy": "src/modules/estacionamientos/strategies/host-residential-provisioning.strategy.ts",
+        "EstacionamientoProvisioningContext": "src/modules/estacionamientos/strategies/estacionamiento-provisioning.context.ts"
+      },
+      "factories": {
+        "HostDefaultStructureFactory": "src/modules/estacionamientos/factories/host-default-structure.factory.ts"
+      },
       "dto": [
         "src/modules/estacionamientos/dto/registrar-estacionamiento.dto.ts",
         "src/modules/estacionamientos/dto/actualizar-horarios.dto.ts",
@@ -996,6 +1034,256 @@
         "src/modules/estacionamientos/dto/croquis-response.dto.ts",
         "src/modules/estacionamientos/dto/asignar-operadores.dto.ts",
         "src/modules/estacionamientos/dto/operador-estacionamiento-response.dto.ts"
+      ]
+    },
+    "calificaciones": {
+      "path": "src/modules/calificaciones",
+      "moduleFile": "src/modules/calificaciones/calificaciones.module.ts",
+      "description": "Módulo de calificaciones y reseñas de estacionamientos con control de acceso por roles (DRIVER califica, PARKING_ADMIN y HOST consultan las suyas)",
+      "controllers": [
+        {
+          "name": "CalificacionesController",
+          "file": "src/modules/calificaciones/controllers/calificaciones.controller.ts",
+          "prefix": "/calificaciones",
+          "endpoints": [
+            {
+              "method": "POST",
+              "path": "/",
+              "action": "CrearCalificacionAction",
+              "roles": ["DRIVER"],
+              "summary": "Registrar una calificación y comentario sobre un estacionamiento"
+            },
+            {
+              "method": "GET",
+              "path": "/tenant",
+              "action": "GetCalificacionesTenantAction",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Consultar calificaciones de los estacionamientos del tenant autenticado"
+            },
+            {
+              "method": "GET",
+              "path": "/mis-resenas",
+              "action": "GetMisCalificacionesAction",
+              "roles": ["DRIVER"],
+              "summary": "Consultar el historial de calificaciones emitidas por el conductor"
+            },
+            {
+              "method": "GET",
+              "path": "/estacionamiento/:estacionamientoId",
+              "action": "GetCalificacionesByEstacionamientoAction",
+              "roles": ["DRIVER", "PARKING_ADMIN", "HOST", "GENERAL_ADMIN", "SUPER_ADMIN"],
+              "summary": "Consultar calificaciones y resumen estadístico de un estacionamiento"
+            }
+          ]
+        }
+      ],
+      "actions": {
+        "CrearCalificacionAction": {
+          "file": "src/modules/calificaciones/actions/crear-calificacion.action.ts",
+          "dtoIn": "src/modules/calificaciones/dto/crear-calificacion.dto.ts",
+          "dtoOut": "src/modules/calificaciones/dto/calificacion-response.dto.ts",
+          "dependsOn": ["CalificacionRepository", "EstacionamientoRepository"]
+        },
+        "GetCalificacionesTenantAction": {
+          "file": "src/modules/calificaciones/actions/get-calificaciones-tenant.action.ts",
+          "dtoOut": "src/modules/calificaciones/dto/calificacion-response.dto.ts",
+          "dependsOn": ["CalificacionRepository", "TenantRepository"]
+        },
+        "GetCalificacionesByEstacionamientoAction": {
+          "file": "src/modules/calificaciones/actions/get-calificaciones-by-estacionamiento.action.ts",
+          "dtoOut": "src/modules/calificaciones/dto/estacionamiento-calificaciones-summary-response.dto.ts",
+          "dependsOn": ["CalificacionRepository", "EstacionamientoRepository"]
+        },
+        "GetMisCalificacionesAction": {
+          "file": "src/modules/calificaciones/actions/get-mis-calificaciones.action.ts",
+          "dtoOut": "src/modules/calificaciones/dto/calificacion-response.dto.ts",
+          "dependsOn": ["CalificacionRepository"]
+        }
+      },
+      "repositories": {
+        "calificacion": {
+          "interface": "src/modules/calificaciones/repositories/calificacion.repository.ts",
+          "implementation": "src/modules/calificaciones/repositories/prisma-calificacion.repository.ts"
+        }
+      },
+      "mappers": [
+        "src/modules/calificaciones/mappers/calificacion.mapper.ts"
+      ],
+      "dto": [
+        "src/modules/calificaciones/dto/crear-calificacion.dto.ts",
+        "src/modules/calificaciones/dto/calificacion-response.dto.ts",
+        "src/modules/calificaciones/dto/estacionamiento-calificaciones-summary-response.dto.ts"
+      ]
+    },
+    "vehiculos": {
+      "path": "src/modules/vehiculos",
+      "module": "src/modules/vehiculos/vehiculos.module.ts",
+      "controller": "src/modules/vehiculos/controllers/vehiculos.controller.ts",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/vehiculos",
+          "action": "CrearVehiculoAction",
+          "roles": ["DRIVER"]
+        },
+        {
+          "method": "GET",
+          "path": "/vehiculos/mis-vehiculos",
+          "action": "GetMisVehiculosAction",
+          "roles": ["DRIVER"]
+        },
+        {
+          "method": "PATCH",
+          "path": "/vehiculos/:id/predeterminado",
+          "action": "SetVehiculoPredeterminadoAction",
+          "roles": ["DRIVER"]
+        },
+        {
+          "method": "DELETE",
+          "path": "/vehiculos/:id",
+          "action": "EliminarVehiculoAction",
+          "roles": ["DRIVER"]
+        }
+      ],
+      "actions": {
+        "CrearVehiculoAction": {
+          "file": "src/modules/vehiculos/actions/crear-vehiculo.action.ts",
+          "dtoIn": "src/modules/vehiculos/dto/crear-vehiculo.dto.ts",
+          "dtoOut": "src/modules/vehiculos/dto/vehiculo-response.dto.ts",
+          "dependsOn": ["VehiculoRepository"]
+        },
+        "GetMisVehiculosAction": {
+          "file": "src/modules/vehiculos/actions/get-mis-vehiculos.action.ts",
+          "dtoOut": "src/modules/vehiculos/dto/vehiculo-response.dto.ts",
+          "dependsOn": ["VehiculoRepository"]
+        },
+        "SetVehiculoPredeterminadoAction": {
+          "file": "src/modules/vehiculos/actions/set-vehiculo-predeterminado.action.ts",
+          "dtoOut": "src/modules/vehiculos/dto/vehiculo-response.dto.ts",
+          "dependsOn": ["VehiculoRepository"]
+        },
+        "EliminarVehiculoAction": {
+          "file": "src/modules/vehiculos/actions/eliminar-vehiculo.action.ts",
+          "dependsOn": ["VehiculoRepository"]
+        }
+      },
+      "repositories": {
+        "vehiculo": {
+          "interface": "src/modules/vehiculos/repositories/vehiculo.repository.ts",
+          "implementation": "src/modules/vehiculos/repositories/prisma-vehiculo.repository.ts"
+        }
+      },
+      "mappers": [
+        "src/modules/vehiculos/mappers/vehiculo.mapper.ts"
+      ],
+      "dto": [
+        "src/modules/vehiculos/dto/crear-vehiculo.dto.ts",
+        "src/modules/vehiculos/dto/vehiculo-response.dto.ts"
+      ]
+    },
+    "reservas": {
+      "path": "src/modules/reservas",
+      "module": "src/modules/reservas/reservas.module.ts",
+      "controller": "src/modules/reservas/controllers/reservas.controller.ts",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/reservas/cotizar",
+          "action": "CotizarReservaAction",
+          "dtoIn": "CotizarReservaDto",
+          "dtoOut": "CotizacionReservaResponseDto",
+          "summary": "Cotizar reserva multi-espacio con servicios extras (Patrón Decorator)"
+        },
+        {
+          "method": "POST",
+          "path": "/reservas",
+          "action": "CrearReservaAction",
+          "dtoIn": "CrearReservaDto",
+          "dtoOut": "BoletaReservaResponseDto",
+          "summary": "Crear boleta de reserva en estado PENDIENTE_PAGO con snapshots de tarifas"
+        },
+        {
+          "method": "GET",
+          "path": "/reservas/mis-reservas",
+          "action": "GetMisReservasAction",
+          "dtoOut": "BoletaReservaResponseDto[]",
+          "summary": "Listar boletas del conductor en sesión"
+        },
+        {
+          "method": "GET",
+          "path": "/reservas/estacionamiento/:id",
+          "action": "GetReservasEstacionamientoAction",
+          "dtoOut": "BoletaReservaResponseDto[]",
+          "summary": "Listar reservas de un parqueo (exclusivo admin parqueo / operador, GENERAL_ADMIN bloqueado)"
+        },
+        {
+          "method": "GET",
+          "path": "/reservas/:id",
+          "action": "GetReservaByIdAction",
+          "dtoOut": "BoletaReservaResponseDto",
+          "summary": "Consultar detalle de una boleta con desglose completo y QR"
+        },
+        {
+          "method": "PATCH",
+          "path": "/reservas/:id/cancelar",
+          "action": "CancelarReservaAction",
+          "dtoOut": "BoletaReservaResponseDto",
+          "summary": "Cancelar reserva (exclusivo para el cliente dueño)"
+        }
+      ],
+      "actions": {
+        "CotizarReservaAction": {
+          "file": "src/modules/reservas/actions/cotizar-reserva.action.ts",
+          "dtoIn": "src/modules/reservas/dto/cotizar-reserva.dto.ts",
+          "dtoOut": "src/modules/reservas/dto/reserva-response.dto.ts",
+          "dependsOn": ["ReservaPriceAssembler"]
+        },
+        "CrearReservaAction": {
+          "file": "src/modules/reservas/actions/crear-reserva.action.ts",
+          "dtoIn": "src/modules/reservas/dto/crear-reserva.dto.ts",
+          "dtoOut": "src/modules/reservas/dto/reserva-response.dto.ts",
+          "dependsOn": ["ReservaRepository", "ReservaPriceAssembler"]
+        },
+        "GetMisReservasAction": {
+          "file": "src/modules/reservas/actions/get-mis-reservas.action.ts",
+          "dtoOut": "src/modules/reservas/dto/reserva-response.dto.ts",
+          "dependsOn": ["ReservaRepository"]
+        },
+        "GetReservasEstacionamientoAction": {
+          "file": "src/modules/reservas/actions/get-reservas-estacionamiento.action.ts",
+          "dtoOut": "src/modules/reservas/dto/reserva-response.dto.ts",
+          "dependsOn": ["ReservaRepository"]
+        },
+        "GetReservaByIdAction": {
+          "file": "src/modules/reservas/actions/get-reserva-by-id.action.ts",
+          "dtoOut": "src/modules/reservas/dto/reserva-response.dto.ts",
+          "dependsOn": ["ReservaRepository"]
+        },
+        "CancelarReservaAction": {
+          "file": "src/modules/reservas/actions/cancelar-reserva.action.ts",
+          "dtoOut": "src/modules/reservas/dto/reserva-response.dto.ts",
+          "dependsOn": ["ReservaRepository"]
+        }
+      },
+      "repositories": {
+        "reserva": {
+          "interface": "src/modules/reservas/repositories/reserva.repository.ts",
+          "implementation": "src/modules/reservas/repositories/prisma-reserva.repository.ts"
+        }
+      },
+      "decorator": {
+        "component": "src/modules/reservas/domain/decorator/reservable.component.ts",
+        "concreteComponent": "src/modules/reservas/domain/decorator/espacio-reservado.component.ts",
+        "genericDecorator": "src/modules/reservas/domain/decorator/servicio-extra.decorator.ts",
+        "assembler": "src/modules/reservas/domain/decorator/reserva-price.assembler.ts"
+      },
+      "mappers": [
+        "src/modules/reservas/mappers/reserva.mapper.ts"
+      ],
+      "dto": [
+        "src/modules/reservas/dto/cotizar-reserva.dto.ts",
+        "src/modules/reservas/dto/crear-reserva.dto.ts",
+        "src/modules/reservas/dto/reserva-response.dto.ts"
       ]
     }
   }

@@ -20,6 +20,8 @@ export const TenantsManagementPage = () => {
     const { user } = useAuthStore();
     const currentRole = user?.role;
     const isParkingAdmin = currentRole === 'PARKING_ADMIN';
+    const isHost = currentRole === 'HOST' || currentRole === 'anfitrion';
+    const canManageTenants = isParkingAdmin || isHost;
     const isSuperOrGeneralAdmin = currentRole === 'SUPER_ADMIN' || currentRole === 'GENERAL_ADMIN';
 
     // Tabs: 'list' (tabla) | 'form' (crear/editar) | 'detail' (ficha completa de empresa)
@@ -42,6 +44,9 @@ export const TenantsManagementPage = () => {
     // Consultas remotas con TanStack Query
     const { data: tenants = [], isLoading } = useTenantsQuery();
 
+    // Para Anfitrión rige el límite estricto de 1 empresa/propiedad
+    const hasReachedHostLimit = isHost && tenants.length >= 1;
+
     // Mutaciones remotas con TanStack Query
     const createMutation = useCreateTenantMutation();
     const updateMutation = useUpdateTenantMutation();
@@ -50,6 +55,10 @@ export const TenantsManagementPage = () => {
 
     // Handlers
     const handleCreateTenant = async (payload: CreateTenantPayload) => {
+        if (hasReachedHostLimit) {
+            showToast('Como Anfitrión particular solo tienes permitido registrar 1 empresa/propiedad.');
+            return;
+        }
         try {
             await createMutation.mutateAsync(payload);
             showToast(`¡Empresa "${payload.nombre}" registrada y habilitada! Se envió un correo con la confirmación.`);
@@ -140,8 +149,8 @@ export const TenantsManagementPage = () => {
                 </div>
             )}
 
-            {/* Pestañas de Navegación (Visibles para Admin de Parqueo o cuando hay una ficha de detalle abierta) */}
-            {(isParkingAdmin || selectedTenantForView !== null) && (
+            {/* Pestañas de Navegación (Visibles para Admin de Parqueo, Anfitrión o cuando hay una ficha de detalle abierta) */}
+            {(canManageTenants || selectedTenantForView !== null) && (
                 <div className="tenant-tabs-nav" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                     <button
                         type="button"
@@ -167,10 +176,15 @@ export const TenantsManagementPage = () => {
                         <span>Listado de Empresas ({tenants.length})</span>
                     </button>
 
-                    {isParkingAdmin && (
+                    {canManageTenants && (
                         <button
                             type="button"
+                            disabled={!selectedTenantForEdit && hasReachedHostLimit}
                             onClick={() => {
+                                if (!selectedTenantForEdit && hasReachedHostLimit) {
+                                    showToast('Como Anfitrión particular solo tienes permitido registrar 1 empresa/propiedad.');
+                                    return;
+                                }
                                 setSelectedTenantForEdit(null);
                                 setMainTab('form');
                             }}
@@ -178,19 +192,43 @@ export const TenantsManagementPage = () => {
                                 background: 'transparent',
                                 border: 'none',
                                 borderBottom: mainTab === 'form' ? '2.5px solid var(--accent-emerald)' : '2.5px solid transparent',
-                                color: mainTab === 'form' ? 'var(--accent-emerald)' : 'var(--text-muted)',
+                                color: (!selectedTenantForEdit && hasReachedHostLimit) ? '#94A3B8' : (mainTab === 'form' ? 'var(--accent-emerald)' : 'var(--text-muted)'),
                                 fontWeight: mainTab === 'form' ? 800 : 600,
                                 padding: '0.65rem 0.25rem',
                                 fontSize: '0.88rem',
-                                cursor: 'pointer',
+                                cursor: (!selectedTenantForEdit && hasReachedHostLimit) ? 'not-allowed' : 'pointer',
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '0.45rem',
+                                opacity: (!selectedTenantForEdit && hasReachedHostLimit) ? 0.6 : 1,
                             }}
+                            title={(!selectedTenantForEdit && hasReachedHostLimit) ? 'Límite de 1 empresa alcanzado para el rol Anfitrión' : undefined}
                         >
                             <i className={`fa-solid ${selectedTenantForEdit ? 'fa-pen-to-square' : 'fa-building-circle-check'}`}></i>
                             <span>{selectedTenantForEdit ? 'Editar Empresa' : 'Registrar Nueva Empresa'}</span>
                         </button>
+                    )}
+
+                    {/* Badge informativo de Cuota para Anfitrión */}
+                    {isHost && (
+                        <div
+                            style={{
+                                marginLeft: 'auto',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                padding: '0.25rem 0.65rem',
+                                borderRadius: '14px',
+                                fontSize: '0.74rem',
+                                fontWeight: 700,
+                                background: hasReachedHostLimit ? '#FEF3C7' : '#DCFCE7',
+                                color: hasReachedHostLimit ? '#92400E' : '#166534',
+                                border: hasReachedHostLimit ? '1px solid #FCD34D' : '1px solid #BBF7D0',
+                            }}
+                        >
+                            <i className={`fa-solid ${hasReachedHostLimit ? 'fa-circle-exclamation' : 'fa-circle-check'}`}></i>
+                            <span>{hasReachedHostLimit ? 'Límite C2C: 1 Empresa Alcanzada' : 'Cuota Anfitrión: 1 Empresa Permitida'}</span>
+                        </div>
                     )}
 
                     {/* Pestaña Dinámica: Ficha Técnica de Empresa */}
@@ -255,14 +293,14 @@ export const TenantsManagementPage = () => {
             {mainTab === 'detail' && selectedTenantForView ? (
                 <TenantDetailPanel
                     tenant={selectedTenantForView}
-                    canEdit={isParkingAdmin}
+                    canEdit={canManageTenants}
                     onBack={() => setMainTab('list')}
                     onEdit={(tenant) => {
                         setSelectedTenantForEdit(tenant);
                         setMainTab('form');
                     }}
                 />
-            ) : isParkingAdmin && mainTab === 'form' ? (
+            ) : canManageTenants && mainTab === 'form' ? (
                 /* Vista 2: Formulario (Creación o Edición) */
                 <TenantFormPanel
                     tenantToEdit={selectedTenantForEdit}

@@ -275,11 +275,14 @@ export const GaleriaFotosEnterprise: React.FC<GaleriaFotosEnterpriseProps> = ({
             )}
           </div>
         ) : (
+          /* Mosaico Quilted Image List (Estilo Quilted de Material-UI con CSS Grid Nativo) */
           <div
+            className="galeria-quilted-grid"
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
-              gap: '0.75rem',
+              gridTemplateColumns: 'repeat(4, 1fr)',
+              gridAutoRows: '150px',
+              gap: '8px',
             }}
           >
             {fotos.map((foto, index) => {
@@ -288,44 +291,114 @@ export const GaleriaFotosEnterprise: React.FC<GaleriaFotosEnterpriseProps> = ({
                 : `http://localhost:3000${foto.url}`;
               const isDeleting = deletingId === foto.id;
 
+              // Patrón Quilted MUI: [2x2, 1x1, 1x1, 2x1, 2x1, 2x2, 1x1, 1x1, 2x2, 1x1, 1x1, 2x1]
+              const QUILTED_PATTERN = [
+                { cols: 2, rows: 2 }, // 0: Destacada grande (arriba izq)
+                { cols: 1, rows: 1 }, // 1: Mediana sup
+                { cols: 1, rows: 1 }, // 2: Mediana sup
+                { cols: 2, rows: 1 }, // 3: Horizontal med
+                { cols: 2, rows: 1 }, // 4: Horizontal med
+                { cols: 2, rows: 2 }, // 5: Destacada grande (der)
+                { cols: 1, rows: 1 }, // 6: Pequeña
+                { cols: 1, rows: 1 }, // 7: Pequeña
+                { cols: 2, rows: 2 }, // 8: Destacada
+                { cols: 1, rows: 1 }, // 9: Pequeña
+                { cols: 1, rows: 1 }, // 10: Pequeña
+                { cols: 2, rows: 1 }, // 11: Horizontal
+              ];
+
+              // Adaptación si hay 1, 2 o 3 fotos
+              let span = QUILTED_PATTERN[index % QUILTED_PATTERN.length];
+              if (fotos.length === 1) {
+                span = { cols: 4, rows: 3 };
+              } else if (fotos.length === 2) {
+                span = { cols: 2, rows: 2 };
+              } else if (fotos.length === 3) {
+                span = index === 0 ? { cols: 2, rows: 2 } : { cols: 2, rows: 1 };
+              }
+
               return (
                 <div
                   key={foto.id}
+                  onClick={() => setLightboxIndex(index)}
                   style={{
+                    gridColumn: `span ${span.cols}`,
+                    gridRow: `span ${span.rows}`,
                     position: 'relative',
-                    borderRadius: '4px',
-                    border: '1px solid #CBD5E1',
+                    borderRadius: '8px',
+                    border: '1px solid #E2E8F0',
                     background: '#0F172A',
                     overflow: 'hidden',
-                    aspectRatio: '4/3',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.06)',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 14px rgba(0, 0, 0, 0.12)';
+                    const img = e.currentTarget.querySelector('img');
+                    if (img) img.style.transform = 'scale(1.04)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.06)';
+                    const img = e.currentTarget.querySelector('img');
+                    if (img) img.style.transform = 'scale(1)';
                   }}
                 >
                   <img
                     src={fullUrl}
-                    alt={`Foto ${index + 1}`}
+                    alt={`Fotografía ${index + 1}`}
+                    loading="lazy"
                     style={{
                       width: '100%',
                       height: '100%',
                       objectFit: 'cover',
                       display: 'block',
-                      opacity: isDeleting ? 0.4 : 1,
-                      transition: 'transform 0.2s ease, opacity 0.2s ease',
+                      opacity: isDeleting ? 0.35 : 1,
+                      transition: 'transform 0.3s ease, opacity 0.2s ease',
                     }}
                   />
 
-                  {/* Overlay de Acciones Enterprise */}
+                  {/* Badge de Foto Principal en la primera imagen */}
+                  {index === 0 && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '10px',
+                        left: '10px',
+                        background: 'rgba(6, 61, 37, 0.9)',
+                        color: '#FFFFFF',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        backdropFilter: 'blur(4px)',
+                        padding: '0.2rem 0.55rem',
+                        borderRadius: '4px',
+                        fontSize: '0.66rem',
+                        fontWeight: 800,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.35rem',
+                        letterSpacing: '0.03em',
+                        zIndex: 2,
+                      }}
+                    >
+                      <i className="fa-solid fa-star" style={{ color: '#FACC15', fontSize: '0.62rem' }}></i>
+                      <span>PRINCIPAL</span>
+                    </div>
+                  )}
+
+                  {/* Overlay sutil al pasar el cursor */}
                   <div
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      background: 'rgba(15, 23, 42, 0.45)',
+                      background: 'linear-gradient(to top, rgba(15, 23, 42, 0.6) 0%, transparent 60%)',
                       display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.45rem',
-                      opacity: isDeleting ? 1 : 0,
-                      transition: 'opacity 0.15s ease',
+                      alignItems: 'flex-end',
+                      justifyContent: 'space-between',
+                      padding: '0.75rem',
+                      opacity: 0,
+                      transition: 'opacity 0.2s ease',
                     }}
                     onMouseEnter={(e) => {
                       if (!isDeleting) e.currentTarget.style.opacity = '1';
@@ -335,55 +408,60 @@ export const GaleriaFotosEnterprise: React.FC<GaleriaFotosEnterpriseProps> = ({
                     }}
                   >
                     {isDeleting ? (
-                      <div style={{ color: '#FFFFFF', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <div
+                        style={{
+                          width: '100%',
+                          color: '#FFFFFF',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.35rem',
+                        }}
+                      >
                         <i className="fa-solid fa-circle-notch fa-spin"></i>
-                        <span>Borrando...</span>
+                        <span>Eliminando...</span>
                       </div>
                     ) : (
                       <>
-                        {/* Botón Ampliar (Lightbox) */}
-                        <button
-                          type="button"
-                          onClick={() => setLightboxIndex(index)}
-                          title="Ver en pantalla completa"
+                        <span
                           style={{
-                            background: '#FFFFFF',
-                            border: 'none',
-                            borderRadius: '3px',
-                            width: '30px',
-                            height: '30px',
-                            color: '#0F172A',
-                            cursor: 'pointer',
+                            color: '#FFFFFF',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.82rem',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                            gap: '0.35rem',
+                            textShadow: '0 1px 2px rgba(0,0,0,0.6)',
                           }}
                         >
                           <i className="fa-solid fa-magnifying-glass-plus"></i>
-                        </button>
+                          <span>Ampliar</span>
+                        </span>
 
-                        {/* Botón Eliminar */}
                         {!readOnly && (
                           <button
                             type="button"
                             onClick={(e) => handleEliminarFoto(e, foto)}
-                            title="Eliminar fotografía"
+                            title="Eliminar fotografía permanentemente"
                             style={{
                               background: '#DC2626',
                               border: 'none',
-                              borderRadius: '3px',
-                              width: '30px',
-                              height: '30px',
+                              borderRadius: '4px',
+                              width: '28px',
+                              height: '28px',
                               color: '#FFFFFF',
                               cursor: 'pointer',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              fontSize: '0.82rem',
-                              boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                              fontSize: '0.75rem',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                              transition: 'background 0.15s ease',
                             }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = '#B91C1C')}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = '#DC2626')}
                           >
                             <i className="fa-solid fa-trash-can"></i>
                           </button>

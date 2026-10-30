@@ -41,6 +41,8 @@ import { GetMiEstacionamientoAction } from '../actions/get-mi-estacionamiento.ac
 import { ActualizarHorariosAction } from '../actions/actualizar-horarios.action.js';
 import { SubirFotosAction } from '../actions/subir-fotos.action.js';
 import { EliminarFotoAction } from '../actions/eliminar-foto.action.js';
+import { ListarEstacionamientosCatalogoAction } from '../actions/listar-estacionamientos-catalogo.action.js';
+import { CatalogoEstacionamientoResponseDto } from '../dto/catalogo-estacionamiento-response.dto.js';
 
 @ApiTags('Estacionamientos')
 @ApiBearerAuth()
@@ -53,7 +55,23 @@ export class EstacionamientosController {
     private readonly actualizarHorariosAction: ActualizarHorariosAction,
     private readonly subirFotosAction: SubirFotosAction,
     private readonly eliminarFotoAction: EliminarFotoAction,
+    private readonly listarEstacionamientosCatalogoAction: ListarEstacionamientosCatalogoAction,
   ) {}
+
+  @ApiOperation({
+    summary: 'Listar catálogo de estacionamientos aprobados para conductores',
+    description:
+      'Retorna todos los estacionamientos aprobados con disponibilidad de plazas en tiempo real, tarifas vigentes, servicios extras y fotos.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de estacionamientos aprobados obtenida exitosamente.',
+    type: [CatalogoEstacionamientoResponseDto],
+  })
+  @Get('catalogo')
+  async getCatalogo(): Promise<CatalogoEstacionamientoResponseDto[]> {
+    return this.listarEstacionamientosCatalogoAction.execute();
+  }
 
   @ApiOperation({
     summary: 'Registrar solicitud de nuevo estacionamiento',
@@ -82,13 +100,14 @@ export class EstacionamientosController {
   async registrar(
     @Body() dto: RegistrarEstacionamientoDto,
     @UploadedFiles() fotos: UploadedPhotoFile[] = [],
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string; roleName?: string },
   ): Promise<EstacionamientoResponseDto> {
     return this.registrarEstacionamientoAction.execute(
       dto,
       fotos,
       user.userId,
       dto.tenantId,
+      user.roleName,
     );
   }
 

@@ -48,6 +48,10 @@ export class NivelesController {
     type: NivelResponseDto,
   })
   @ApiResponse({
+    status: 403,
+    description: 'No autorizado o límite de 1 nivel alcanzado para el rol Anfitrión.',
+  })
+  @ApiResponse({
     status: 409,
     description: 'Ya existe un nivel con este código en el estacionamiento.',
   })
@@ -58,9 +62,9 @@ export class NivelesController {
   @Post('me/niveles')
   async crearNivel(
     @Body() dto: CreateNivelDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string; roleName?: string },
   ): Promise<NivelResponseDto> {
-    return this.crearNivelAction.execute(dto, user.userId);
+    return this.crearNivelAction.execute(dto, user.userId, user.roleName);
   }
 
   @ApiOperation({

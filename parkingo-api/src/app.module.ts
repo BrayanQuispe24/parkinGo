@@ -9,6 +9,9 @@ import { ConfiguracionModule } from './modules/configuracion/configuracion.modul
 import { MailerModule } from './modules/mailer/mailer.module.js';
 import { TenantsModule } from './modules/tenants/tenants.module.js';
 import { EstacionamientosModule } from './modules/estacionamientos/estacionamientos.module.js';
+import { CalificacionesModule } from './modules/calificaciones/calificaciones.module.js';
+import { VehiculosModule } from './modules/vehiculos/vehiculos.module.js';
+import { ReservasModule } from './modules/reservas/reservas.module.js';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
@@ -24,6 +27,9 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
     MailerModule,
     TenantsModule,
     EstacionamientosModule,
+    CalificacionesModule,
+    VehiculosModule,
+    ReservasModule,
     ThrottlerModule.forRoot([{
       ttl: 60000, // Tiempo en milisegundos (60 segundos)
       limit: 20,  // Máximo 10 peticiones en ese tiempo

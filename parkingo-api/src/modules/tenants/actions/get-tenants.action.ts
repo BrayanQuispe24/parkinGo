@@ -13,8 +13,8 @@ export class GetTenantsAction {
   constructor(private readonly tenantRepository: TenantRepository) {}
 
   async execute(user: RequestingUser): Promise<TenantResponseDto[]> {
-    if (user.roleName === 'PARKING_ADMIN') {
-      // El administrador de parqueo solo ve las empresas que registró
+    if (user.roleName === 'PARKING_ADMIN' || user.roleName === 'HOST') {
+      // El administrador de parqueo y anfitrión solo ven las empresas que registraron
       const userTenants = await this.tenantRepository.findByUsuarioId(user.userId);
       return TenantMapper.toDtoList(userTenants);
     }

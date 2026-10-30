@@ -49,13 +49,25 @@ export class SubirFondoCroquisAction {
       throw new NotFoundException('El nivel indicado no existe.');
     }
 
-    const tenants = await this.tenantRepository.findByUsuarioId(userId);
-    const userTenantIds = (tenants || []).map((t) => t.id);
+    if (!nivel.estacionamiento) {
+      throw new ForbiddenException(
+        'El nivel no está asociado a un estacionamiento válido.',
+      );
+    }
 
-    if (
-      !nivel.estacionamiento ||
-      !userTenantIds.includes(nivel.estacionamiento.tenantId)
-    ) {
+    const esDuenoTenant = nivel.estacionamiento.tenant?.usuarioId === userId;
+    const esOperador = (nivel.estacionamiento.operadores || []).some(
+      (op) => op.id === userId,
+    );
+
+    let tienePermiso = esDuenoTenant || esOperador;
+    if (!tienePermiso) {
+      const tenants = await this.tenantRepository.findByUsuarioId(userId);
+      const userTenantIds = (tenants || []).map((t) => t.id);
+      tienePermiso = userTenantIds.includes(nivel.estacionamiento.tenantId);
+    }
+
+    if (!tienePermiso) {
       throw new ForbiddenException(
         'No tienes permisos para modificar el croquis de este nivel.',
       );

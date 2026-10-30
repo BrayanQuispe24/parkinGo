@@ -37,6 +37,32 @@ export type EstacionamientoWithRelations = Prisma.EstacionamientoGetPayload<{
   };
 }>;
 
+export type EstacionamientoCatalogoRecord = Prisma.EstacionamientoGetPayload<{
+  include: {
+    fotos: true;
+    horarios: {
+      include: {
+        horario: true;
+      };
+    };
+    tarifas: true;
+    serviciosExtras: true;
+    tenant: {
+      select: {
+        id: true;
+        nombre: true;
+        ciudad: true;
+        direccion: true;
+      };
+    };
+    niveles: {
+      include: {
+        espacios: true;
+      };
+    };
+  };
+}>;
+
 export interface CreateEstacionamientoData {
   nombre: string;
   direccion: string;
@@ -59,6 +85,8 @@ export abstract class EstacionamientoRepository {
   abstract findById(id: string): Promise<EstacionamientoWithRelations | null>;
 
   abstract findAll(estado?: EstadoEstacionamiento): Promise<EstacionamientoWithRelations[]>;
+
+  abstract findCatalogo(): Promise<EstacionamientoCatalogoRecord[]>;
 
   abstract updateEstado(
     id: string,
