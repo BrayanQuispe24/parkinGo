@@ -33,6 +33,11 @@ import { GetMisReservasAction } from '../actions/get-mis-reservas.action.js';
 import { GetReservasEstacionamientoAction } from '../actions/get-reservas-estacionamiento.action.js';
 import { GetReservaByIdAction } from '../actions/get-reserva-by-id.action.js';
 import { CancelarReservaAction } from '../actions/cancelar-reserva.action.js';
+import { IniciarPagoReservaAction } from '../actions/iniciar-pago-reserva.action.js';
+import { ConfirmarPagoReservaAction } from '../actions/confirmar-pago-reserva.action.js';
+import { VerificarAccesoReservaAction } from '../actions/verificar-acceso-reserva.action.js';
+import { IniciarPagoDto, ConfirmarPagoDto, InicioPagoResponseDto } from '../dto/pago.dto.js';
+import { VerificarAccesoDto, ResultadoVerificacionAccesoDto } from '../dto/verificar-acceso.dto.js';
 
 @ApiTags('reservas')
 @ApiBearerAuth()
@@ -46,6 +51,9 @@ export class ReservasController {
     private readonly getReservasEstacionamientoAction: GetReservasEstacionamientoAction,
     private readonly getReservaByIdAction: GetReservaByIdAction,
     private readonly cancelarAction: CancelarReservaAction,
+    private readonly iniciarPagoAction: IniciarPagoReservaAction,
+    private readonly confirmarPagoAction: ConfirmarPagoReservaAction,
+    private readonly verificarAccesoAction: VerificarAccesoReservaAction,
   ) {}
 
   @Post('cotizar')
@@ -171,5 +179,75 @@ export class ReservasController {
     @CurrentUser() user: { id?: string; userId?: string; role?: string; roleName?: string },
   ): Promise<BoletaReservaResponseDto> {
     return this.cancelarAction.execute(id, user);
+  }
+
+  @Post(':id/iniciar-pago')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Iniciar procesamiento de pago para una reserva (Efectivo o QR)',
+    description:
+      'Aplica el patrón Strategy para inicializar el canal de pago: para QR genera el token dinámico con expiración; para Efectivo retorna las instrucciones de garita.',
+  })
+  @ApiParam({ name: 'id', description: 'ID de la reserva' })
+  @ApiResponse({
+    status: 200,
+    description: 'Pago inicializado exitosamente',
+    type: InicioPagoResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'La reserva no está en estado PENDIENTE_PAGO o método inválido' })
+  @ApiResponse({ status: 404, description: 'Reserva no encontrada' })
+  async iniciarPago(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: { id?: string; userId?: string; role?: string; roleName?: string },
+    @Body() dto: IniciarPagoDto,
+  ): Promise<InicioPagoResponseDto> {
+    return this.iniciarPagoAction.execute(id, user, dto);
+  }
+
+  @Patch(':id/confirmar-pago')
+  @Roles('PARKING_OPERATOR', 'HOST', 'PARKING_ADMIN', 'SUPER_ADMIN', 'DRIVER')
+  @ApiOperation({
+    summary: 'Confirmar pago de una reserva (Patrón Strategy)',
+    description:
+      'Para EFECTIVO: exclusivo Operador de garita o Anfitrión dueño del parqueo (transiciona a CONFIRMADA). Para QR: confirmado digitalmente tras escaneo bancario.',
+  })
+  @ApiParam({ name: 'id', description: 'ID de la reserva' })
+  @ApiResponse({
+    status: 200,
+    description: 'Pago confirmado y reserva transicionada a CONFIRMADA',
+    type: BoletaReservaResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Monto insuficiente o reserva no pendiente' })
+  @ApiResponse({ status: 403, description: 'No autorizado para cobrar en efectivo este parqueo' })
+  @ApiResponse({ status: 404, description: 'Reserva no encontrada' })
+  async confirmarPago(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: { id?: string; userId?: string; role?: string; roleName?: string },
+    @Body() dto: ConfirmarPagoDto,
+  ): Promise<BoletaReservaResponseDto> {
+    return this.confirmarPagoAction.execute(id, user, dto);
+  }
+
+  @Post('verificar-acceso')
+  @Roles('PARKING_OPERATOR', 'HOST', 'PARKING_ADMIN', 'SUPER_ADMIN')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Verificar autenticidad de ticket QR en garita/acceso',
+    description:
+      'Valida la firma criptográfica HMAC-SHA256 del token QR presentado por el conductor. Si el método es EFECTIVO y la reserva sigue pendiente, retorna la boleta permitiendo cobrar y confirmar el acceso.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Resultado de validación de autenticidad del QR',
+    type: ResultadoVerificacionAccesoDto,
+  })
+  @ApiResponse({ status: 400, description: 'QR inválido, expirado o adulterado' })
+  @ApiResponse({ status: 403, description: 'El operador no pertenece al estacionamiento de la reserva' })
+  @ApiResponse({ status: 404, description: 'Reserva no encontrada' })
+  async verificarAcceso(
+    @CurrentUser() user: { id?: string; userId?: string; role?: string; roleName?: string },
+    @Body() dto: VerificarAccesoDto,
+  ): Promise<ResultadoVerificacionAccesoDto> {
+    return this.verificarAccesoAction.execute(user, dto);
   }
 }

@@ -25,7 +25,6 @@ export function LandingPage() {
 
     return (
         <>
-            <div className="top-scroll-fade-overlay" id="top-scroll-fade"></div>
             <Navbar />
 
             <main>

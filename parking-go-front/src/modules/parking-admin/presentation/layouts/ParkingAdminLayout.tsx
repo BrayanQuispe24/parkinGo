@@ -2,13 +2,16 @@
 import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router';
 import { useAuthStore } from '../../../../store/useAuthStore';
+import { isHostRole } from '../../../auth/domain/roleRouting';
 import { ParkingAdminSidebar } from './ParkingAdminSidebar';
 import { ParkingAdminTopbar } from './ParkingAdminTopbar';
 import { HostSidebar } from '../../../host/presentation/layouts/HostSidebar';
+import { useMiEstacionamientoQuery } from '../../../estacionamientos/application/useEstacionamientosQuery';
 
 export const ParkingAdminLayout = () => {
     const { user } = useAuthStore();
-    const isHost = user?.role === 'HOST' || user?.role === 'anfitrion';
+    const isHost = isHostRole(user?.role);
+    const { data: miEstacionamiento } = useMiEstacionamientoQuery();
 
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -90,13 +93,23 @@ export const ParkingAdminLayout = () => {
                         <span>
                             {isHost ? (
                                 <>
-                                    <strong>ESPACIO RESIDENCIAL ACTIVO:</strong> Cochera Particular Equipetrol |{' '}
-                                    <strong>Alquiler & Reservas C2C Habilitadas</strong>
+                                    <strong>ESPACIO RESIDENCIAL ACTIVO:</strong>{' '}
+                                    {miEstacionamiento?.nombre || 'Sin espacio registrado'} |{' '}
+                                    <strong>
+                                        {miEstacionamiento?.estado
+                                            ? `Estado: ${miEstacionamiento.estado}`
+                                            : 'Alquiler & Reservas C2C'}
+                                    </strong>
                                 </>
                             ) : (
                                 <>
-                                    <strong>SUCURSAL OPERATIVA:</strong> ParkinGo Equipetrol - 24 Plazas Activas |{' '}
-                                    <strong>Barrera Automatizada IoT Conectada</strong>
+                                    <strong>SUCURSAL OPERATIVA:</strong>{' '}
+                                    {miEstacionamiento?.nombre || 'Sin estacionamiento registrado'} |{' '}
+                                    <strong>
+                                        {miEstacionamiento?.estado
+                                            ? `Estado: ${miEstacionamiento.estado}`
+                                            : 'Gestión de Parqueo'}
+                                    </strong>
                                 </>
                             )}
                         </span>

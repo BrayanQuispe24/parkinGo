@@ -162,7 +162,7 @@ export class HttpParkingAdminRepository implements ParkingAdminRepository {
         period: 'today' | 'week' | 'month',
         branchId?: string
     ): Promise<OperatorPerformanceReport> {
-        // Obtener datos del operador
+        // Obtener datos reales del operador; métricas operativas quedan en 0 hasta conectar endpoint de telemetría
         const userRes = await parkingoApi.get<{ data: { user: BackendUser } }>(`/usuarios/${operatorId}`);
         const user = userRes.data.data.user;
         const opName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Operador de Garita';
@@ -171,11 +171,11 @@ export class HttpParkingAdminRepository implements ParkingAdminRepository {
             operatorId,
             operatorName: opName,
             period,
-            branchName: branchId === 'centro' ? 'Sucursal Centro Histórico' : 'Sucursal Equipetrol (SCZ)',
-            totalTickets: period === 'today' ? 24 : period === 'week' ? 142 : 580,
-            totalRevenue: period === 'today' ? 840 : period === 'week' ? 4970 : 20300,
-            averageHandlingSeconds: 42,
-            shiftHoursCompleted: period === 'today' ? 8 : period === 'week' ? 40 : 160,
+            branchName: branchId?.trim() || 'Sin sucursal registrada',
+            totalTickets: 0,
+            totalRevenue: 0,
+            averageHandlingSeconds: 0,
+            shiftHoursCompleted: 0,
             incidentsReported: 0,
         };
     }

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../hooks/useAuth';
 import { showToast } from '../../../../core/utils/toastr';
+import { getDefaultDashboardRoute } from '../../domain/roleRouting';
+import { preloadRoleWorkspace } from '../../../../core/routing/routePreloader';
 
 export const LoginForm = () => {
     const [email, setEmail] = useState('');
@@ -23,21 +25,10 @@ export const LoginForm = () => {
 
         const user = await login(email, password);
         if (user) {
+            preloadRoleWorkspace(user.role);
             setTimeout(() => {
-                const operatorRoles = ['PARKING_OPERATOR', 'OPERATOR', 'operador'];
-                const parkingRoles = ['PARKING_ADMIN', 'HOST', 'anfitrion'];
-                if (operatorRoles.includes(user.role)) {
-                    navigate('/dashboard/operator');
-                } else if (parkingRoles.includes(user.role)) {
-                    navigate('/dashboard/parking-admin');
-                } else if (user.role === 'GENERAL_ADMIN') {
-                    navigate('/dashboard/general-admin');
-                } else if (user.role === 'SUPER_ADMIN' || user.role === 'admin') {
-                    navigate('/dashboard/admin');
-                } else {
-                    navigate('/dashboard'); 
-                }
-            }, 1200);
+                navigate(getDefaultDashboardRoute(user.role));
+            }, 1000);
         }
     };
 

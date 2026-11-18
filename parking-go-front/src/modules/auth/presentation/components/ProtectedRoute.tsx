@@ -1,6 +1,7 @@
 // src/modules/auth/presentation/components/ProtectedRoute.tsx
 import { Navigate, Outlet } from 'react-router';
 import { useAuthStore } from '../../../../store/useAuthStore';
+import { getDefaultDashboardRoute, normalizeSystemRole } from '../../domain/roleRouting';
 
 interface ProtectedRouteProps {
     allowedRoles?: string[];
@@ -18,24 +19,13 @@ export const ProtectedRoute = ({
     }
 
     if (allowedRoles && allowedRoles.length > 0 && user) {
+        const normalizedUserRole = normalizeSystemRole(user.role);
         const hasRequiredRole = allowedRoles.some(
-            (role) => role.toUpperCase() === user.role?.toUpperCase()
+            (role) => role.toUpperCase() === normalizedUserRole
         );
 
         if (!hasRequiredRole) {
-            const isOperator = user.role === 'PARKING_OPERATOR' || user.role === 'OPERATOR' || user.role === 'operador';
-            const isParkingAdmin = user.role === 'PARKING_ADMIN' || user.role === 'HOST';
-            const isGeneralAdmin = user.role === 'GENERAL_ADMIN';
-            const defaultRedirect = user.role === 'DRIVER' || user.role === 'conductor'
-                ? '/dashboard'
-                : isOperator
-                    ? '/dashboard/operator'
-                    : isParkingAdmin
-                        ? '/dashboard/parking-admin'
-                        : isGeneralAdmin
-                            ? '/dashboard/general-admin'
-                            : '/dashboard/admin';
-            return <Navigate to={defaultRedirect} replace />;
+            return <Navigate to={getDefaultDashboardRoute(user.role)} replace />;
         }
     }
 

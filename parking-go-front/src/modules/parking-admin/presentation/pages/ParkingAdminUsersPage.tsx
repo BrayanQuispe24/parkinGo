@@ -1,6 +1,8 @@
 // src/modules/parking-admin/presentation/pages/ParkingAdminUsersPage.tsx
 import { useState } from 'react';
+import { Navigate } from 'react-router';
 import type { ParkingOperator, CreateOperatorPayload, UpdateOperatorPayload } from '../../domain/ParkingOperator';
+import { useHostParkingPolicy } from '../../../host/application/useHostParkingPolicy';
 import { useParkingOperatorsQuery } from '../../application/useParkingAdminQueries';
 import {
     useCreateOperatorMutation,
@@ -15,6 +17,16 @@ import { OperatorDeleteConfirmModal } from '../components/modals/OperatorDeleteC
 import { OperatorReportModal } from '../components/modals/OperatorReportModal';
 
 export const ParkingAdminUsersPage = () => {
+    const { isHost, canManageOperators, defaultRoute } = useHostParkingPolicy();
+
+    if (isHost || !canManageOperators) {
+        return <Navigate to={defaultRoute} replace />;
+    }
+
+    return <ParkingAdminUsersContent />;
+};
+
+const ParkingAdminUsersContent = () => {
     // Estado de vistas en pestañas (idéntico a UsersManagementPage)
     const [mainTab, setMainTab] = useState<'list' | 'form'>('list');
     const [selectedOperatorForEdit, setSelectedOperatorForEdit] = useState<ParkingOperator | null>(null);

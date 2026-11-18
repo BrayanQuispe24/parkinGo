@@ -3,6 +3,7 @@ import { EstacionamientoRepository } from '../repositories/estacionamiento.repos
 import { EstacionamientoOperadorRepository } from '../repositories/estacionamiento-operador.repository.js';
 import { OperadorEstacionamientoResponseDto } from '../dto/operador-estacionamiento-response.dto.js';
 import { EstacionamientoOperadorMapper } from '../mappers/estacionamiento-operador.mapper.js';
+import { assertEstacionamientoPermiteOperadores } from '../utils/estacionamiento-operadores.policy.js';
 
 @Injectable()
 export class GetOperadoresDisponiblesAction {
@@ -20,6 +21,8 @@ export class GetOperadoresDisponiblesAction {
     if (!estacionamiento) {
       throw new NotFoundException(`Estacionamiento con ID ${estacionamientoId} no encontrado.`);
     }
+
+    assertEstacionamientoPermiteOperadores(estacionamiento);
 
     const isGlobalAdmin = ['SUPER_ADMIN', 'GENERAL_ADMIN'].includes(currentUserRole);
     const adminUserId = isGlobalAdmin ? undefined : (estacionamiento.tenant?.usuarioId || currentUserId);

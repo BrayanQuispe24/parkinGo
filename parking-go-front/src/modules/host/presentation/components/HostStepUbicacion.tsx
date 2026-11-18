@@ -15,6 +15,8 @@ interface HostStepUbicacionProps {
   fotos: File[];
   setFotos: (fotos: File[]) => void;
   disabled?: boolean;
+  isResolvingAddress?: boolean;
+  isDetectingInitialLocation?: boolean;
 }
 
 export const HostStepUbicacion: React.FC<HostStepUbicacionProps> = ({
@@ -27,6 +29,8 @@ export const HostStepUbicacion: React.FC<HostStepUbicacionProps> = ({
   fotos,
   setFotos,
   disabled = false,
+  isResolvingAddress = false,
+  isDetectingInitialLocation = false,
 }) => {
   return (
     <div className="host-step-content">
@@ -43,62 +47,90 @@ export const HostStepUbicacion: React.FC<HostStepUbicacionProps> = ({
         </div>
       </div>
 
-      <div className="host-wizard-field">
-        <label htmlFor="host-nombre">
-          Nombre de tu Cochera / Espacio <span style={{ color: '#DC2626' }}>*</span>
-        </label>
-        <input
-          id="host-nombre"
-          type="text"
-          className="host-wizard-input"
-          placeholder="Ej: Cochera Familiar América, Garaje Don Pedro"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          disabled={disabled}
-        />
-        <div className="host-wizard-help">
-          Un nombre amigable y descriptivo que verán los conductores al buscar estacionamiento.
+      <div className="host-wizard-grid-2" style={{ marginBottom: '1.25rem' }}>
+        <div className="host-wizard-field" style={{ marginBottom: 0 }}>
+          <label htmlFor="host-nombre">
+            Nombre de tu Cochera / Espacio <span style={{ color: '#DC2626' }}>*</span>
+          </label>
+          <input
+            id="host-nombre"
+            type="text"
+            className="host-wizard-input"
+            placeholder="Ej: Cochera Familiar América, Garaje Don Pedro"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            disabled={disabled}
+          />
+          <div className="host-wizard-help">
+            Un nombre amigable y descriptivo que verán los conductores al buscar estacionamiento.
+          </div>
+        </div>
+
+        <div className="host-wizard-field" style={{ marginBottom: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+            <label htmlFor="host-direccion">
+              Dirección y Referencias <span style={{ color: '#DC2626' }}>*</span>
+            </label>
+            {isResolvingAddress && (
+              <span
+                style={{
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  color: '#006D36',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
+                  marginBottom: '0.35rem',
+                }}
+              >
+                <i className="fa-solid fa-spinner fa-spin"></i>
+                Autocompletando...
+              </span>
+            )}
+          </div>
+          <input
+            id="host-direccion"
+            type="text"
+            className="host-wizard-input"
+            placeholder="Ej: Calle Colombia #450, casi esq. 25 de Mayo (portón café)"
+            value={direccion}
+            onChange={(e) => setDireccion(e.target.value)}
+            disabled={disabled}
+          />
+          <div className="host-wizard-help">
+            Se autocompleta al fijar el pin en el mapa; puedes añadir referencias desde la acera.
+          </div>
         </div>
       </div>
 
-      <div className="host-wizard-field">
-        <label htmlFor="host-direccion">
-          Dirección y Referencias <span style={{ color: '#DC2626' }}>*</span>
-        </label>
-        <input
-          id="host-direccion"
-          type="text"
-          className="host-wizard-input"
-          placeholder="Ej: Calle Colombia #450, casi esq. 25 de Mayo (portón café)"
-          value={direccion}
-          onChange={(e) => setDireccion(e.target.value)}
-          disabled={disabled}
-        />
-        <div className="host-wizard-help">
-          Indica la calle, número y referencias visibles desde la acera.
+      <div className="host-wizard-split-grid">
+        <div className="host-section-box">
+          <div className="host-wizard-field" style={{ marginBottom: 0 }}>
+            <label>
+              Ubicación en el Mapa <span style={{ color: '#DC2626' }}>*</span>
+            </label>
+            <div className="host-wizard-help" style={{ marginBottom: '0.6rem' }}>
+              Arrastra el pin al punto exacto donde se encuentra la entrada vehicular de tu domicilio.
+            </div>
+            <EstacionamientoLocationPicker
+              coordinates={coordinates}
+              onChangeCoordinates={setCoordinates}
+              disabled={disabled}
+              isResolvingAddress={isResolvingAddress}
+              isDetectingInitialLocation={isDetectingInitialLocation}
+            />
+          </div>
         </div>
-      </div>
 
-      <div className="host-wizard-field" style={{ marginTop: '1.5rem' }}>
-        <label>
-          Ubicación en el Mapa <span style={{ color: '#DC2626' }}>*</span>
-        </label>
-        <div className="host-wizard-help" style={{ marginBottom: '0.6rem' }}>
-          Arrastra el pin al punto exacto donde se encuentra la entrada vehicular de tu domicilio.
+        <div className="host-section-box">
+          <div className="host-wizard-field" style={{ marginBottom: 0 }}>
+            <label>Fotos del Garaje o Entrada</label>
+            <div className="host-wizard-help" style={{ marginBottom: '0.6rem' }}>
+              Sube fotos reales del espacio libre y del portón para que el conductor reconozca tu casa con facilidad.
+            </div>
+            <FotosUploader fotos={fotos} onChange={setFotos} disabled={disabled} />
+          </div>
         </div>
-        <EstacionamientoLocationPicker
-          coordinates={coordinates}
-          onChangeCoordinates={setCoordinates}
-          disabled={disabled}
-        />
-      </div>
-
-      <div className="host-wizard-field" style={{ marginTop: '1.75rem' }}>
-        <label>Fotos del Garaje o Entrada</label>
-        <div className="host-wizard-help" style={{ marginBottom: '0.6rem' }}>
-          Sube fotos reales del espacio libre y del portón para que el conductor reconozca tu casa con facilidad.
-        </div>
-        <FotosUploader fotos={fotos} onChange={setFotos} disabled={disabled} />
       </div>
     </div>
   );

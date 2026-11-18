@@ -29,6 +29,7 @@ export class RolesController {
    * GET /roles
    * Endpoint para obtener la lista de roles.
    */
+    @Roles('SUPER_ADMIN', 'GENERAL_ADMIN', 'PARKING_ADMIN')
     @Get()
     @HttpCode(HttpStatus.OK)
     async findAll() {

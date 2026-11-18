@@ -1,4 +1,5 @@
 import React from 'react';
+import { BACKEND_URL } from '../../../../core/api/parkingoApi';
 import type { AdminUser } from '../../domain/AdminUser';
 
 interface UsersPendingApprovalTableProps {
@@ -192,10 +193,15 @@ export const UsersPendingApprovalTable: React.FC<UsersPendingApprovalTableProps>
                                                 <button
                                                     type="button"
                                                     onClick={() => {
-                                                        const url = doc.fileUrl.startsWith('http')
+                                                        const baseUrl = doc.fileUrl.startsWith('http')
                                                             ? doc.fileUrl
-                                                            : `http://localhost:3000${doc.fileUrl.startsWith('/') ? '' : '/'}${doc.fileUrl}`;
-                                                        window.open(url, '_blank');
+                                                            : `${BACKEND_URL}${doc.fileUrl.startsWith('/') ? '' : '/'}${doc.fileUrl}`;
+                                                        const token = localStorage.getItem('parkingo_token');
+                                                        const separator = baseUrl.includes('?') ? '&' : '?';
+                                                        const authenticatedUrl = token
+                                                            ? `${baseUrl}${separator}token=${encodeURIComponent(token)}`
+                                                            : baseUrl;
+                                                        window.open(authenticatedUrl, '_blank', 'noopener,noreferrer');
                                                     }}
                                                     style={{
                                                         display: 'inline-flex',

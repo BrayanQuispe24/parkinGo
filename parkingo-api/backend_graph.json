@@ -2,7 +2,7 @@
   "$schema": "parkingo-backend-architecture-graph",
   "version": "1.0.0",
   "description": "Grafo de arquitectura y dependencias de parkingo-api para navegación y cambios quirúrgicos sin sobrecosto de tokens.",
-  "lastUpdated": "2026-10-22",
+  "lastUpdated": "2026-11-16",
   "meta": {
     "framework": "NestJS",
     "orm": "Prisma",
@@ -139,11 +139,11 @@
           "file": "src/modules/usuarios/controllers/usuarios.controller.ts",
           "prefix": "/usuarios",
           "endpoints": [
-            { "method": "GET", "path": "/", "action": "GetUsuariosAction", "summary": "Listar usuarios" },
-            { "method": "GET", "path": "/:id", "action": "GetUsuarioAction", "summary": "Obtener usuario por ID" },
-            { "method": "POST", "path": "/", "action": "CreateUsuarioAction", "dtoIn": "CreateUsuarioDto", "summary": "Crear usuario" },
-            { "method": "PATCH", "path": "/:id", "action": "UpdateUsuarioAction", "dtoIn": "UpdateUsuarioDto", "summary": "Actualizar usuario" },
-            { "method": "DELETE", "path": "/:id", "action": "DeleteUsuarioAction", "summary": "Eliminar usuario" }
+            { "method": "GET", "path": "/", "action": "GetUsuariosAction", "roles": ["PARKING_ADMIN", "GENERAL_ADMIN", "SUPER_ADMIN"], "summary": "Listar usuarios (HOST bloqueado)" },
+            { "method": "GET", "path": "/:id", "action": "GetUsuarioAction", "summary": "Obtener usuario por ID (con validación de propiedad IDOR por rol)" },
+            { "method": "POST", "path": "/", "action": "CreateUsuarioAction", "dtoIn": "CreateUsuarioDto", "roles": ["PARKING_ADMIN", "SUPER_ADMIN"], "summary": "Crear usuario (HOST bloqueado para operadores)" },
+            { "method": "PATCH", "path": "/:id", "action": "UpdateUsuarioAction", "dtoIn": "UpdateUsuarioDto", "summary": "Actualizar usuario (con protección anti-IDOR y bloqueo de escalación de roleId/status)" },
+            { "method": "DELETE", "path": "/:id", "action": "DeleteUsuarioAction", "roles": ["PARKING_ADMIN", "GENERAL_ADMIN", "SUPER_ADMIN"], "summary": "Eliminar usuario (HOST bloqueado)" }
           ]
         }
       ],
@@ -178,10 +178,10 @@
           "file": "src/modules/roles/controllers/roles.controller.ts",
           "prefix": "/roles",
           "endpoints": [
-            { "method": "GET", "path": "/", "action": "GetRolesAction", "summary": "Listar todos los roles" },
-            { "method": "POST", "path": "/", "action": "CreateRoleAction", "dtoIn": "CreateRoleDto", "summary": "Crear un nuevo rol" },
-            { "method": "PATCH", "path": "/:id", "action": "UpdateRoleAction", "dtoIn": "UpdateRoleDto", "summary": "Actualizar rol" },
-            { "method": "DELETE", "path": "/:id", "action": "DeleteRoleAction", "summary": "Eliminar rol" }
+            { "method": "GET", "path": "/", "action": "GetRolesAction", "roles": ["SUPER_ADMIN", "GENERAL_ADMIN", "PARKING_ADMIN"], "summary": "Listar todos los roles" },
+            { "method": "POST", "path": "/", "action": "CreateRoleAction", "dtoIn": "CreateRoleDto", "roles": ["SUPER_ADMIN"], "summary": "Crear un nuevo rol" },
+            { "method": "PATCH", "path": "/:id", "action": "UpdateRoleAction", "dtoIn": "UpdateRoleDto", "roles": ["SUPER_ADMIN"], "summary": "Actualizar rol" },
+            { "method": "DELETE", "path": "/:id", "action": "DeleteRoleAction", "roles": ["SUPER_ADMIN"], "summary": "Eliminar rol" }
           ]
         },
         {
@@ -189,7 +189,7 @@
           "file": "src/modules/roles/controllers/permissions.controller.ts",
           "prefix": "/permissions",
           "endpoints": [
-            { "method": "GET", "path": "/", "action": "GetPermissionAction", "summary": "Listar permisos disponibles" }
+            { "method": "GET", "path": "/", "action": "GetPermissionAction", "roles": ["SUPER_ADMIN", "GENERAL_ADMIN"], "summary": "Listar permisos disponibles" }
           ]
         }
       ],
@@ -228,7 +228,7 @@
           "file": "src/modules/reports/controllers/reports.controller.ts",
           "prefix": "/reports",
           "endpoints": [
-            { "method": "GET", "path": "/general-analytics", "action": "GetGeneralAnalyticsAction", "dtoOut": "GeneralAnalyticsResponseDto", "summary": "Obtener KPIs y analíticas del sistema" }
+            { "method": "GET", "path": "/general", "action": "GetGeneralAnalyticsAction", "dtoOut": "GeneralAnalyticsResponseDto", "roles": ["SUPER_ADMIN", "GENERAL_ADMIN"], "summary": "Obtener KPIs y analíticas del sistema" }
           ]
         }
       ],
@@ -442,6 +442,14 @@
               "dtoOut": "FotoResponseDto",
               "roles": ["PARKING_ADMIN", "HOST"],
               "summary": "Eliminar permanentemente una fotografía de la galería del estacionamiento"
+            },
+            {
+              "method": "DELETE",
+              "path": "/:id",
+              "action": "EliminarEstacionamientoRechazadoAction",
+              "dtoOut": "EliminarEstacionamientoRechazadoResponseDto",
+              "roles": ["PARKING_ADMIN", "HOST"],
+              "summary": "Eliminar solicitud de estacionamiento en estado RECHAZADO para permitir un nuevo registro"
             },
             {
               "method": "GET",
@@ -731,16 +739,16 @@
               "path": "/:id/operadores",
               "action": "GetOperadoresEstacionamientoAction",
               "dtoOut": "OperadorEstacionamientoResponseDto[]",
-              "roles": ["PARKING_ADMIN", "HOST", "GENERAL_ADMIN", "SUPER_ADMIN"],
-              "summary": "Listar operadores asignados a un estacionamiento"
+              "roles": ["PARKING_ADMIN", "GENERAL_ADMIN", "SUPER_ADMIN"],
+              "summary": "Listar operadores asignados a un estacionamiento (bloqueado para HOST y parqueos C2C)"
             },
             {
               "method": "GET",
               "path": "/:id/operadores-disponibles",
               "action": "GetOperadoresDisponiblesAction",
               "dtoOut": "OperadorEstacionamientoResponseDto[]",
-              "roles": ["PARKING_ADMIN", "HOST", "GENERAL_ADMIN", "SUPER_ADMIN"],
-              "summary": "Listar operadores disponibles para asignación (estacionamientoId es null)"
+              "roles": ["PARKING_ADMIN", "GENERAL_ADMIN", "SUPER_ADMIN"],
+              "summary": "Listar operadores disponibles para asignación (bloqueado para HOST y parqueos C2C)"
             },
             {
               "method": "POST",
@@ -748,15 +756,15 @@
               "action": "AsignarOperadoresAction",
               "dtoIn": "AsignarOperadoresDto",
               "dtoOut": "OperadorEstacionamientoResponseDto[]",
-              "roles": ["PARKING_ADMIN", "HOST", "GENERAL_ADMIN", "SUPER_ADMIN"],
-              "summary": "Asignar uno o más operadores al estacionamiento (regla estricta 1:N)"
+              "roles": ["PARKING_ADMIN", "GENERAL_ADMIN", "SUPER_ADMIN"],
+              "summary": "Asignar uno o más operadores al estacionamiento (bloqueado para HOST y parqueos C2C)"
             },
             {
               "method": "DELETE",
               "path": "/:id/operadores/:usuarioId",
               "action": "DesasignarOperadorAction",
-              "roles": ["PARKING_ADMIN", "HOST", "GENERAL_ADMIN", "SUPER_ADMIN"],
-              "summary": "Desasignar un operador del estacionamiento (estacionamientoId pasa a null)"
+              "roles": ["PARKING_ADMIN", "GENERAL_ADMIN", "SUPER_ADMIN"],
+              "summary": "Desasignar un operador del estacionamiento (bloqueado para HOST y parqueos C2C)"
             }
           ]
         }
@@ -808,7 +816,12 @@
           "file": "src/modules/estacionamientos/actions/rechazar-estacionamiento.action.ts",
           "dtoIn": "src/modules/estacionamientos/dto/rechazar-estacionamiento.dto.ts",
           "dtoOut": "src/modules/estacionamientos/dto/estacionamiento-response.dto.ts",
-          "dependsOn": ["EstacionamientoRepository"]
+          "dependsOn": ["EstacionamientoRepository", "MailerService"]
+        },
+        "EliminarEstacionamientoRechazadoAction": {
+          "file": "src/modules/estacionamientos/actions/eliminar-estacionamiento-rechazado.action.ts",
+          "dtoOut": "src/modules/estacionamientos/dto/eliminar-estacionamiento-rechazado-response.dto.ts",
+          "dependsOn": ["EstacionamientoRepository", "TenantRepository"]
         },
         "InhabilitarEstacionamientoAction": {
           "file": "src/modules/estacionamientos/actions/inhabilitar-estacionamiento.action.ts",
@@ -899,7 +912,7 @@
           "file": "src/modules/estacionamientos/actions/crear-espacio.action.ts",
           "dtoIn": "src/modules/estacionamientos/dto/create-espacio.dto.ts",
           "dtoOut": "src/modules/estacionamientos/dto/espacio-response.dto.ts",
-          "dependsOn": ["EspacioRepository", "NivelRepository", "TenantRepository"]
+          "dependsOn": ["EspacioRepository", "NivelRepository", "TenantRepository", "EspaciosRealtimeService"]
         },
         "GetMisEspaciosAction": {
           "file": "src/modules/estacionamientos/actions/get-mis-espacios.action.ts",
@@ -910,12 +923,12 @@
           "file": "src/modules/estacionamientos/actions/actualizar-espacio.action.ts",
           "dtoIn": "src/modules/estacionamientos/dto/update-espacio.dto.ts",
           "dtoOut": "src/modules/estacionamientos/dto/espacio-response.dto.ts",
-          "dependsOn": ["EspacioRepository", "NivelRepository", "TenantRepository"]
+          "dependsOn": ["EspacioRepository", "NivelRepository", "TenantRepository", "EspaciosRealtimeService"]
         },
         "EliminarEspacioAction": {
           "file": "src/modules/estacionamientos/actions/eliminar-espacio.action.ts",
           "dtoOut": "src/modules/estacionamientos/dto/espacio-response.dto.ts",
-          "dependsOn": ["EspacioRepository", "TenantRepository"]
+          "dependsOn": ["EspacioRepository", "TenantRepository", "EspaciosRealtimeService"]
         },
         "GetCroquisByNivelAction": {
           "file": "src/modules/estacionamientos/actions/get-croquis-by-nivel.action.ts",
@@ -1017,6 +1030,7 @@
         "src/modules/estacionamientos/dto/actualizar-horarios.dto.ts",
         "src/modules/estacionamientos/dto/horario-item.dto.ts",
         "src/modules/estacionamientos/dto/rechazar-estacionamiento.dto.ts",
+        "src/modules/estacionamientos/dto/eliminar-estacionamiento-rechazado-response.dto.ts",
         "src/modules/estacionamientos/dto/estacionamiento-response.dto.ts",
         "src/modules/estacionamientos/dto/create-servicio-extra.dto.ts",
         "src/modules/estacionamientos/dto/update-servicio-extra.dto.ts",
@@ -1229,6 +1243,30 @@
           "action": "CancelarReservaAction",
           "dtoOut": "BoletaReservaResponseDto",
           "summary": "Cancelar reserva (exclusivo para el cliente dueño)"
+        },
+        {
+          "method": "POST",
+          "path": "/reservas/:id/iniciar-pago",
+          "action": "IniciarPagoReservaAction",
+          "dtoIn": "IniciarPagoDto",
+          "dtoOut": "InicioPagoResponseDto",
+          "summary": "Iniciar procesamiento de pago para una reserva (Efectivo o QR vía Strategy Pattern)"
+        },
+        {
+          "method": "PATCH",
+          "path": "/reservas/:id/confirmar-pago",
+          "action": "ConfirmarPagoReservaAction",
+          "dtoIn": "ConfirmarPagoDto",
+          "dtoOut": "BoletaReservaResponseDto",
+          "summary": "Confirmar pago de una reserva (exclusivo operador/anfitrión para Efectivo o cliente para QR)"
+        },
+        {
+          "method": "POST",
+          "path": "/reservas/verificar-acceso",
+          "action": "VerificarAccesoReservaAction",
+          "dtoIn": "VerificarAccesoDto",
+          "dtoOut": "ResultadoVerificacionAccesoDto",
+          "summary": "Verificar autenticidad de ticket QR criptográfico en garita/acceso"
         }
       ],
       "actions": {
@@ -1263,6 +1301,24 @@
           "file": "src/modules/reservas/actions/cancelar-reserva.action.ts",
           "dtoOut": "src/modules/reservas/dto/reserva-response.dto.ts",
           "dependsOn": ["ReservaRepository"]
+        },
+        "IniciarPagoReservaAction": {
+          "file": "src/modules/reservas/actions/iniciar-pago-reserva.action.ts",
+          "dtoIn": "src/modules/reservas/dto/pago.dto.ts",
+          "dtoOut": "src/modules/reservas/dto/pago.dto.ts",
+          "dependsOn": ["ReservaRepository", "PaymentStrategyResolver"]
+        },
+        "ConfirmarPagoReservaAction": {
+          "file": "src/modules/reservas/actions/confirmar-pago-reserva.action.ts",
+          "dtoIn": "src/modules/reservas/dto/pago.dto.ts",
+          "dtoOut": "src/modules/reservas/dto/reserva-response.dto.ts",
+          "dependsOn": ["ReservaRepository", "PaymentStrategyResolver", "PrismaService"]
+        },
+        "VerificarAccesoReservaAction": {
+          "file": "src/modules/reservas/actions/verificar-acceso-reserva.action.ts",
+          "dtoIn": "src/modules/reservas/dto/verificar-acceso.dto.ts",
+          "dtoOut": "src/modules/reservas/dto/verificar-acceso.dto.ts",
+          "dependsOn": ["ReservaRepository", "PrismaService"]
         }
       },
       "repositories": {
@@ -1270,6 +1326,12 @@
           "interface": "src/modules/reservas/repositories/reserva.repository.ts",
           "implementation": "src/modules/reservas/repositories/prisma-reserva.repository.ts"
         }
+      },
+      "strategies": {
+        "interface": "src/modules/reservas/strategies/payment-strategy.interface.ts",
+        "resolver": "src/modules/reservas/strategies/payment-strategy.resolver.ts",
+        "efectivo": "src/modules/reservas/strategies/efectivo-payment.strategy.ts",
+        "qr": "src/modules/reservas/strategies/qr-payment.strategy.ts"
       },
       "decorator": {
         "component": "src/modules/reservas/domain/decorator/reservable.component.ts",
@@ -1283,7 +1345,28 @@
       "dto": [
         "src/modules/reservas/dto/cotizar-reserva.dto.ts",
         "src/modules/reservas/dto/crear-reserva.dto.ts",
-        "src/modules/reservas/dto/reserva-response.dto.ts"
+        "src/modules/reservas/dto/reserva-response.dto.ts",
+        "src/modules/reservas/dto/pago.dto.ts",
+        "src/modules/reservas/dto/verificar-acceso.dto.ts"
+      ]
+    },
+    "realtime": {
+      "path": "src/modules/realtime",
+      "moduleFile": "src/modules/realtime/realtime.module.ts",
+      "gateways": [
+        {
+          "name": "EspaciosRealtimeGateway",
+          "file": "src/modules/realtime/gateways/espacios-realtime.gateway.ts",
+          "namespace": "/realtime",
+          "eventsIn": ["room:join-catalogo", "room:leave-catalogo", "room:join-parking", "room:leave-parking"],
+          "eventsOut": ["espacio:actualizado"]
+        }
+      ],
+      "services": [
+        "src/modules/realtime/services/espacios-realtime.service.ts"
+      ],
+      "dto": [
+        "src/modules/realtime/dto/espacio-realtime-event.dto.ts"
       ]
     }
   }

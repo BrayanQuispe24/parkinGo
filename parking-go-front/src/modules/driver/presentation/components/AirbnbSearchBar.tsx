@@ -152,11 +152,15 @@ export const AirbnbSearchBar: React.FC<AirbnbSearchBarProps> = ({
                             width: '100%',
                         }}
                     >
-                        {vehicles.map((v) => (
-                            <option key={v.id} value={v.plate}>
-                                {v.plate} ({v.model})
-                            </option>
-                        ))}
+                        {vehicles.length === 0 ? (
+                            <option value="">Sin vehículos registrados</option>
+                        ) : (
+                            vehicles.map((v) => (
+                                <option key={v.id} value={v.plate}>
+                                    {v.plate} ({v.model})
+                                </option>
+                            ))
+                        )}
                     </select>
                 </div>
 

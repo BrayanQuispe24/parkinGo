@@ -1,7 +1,10 @@
 import { useAuthStore } from '../../../store/useAuthStore';
+import { getParkingAdminHomeRoute, isHostRole } from '../../auth/domain/roleRouting';
 
 export interface HostParkingPolicy {
   isHost: boolean;
+  canManageOperators: boolean;
+  defaultRoute: string;
   maxTenants: number;
   maxNiveles: number;
   maxCroquis: number;
@@ -18,8 +21,7 @@ export interface HostParkingPolicy {
  */
 export const useHostParkingPolicy = (): HostParkingPolicy => {
   const { user } = useAuthStore();
-  const normalizedRole = user?.role?.toUpperCase();
-  const isHost = normalizedRole === 'HOST' || user?.role?.toLowerCase() === 'anfitrion';
+  const isHost = isHostRole(user?.role);
 
   const maxTenants = isHost ? 1 : Infinity;
   const maxNiveles = isHost ? 1 : Infinity;
@@ -28,6 +30,8 @@ export const useHostParkingPolicy = (): HostParkingPolicy => {
 
   return {
     isHost,
+    canManageOperators: !isHost,
+    defaultRoute: getParkingAdminHomeRoute(user?.role),
     maxTenants,
     maxNiveles,
     maxCroquis,

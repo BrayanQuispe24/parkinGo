@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Post,
   Put,
   UploadedFiles,
@@ -41,8 +42,10 @@ import { GetMiEstacionamientoAction } from '../actions/get-mi-estacionamiento.ac
 import { ActualizarHorariosAction } from '../actions/actualizar-horarios.action.js';
 import { SubirFotosAction } from '../actions/subir-fotos.action.js';
 import { EliminarFotoAction } from '../actions/eliminar-foto.action.js';
+import { EliminarEstacionamientoRechazadoAction } from '../actions/eliminar-estacionamiento-rechazado.action.js';
 import { ListarEstacionamientosCatalogoAction } from '../actions/listar-estacionamientos-catalogo.action.js';
 import { CatalogoEstacionamientoResponseDto } from '../dto/catalogo-estacionamiento-response.dto.js';
+import { EliminarEstacionamientoRechazadoResponseDto } from '../dto/eliminar-estacionamiento-rechazado-response.dto.js';
 
 @ApiTags('Estacionamientos')
 @ApiBearerAuth()
@@ -55,6 +58,7 @@ export class EstacionamientosController {
     private readonly actualizarHorariosAction: ActualizarHorariosAction,
     private readonly subirFotosAction: SubirFotosAction,
     private readonly eliminarFotoAction: EliminarFotoAction,
+    private readonly eliminarEstacionamientoRechazadoAction: EliminarEstacionamientoRechazadoAction,
     private readonly listarEstacionamientosCatalogoAction: ListarEstacionamientosCatalogoAction,
   ) {}
 
@@ -205,5 +209,41 @@ export class EstacionamientosController {
     @CurrentUser() user: { userId: string },
   ): Promise<FotoResponseDto> {
     return this.eliminarFotoAction.execute(fotoId, user.userId);
+  }
+
+  @ApiOperation({
+    summary: 'Eliminar solicitud de estacionamiento rechazada',
+    description:
+      'Exclusivo para Tenants (PARKING_ADMIN / HOST). Permite eliminar su estacionamiento únicamente si se encuentra en estado RECHAZADO para poder registrar una nueva solicitud.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'UUID del estacionamiento rechazado a eliminar',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Estacionamiento rechazado eliminado exitosamente.',
+    type: EliminarEstacionamientoRechazadoResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'El estacionamiento no se encuentra en estado RECHAZADO.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'El usuario no es propietario del estacionamiento.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Estacionamiento no encontrado.',
+  })
+  @Roles('PARKING_ADMIN', 'HOST')
+  @HttpCode(HttpStatus.OK)
+  @Delete(':id')
+  async eliminarRechazado(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: { userId: string },
+  ): Promise<EliminarEstacionamientoRechazadoResponseDto> {
+    return this.eliminarEstacionamientoRechazadoAction.execute(id, user.userId);
   }
 }

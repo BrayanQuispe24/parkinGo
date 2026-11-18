@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import type { EstacionamientoModel, EstadoEstacionamiento } from '../../domain/Estacionamiento';
 import { EstadoBadge } from './EstadoBadge';
+import { TableSkeletonRows } from './TableSkeletonRows';
 
 interface AdminSolicitudesTableProps {
   solicitudes: EstacionamientoModel[];
@@ -94,7 +95,7 @@ export const AdminSolicitudesTable: React.FC<AdminSolicitudesTableProps> = ({
                 style={{
                   background: statusFilter === 'PENDIENTE' ? '#FFFFFF' : '#F59E0B',
                   color: statusFilter === 'PENDIENTE' ? '#006D36' : '#FFFFFF',
-                  borderRadius: '10px',
+                  borderRadius: '4px',
                   padding: '0.1rem 0.45rem',
                   fontSize: '0.72rem',
                   fontWeight: 800,
@@ -226,12 +227,7 @@ export const AdminSolicitudesTable: React.FC<AdminSolicitudesTableProps> = ({
           </thead>
           <tbody>
             {loading ? (
-              <tr>
-                <td colSpan={6} style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748B' }}>
-                  <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '1.5rem', color: '#006D36', marginBottom: '0.5rem' }}></i>
-                  <p style={{ margin: 0, fontWeight: 600 }}>Cargando solicitudes...</p>
-                </td>
-              </tr>
+              <TableSkeletonRows rowsCount={3} />
             ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={6} style={{ textAlign: 'center', padding: '3.5rem 1rem', color: '#64748B' }}>

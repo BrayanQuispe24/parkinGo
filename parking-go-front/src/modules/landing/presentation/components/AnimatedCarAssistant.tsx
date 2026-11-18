@@ -62,9 +62,9 @@ export function AnimatedCarAssistant() {
             </div>
 
             <div className="parking-car-wrapper">
-                <img src={autoSinRuedasImg} className="parking-car-body" alt="Auto ParkinGo" />
-                <img src={ruedaImg} className="parking-wheel parking-wheel-front" alt="Rueda Delantera" />
-                <img src={ruedaImg} className="parking-wheel parking-wheel-back" alt="Rueda Trasera" />
+                <img src={autoSinRuedasImg} className="parking-car-body" alt="Auto ParkinGo" loading="lazy" decoding="async" />
+                <img src={ruedaImg} className="parking-wheel parking-wheel-front" alt="Rueda Delantera" loading="lazy" decoding="async" />
+                <img src={ruedaImg} className="parking-wheel parking-wheel-back" alt="Rueda Trasera" loading="lazy" decoding="async" />
             </div>
         </div>
     );

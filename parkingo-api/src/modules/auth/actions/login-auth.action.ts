@@ -36,6 +36,7 @@ export class LoginAuthAction {
             sub: user.id, // En JWT 'sub' se usa para el id del sujeto
             email: user.email,
             roleId: user.roleId,
+            roleName: user.role?.name,
         };
 
         // 4. Firmar y generar el Token

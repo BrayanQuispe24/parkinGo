@@ -96,8 +96,35 @@ export class BoletaReservaResponseDto {
   @ApiProperty({ example: 'brayan@gmail.com' })
   clienteEmail!: string;
 
+  @ApiPropertyOptional({ example: '+591 71234567' })
+  clienteTelefono?: string | null;
+
+  @ApiPropertyOptional({ example: 'EFECTIVO' })
+  metodoPago?: string;
+
   @ApiPropertyOptional({ example: 'Operador Garita 1' })
   operadorNombre?: string | null;
+
+  @ApiPropertyOptional({
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        monto: { type: 'number' },
+        metodoPago: { type: 'string' },
+        estado: { type: 'string' },
+        fechaPago: { type: 'string', format: 'date-time' },
+      },
+    },
+  })
+  pagos?: Array<{
+    id: string;
+    monto: number;
+    metodoPago: string;
+    estado: string;
+    fechaPago: Date | null;
+  }>;
 
   @ApiProperty({ type: [DetalleReservaResponseDto] })
   detalles!: DetalleReservaResponseDto[];

@@ -15,10 +15,10 @@ export class ReportsController {
 
     @ApiOperation({
         summary: 'Obtener métricas y KPIs generales de la plataforma',
-        description: 'Retorna KPIs consolidados, series mensuales y estado del sistema. Exclusivo para SUPER_ADMIN.',
+        description: 'Retorna KPIs consolidados, series mensuales y estado del sistema. Exclusivo para SUPER_ADMIN y GENERAL_ADMIN.',
     })
     @ApiResponse({ status: 200, description: 'Métricas analíticas obtenidas exitosamente.' })
-    @Roles('SUPER_ADMIN')
+    @Roles('SUPER_ADMIN', 'GENERAL_ADMIN')
     @Get('general')
     @HttpCode(HttpStatus.OK)
     async getGeneralAnalytics() {

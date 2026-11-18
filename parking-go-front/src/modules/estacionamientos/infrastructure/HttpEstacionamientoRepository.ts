@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { parkingoApi } from '../../../core/api/parkingoApi';
 import type {
+  DeleteEstacionamientoResponse,
   EstacionamientoModel,
   EstadoEstacionamiento,
   FotoEstacionamientoModel,
@@ -106,6 +107,13 @@ export class HttpEstacionamientoRepository implements EstacionamientoRepository 
   async eliminarFoto(fotoId: string): Promise<FotoEstacionamientoModel> {
     const response = await parkingoApi.delete<FotoEstacionamientoModel>(
       `/estacionamientos/me/fotos/${fotoId}`,
+    );
+    return response.data;
+  }
+
+  async eliminarEstacionamientoRechazado(id: string): Promise<DeleteEstacionamientoResponse> {
+    const response = await parkingoApi.delete<DeleteEstacionamientoResponse>(
+      `/estacionamientos/${id}`,
     );
     return response.data;
   }

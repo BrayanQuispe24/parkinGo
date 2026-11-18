@@ -11,6 +11,7 @@ import { TenantRepository } from '../../tenants/repositories/tenant.repository.j
 import { UpdateEspacioDto } from '../dto/update-espacio.dto.js';
 import { EspacioResponseDto } from '../dto/espacio-response.dto.js';
 import { EspacioMapper } from '../mappers/espacio.mapper.js';
+import { EspaciosRealtimeService } from '../../realtime/services/espacios-realtime.service.js';
 
 @Injectable()
 export class ActualizarEspacioAction {
@@ -18,6 +19,7 @@ export class ActualizarEspacioAction {
     private readonly espacioRepository: EspacioRepository,
     private readonly nivelRepository: NivelRepository,
     private readonly tenantRepository: TenantRepository,
+    private readonly espaciosRealtimeService: EspaciosRealtimeService,
   ) {}
 
   async execute(
@@ -42,6 +44,7 @@ export class ActualizarEspacioAction {
       );
     }
 
+    let targetEstacionamientoId = espacio.nivel.estacionamiento.id;
     if (dto.nivelId && dto.nivelId !== espacio.nivelId) {
       const nuevoNivel = await this.nivelRepository.findById(dto.nivelId);
       if (!nuevoNivel) {
@@ -55,6 +58,7 @@ export class ActualizarEspacioAction {
           'No tienes permisos para mover el espacio al nivel indicado.',
         );
       }
+      targetEstacionamientoId = nuevoNivel.estacionamiento.id;
     }
 
     try {
@@ -66,7 +70,13 @@ export class ActualizarEspacioAction {
         nivelId: dto.nivelId,
       });
 
-      return EspacioMapper.toResponseDto(updated);
+      const responseDto = EspacioMapper.toResponseDto(updated);
+      this.espaciosRealtimeService.emitEspacioCambio(
+        'UPDATED',
+        targetEstacionamientoId,
+        responseDto,
+      );
+      return responseDto;
     } catch (err: unknown) {
       if (
         typeof err === 'object' &&

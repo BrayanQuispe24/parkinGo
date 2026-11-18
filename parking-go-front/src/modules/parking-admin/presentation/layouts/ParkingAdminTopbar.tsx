@@ -1,6 +1,8 @@
 import { useLocation } from 'react-router';
 import { useAuthStore } from '../../../../store/useAuthStore';
 import { useSettingsStore } from '../../../../store/useSettingsStore';
+import { isHostRole } from '../../../auth/domain/roleRouting';
+import { useMiEstacionamientoQuery } from '../../../estacionamientos/application/useEstacionamientosQuery';
 
 interface ParkingAdminTopbarProps {
     onToggleSidebar: () => void;
@@ -13,20 +15,22 @@ export const ParkingAdminTopbar = ({
     const location = useLocation();
     const { user } = useAuthStore();
     const openSettings = useSettingsStore((state) => state.openSettings);
-    const isHost = user?.role === 'HOST' || user?.role === 'anfitrion';
+    const isHost = isHostRole(user?.role);
+    const { data: miEstacionamiento } = useMiEstacionamientoQuery();
+    const parkingLabel = miEstacionamiento?.nombre || 'Mi Estacionamiento';
 
     let pageTitle = isHost ? 'Panel del Anfitrión' : 'Gestión de Operadores';
-    let breadcrumb = isHost ? 'Mi Espacio / Panel de Control' : 'ParkinGo Equipetrol / Gestión de Operadores';
+    let breadcrumb = isHost ? 'Mi Espacio / Panel de Control' : `${parkingLabel} / Gestión de Operadores`;
 
     if (location.pathname.includes('/profile')) {
         pageTitle = isHost ? 'Mi Perfil de Anfitrión' : 'Mi Perfil';
-        breadcrumb = isHost ? 'Mi Espacio / Mi Perfil' : 'ParkinGo Equipetrol / Mi Perfil';
+        breadcrumb = isHost ? 'Mi Espacio / Mi Perfil' : `${parkingLabel} / Mi Perfil`;
     } else if (location.pathname.includes('/tenants')) {
-        pageTitle = 'Gestión de Empresas & Tenants';
-        breadcrumb = 'ParkinGo Equipetrol / Empresas & Tenants';
+        pageTitle = isHost ? 'Mi Empresa / Propiedad' : 'Gestión de Empresas & Tenants';
+        breadcrumb = isHost ? 'Mi Espacio / Mi Empresa' : `${parkingLabel} / Empresas & Tenants`;
     } else if (location.pathname.includes('/estacionamiento')) {
-        pageTitle = 'Mis Estacionamientos';
-        breadcrumb = 'ParkinGo Equipetrol / Mis Estacionamientos';
+        pageTitle = isHost ? 'Mi Cochera & Garaje' : 'Mis Estacionamientos';
+        breadcrumb = isHost ? 'Mi Espacio / Mi Cochera & Garaje' : `${parkingLabel} / Mis Estacionamientos`;
     }
 
     return (
@@ -53,26 +57,36 @@ export const ParkingAdminTopbar = ({
             <div
                 className="command-search-box"
                 onClick={() => document.querySelector<HTMLInputElement>('input[placeholder*="Buscar"]')?.focus()}
-                title="Buscar operador por nombre, CI, teléfono o garita..."
+                title={isHost ? 'Buscar en mi espacio...' : 'Buscar operador por nombre, CI, teléfono o garita...'}
             >
                 <i className="fa-solid fa-magnifying-glass"></i>
-                <span>Buscar por nombre, CI o garita...</span>
+                <span>{isHost ? 'Buscar en mi espacio...' : 'Buscar por nombre, CI o garita...'}</span>
                 <kbd>⌘K</kbd>
             </div>
 
             {/* Right Controls */}
             <div className="topbar-right">
-                <select className="org-selector" title="Seleccionar Sucursal de Parqueo" defaultValue="equipetrol">
-                    <option value="equipetrol">Equipetrol (SCZ)</option>
-                    <option value="centro">Centro Histórico</option>
-                </select>
-
-                <div className="live-occupancy-badge">
-                    <div className="pulse-dot"></div>
-                    <span>
-                        Ocupación: <strong>17/24 (70.8%)</strong>
-                    </span>
-                </div>
+                {isHost ? (
+                    <div className="live-occupancy-badge" title="Modalidad residencial sin operadores">
+                        <div className="pulse-dot"></div>
+                        <span>
+                            Modalidad: <strong>Anfitrión C2C</strong>
+                        </span>
+                    </div>
+                ) : (
+                    <div className="live-occupancy-badge" title="Estacionamiento administrado actualmente">
+                        <div className="pulse-dot"></div>
+                        <span>
+                            {miEstacionamiento ? (
+                                <>
+                                    Parqueo: <strong>{miEstacionamiento.nombre}</strong> ({miEstacionamiento.estado})
+                                </>
+                            ) : (
+                                <strong>Sin estacionamiento asignado</strong>
+                            )}
+                        </span>
+                    </div>
+                )}
 
                 <button
                     type="button"

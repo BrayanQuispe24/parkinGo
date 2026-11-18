@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import axios from 'axios';
 import { useAuthStore } from '../../../../store/useAuthStore';
+import { useMiEstacionamientoQuery } from '../../application/useEstacionamientosQuery';
 import { useMisNivelesQuery } from '../../application/useNivelesQuery';
 import { useMisEspaciosQuery } from '../../application/useEspaciosQuery';
+import { useEspaciosRealtimeSync } from '../../application/useEspaciosRealtimeSync';
 import {
   useCrearEspacioMutation,
   useActualizarEspacioMutation,
@@ -46,6 +48,8 @@ export const TenantEspaciosPanel: React.FC<TenantEspaciosPanelProps> = ({
 }) => {
   const { user } = useAuthStore();
   const isHost = user?.role === 'HOST' || user?.role === 'anfitrion';
+  const { data: miEstacionamiento } = useMiEstacionamientoQuery();
+  useEspaciosRealtimeSync(miEstacionamiento?.id);
   const { data: niveles = [], isLoading: isLoadingNiveles } = useMisNivelesQuery();
   const [selectedNivelId, setSelectedNivelId] = useState<string>(initialNivelId || 'ALL');
   const [filterEstado, setFilterEstado] = useState<string>('ALL');

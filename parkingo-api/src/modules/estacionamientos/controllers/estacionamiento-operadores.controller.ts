@@ -56,7 +56,11 @@ export class EstacionamientoOperadoresController {
     description: 'Operadores del estacionamiento obtenidos exitosamente.',
     type: [OperadorEstacionamientoResponseDto],
   })
-  @Roles('PARKING_ADMIN', 'HOST', 'GENERAL_ADMIN', 'SUPER_ADMIN')
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado: el rol Anfitrión no gestiona operadores.',
+  })
+  @Roles('PARKING_ADMIN', 'GENERAL_ADMIN', 'SUPER_ADMIN')
   @Get(':id/operadores')
   async getOperadores(
     @Param('id') id: string,
@@ -79,7 +83,11 @@ export class EstacionamientoOperadoresController {
     description: 'Operadores disponibles obtenidos exitosamente.',
     type: [OperadorEstacionamientoResponseDto],
   })
-  @Roles('PARKING_ADMIN', 'HOST', 'GENERAL_ADMIN', 'SUPER_ADMIN')
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado: el rol Anfitrión no gestiona operadores.',
+  })
+  @Roles('PARKING_ADMIN', 'GENERAL_ADMIN', 'SUPER_ADMIN')
   @Get(':id/operadores-disponibles')
   async getOperadoresDisponibles(
     @Param('id') id: string,
@@ -107,7 +115,11 @@ export class EstacionamientoOperadoresController {
     description: 'Operadores asignados correctamente al estacionamiento.',
     type: [OperadorEstacionamientoResponseDto],
   })
-  @Roles('PARKING_ADMIN', 'HOST', 'GENERAL_ADMIN', 'SUPER_ADMIN')
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado: el rol Anfitrión no gestiona operadores.',
+  })
+  @Roles('PARKING_ADMIN', 'GENERAL_ADMIN', 'SUPER_ADMIN')
   @HttpCode(HttpStatus.OK)
   @Post(':id/operadores')
   async asignarOperadores(
@@ -136,7 +148,11 @@ export class EstacionamientoOperadoresController {
     status: 200,
     description: 'Operador desvinculado con éxito.',
   })
-  @Roles('PARKING_ADMIN', 'HOST', 'GENERAL_ADMIN', 'SUPER_ADMIN')
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado: el rol Anfitrión no gestiona operadores.',
+  })
+  @Roles('PARKING_ADMIN', 'GENERAL_ADMIN', 'SUPER_ADMIN')
   @HttpCode(HttpStatus.OK)
   @Delete(':id/operadores/:usuarioId')
   async desasignarOperador(

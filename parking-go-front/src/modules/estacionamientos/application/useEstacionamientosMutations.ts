@@ -86,3 +86,16 @@ export const useEliminarFotoMutation = () => {
     },
   });
 };
+
+export const useEliminarEstacionamientoRechazadoMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => httpEstacionamientoRepository.eliminarEstacionamientoRechazado(id),
+    onSuccess: () => {
+      queryClient.setQueryData(ESTACIONAMIENTOS_QUERY_KEYS.mine, null);
+      queryClient.invalidateQueries({ queryKey: ESTACIONAMIENTOS_QUERY_KEYS.mine });
+      queryClient.invalidateQueries({ queryKey: ESTACIONAMIENTOS_QUERY_KEYS.all });
+    },
+  });
+};

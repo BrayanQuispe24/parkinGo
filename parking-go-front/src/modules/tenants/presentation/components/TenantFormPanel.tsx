@@ -2,6 +2,9 @@
 import React, { useState } from 'react';
 import type { Tenant, TenantStatus, CreateTenantPayload, UpdateTenantPayload, LocationCoordinates } from '../../domain/Tenant';
 import { TenantLocationPicker } from './TenantLocationPicker';
+import { useReverseGeocodingMutation } from '../../application/useReverseGeocoding';
+import { useAuthStore } from '../../../../store/useAuthStore';
+import { isHostRole } from '../../../auth/domain/roleRouting';
 
 interface TenantFormPanelProps {
     tenantToEdit: Tenant | null;
@@ -18,6 +21,8 @@ export const TenantFormPanel: React.FC<TenantFormPanelProps> = ({
     onSubmitUpdate,
     onCancel,
 }) => {
+    const { user } = useAuthStore();
+    const isHost = isHostRole(user?.role);
     const isEdit = Boolean(tenantToEdit);
 
     const [nombre, setNombre] = useState(tenantToEdit?.nombre || '');
@@ -38,6 +43,26 @@ export const TenantFormPanel: React.FC<TenantFormPanelProps> = ({
     );
 
     const [formError, setFormError] = useState<string | null>(null);
+
+    // Mutación para geocodificación inversa con caché y control de estados
+    const reverseGeocodeMutation = useReverseGeocodingMutation();
+
+    const handleCoordinatesChange = async (newCoords: LocationCoordinates | null) => {
+        setCoordinates(newCoords);
+        if (!newCoords) return;
+
+        try {
+            const result = await reverseGeocodeMutation.mutateAsync(newCoords);
+            if (result.direccion) {
+                setDireccion(result.direccion);
+            }
+            if (result.ciudad) {
+                setCiudad(result.ciudad);
+            }
+        } catch (err: unknown) {
+            console.warn('No se pudo autocompletar la dirección por coordenadas:', err);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -169,7 +194,10 @@ export const TenantFormPanel: React.FC<TenantFormPanelProps> = ({
                     >
                         <i className="fa-solid fa-circle-info" style={{ marginTop: '2px', color: '#006D36' }}></i>
                         <div>
-                            <strong>Activación Inmediata & Correo:</strong> Como Administrador de Parqueo, al registrar tu empresa se activará inmediatamente en el sistema y recibirás un correo electrónico de respaldo con la ficha técnica creada.
+                            <strong>Activación Inmediata & Correo:</strong>{' '}
+                            {isHost
+                                ? 'Como Anfitrión C2C, al registrar tu propiedad/empresa (máximo 1) se activará inmediatamente en el sistema y recibirás un correo electrónico de respaldo con la ficha técnica creada.'
+                                : 'Como Administrador de Parqueo, al registrar tu empresa se activará inmediatamente en el sistema y recibirás un correo electrónico de respaldo con la ficha técnica creada.'}
                         </div>
                     </div>
                 )}
@@ -345,9 +373,17 @@ export const TenantFormPanel: React.FC<TenantFormPanelProps> = ({
                             <div className="tenant-form-grid" style={{ marginBottom: 0 }}>
                                 {/* Dirección física */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', width: '100%' }}>
-                                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155' }}>
-                                        Dirección Física (Calle, Av., Número)
-                                    </label>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155' }}>
+                                            Dirección Física (Calle, Av., Número)
+                                        </label>
+                                        {reverseGeocodeMutation.isPending && (
+                                            <span style={{ fontSize: '0.72rem', color: '#0284C7', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                <i className="fa-solid fa-spinner fa-spin"></i>
+                                                Autocompletando...
+                                            </span>
+                                        )}
+                                    </div>
                                     <input
                                         type="text"
                                         value={direccion}
@@ -369,9 +405,17 @@ export const TenantFormPanel: React.FC<TenantFormPanelProps> = ({
 
                                 {/* Ciudad */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', width: '100%' }}>
-                                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155' }}>
-                                        Ciudad / Municipio
-                                    </label>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155' }}>
+                                            Ciudad / Municipio
+                                        </label>
+                                        {reverseGeocodeMutation.isPending && (
+                                            <span style={{ fontSize: '0.72rem', color: '#0284C7', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                <i className="fa-solid fa-spinner fa-spin"></i>
+                                                Autocompletando...
+                                            </span>
+                                        )}
+                                    </div>
                                     <input
                                         type="text"
                                         value={ciudad}
@@ -395,8 +439,9 @@ export const TenantFormPanel: React.FC<TenantFormPanelProps> = ({
                             {/* Selector Interactivo Leaflet con GPS */}
                             <TenantLocationPicker
                                 coordinates={coordinates}
-                                onChangeCoordinates={setCoordinates}
+                                onChangeCoordinates={handleCoordinatesChange}
                                 disabled={isSubmitting}
+                                isResolvingAddress={reverseGeocodeMutation.isPending}
                             />
                         </div>
                     )}

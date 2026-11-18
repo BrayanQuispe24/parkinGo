@@ -1,4 +1,7 @@
 // src/modules/tenants/domain/Tenant.ts
+import type { LocationCoordinates } from '../../../core/services/geocoding/geocoding.types';
+
+export type { LocationCoordinates };
 
 export type TenantStatus = 'ACTIVO' | 'INACTIVO';
 
@@ -9,11 +12,6 @@ export interface TenantUserSummary {
     lastName: string;
     phone?: string | null;
     ci: string;
-}
-
-export interface LocationCoordinates {
-    lat: number;
-    lng: number;
 }
 
 export interface Tenant {

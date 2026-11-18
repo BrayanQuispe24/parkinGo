@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback } from 'react';
+import { BACKEND_URL } from '../../../../core/api/parkingoApi';
 
 interface FotoLightboxModalProps {
   fotos: string[];
@@ -46,7 +47,7 @@ export const FotoLightboxModal: React.FC<FotoLightboxModalProps> = ({
 
   const fullImageUrl = currentUrl.startsWith('http')
     ? currentUrl
-    : `http://localhost:3000${currentUrl}`;
+    : `${BACKEND_URL}${currentUrl}`;
 
   return (
     <div

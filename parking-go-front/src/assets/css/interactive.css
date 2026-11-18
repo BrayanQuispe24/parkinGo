@@ -460,12 +460,24 @@
     }
 }
 
+.role-panels-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: center;
+}
+
 .role-panel {
-    display: none;
+    grid-area: 1 / 1;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
 }
 
 .role-panel.active {
-    display: block;
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .calc-box,

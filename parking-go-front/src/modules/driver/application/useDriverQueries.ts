@@ -17,6 +17,7 @@ export const useDriverParkingsQuery = () => {
         queryKey: DRIVER_KEYS.parkings(),
         queryFn: () => driverRepository.getParkings(),
         staleTime: 1000 * 60 * 2,
+        refetchOnWindowFocus: true,
     });
 };
 

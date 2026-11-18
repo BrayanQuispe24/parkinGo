@@ -34,7 +34,7 @@ export const HowItWorksSection = () => {
                     <div className="classgo-step-card">
                         <div className="step-badge-pill">Paso 1</div>
                         <div className="step-card-img-wrapper">
-                            <img src={step1encuentrapngImg} alt="Encuentra tu parqueo"/>
+                            <img src={step1encuentrapngImg} alt="Encuentra tu parqueo" loading="lazy" decoding="async"/>
                         </div>
                         <h3 className="classgo-step-title">Encuentra</h3>
                         <p className="classgo-step-desc">Busca parqueos cerca de tu destino y consulta su disponibilidad en
@@ -45,7 +45,7 @@ export const HowItWorksSection = () => {
                     <div className="classgo-step-card">
                         <div className="step-badge-pill">Paso 2</div>
                         <div className="step-card-img-wrapper">
-                            <img src={step2reservapngImg} alt="Reserva tu espacio"/>
+                            <img src={step2reservapngImg} alt="Reserva tu espacio" loading="lazy" decoding="async"/>
                         </div>
                         <h3 className="classgo-step-title">Reserva ahora</h3>
                         <p className="classgo-step-desc">Selecciona tu espacio y confirma tu reserva antes de llegar para
@@ -56,7 +56,7 @@ export const HowItWorksSection = () => {
                     <div className="classgo-step-card">
                         <div className="step-badge-pill">Paso 3</div>
                         <div className="step-card-img-wrapper">
-                            <img src={step3estacionapngImg} alt="Estaciona seguro"/>
+                            <img src={step3estacionapngImg} alt="Estaciona seguro" loading="lazy" decoding="async"/>
                         </div>
                         <h3 className="classgo-step-title">Estaciona</h3>
                         <p className="classgo-step-desc">Llega a la garita, ingresa con tu código QR o placa y ocupa tu

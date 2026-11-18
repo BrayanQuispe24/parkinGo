@@ -120,6 +120,16 @@ export const ParkingAdminSidebar = ({
                     <span>Mis Estacionamientos</span>
                 </Link>
 
+                <Link
+                    to="/dashboard/parking-admin/reservas"
+                    className={`nav-item ${isCurrent('/dashboard/parking-admin/reservas') ? 'active' : ''}`}
+                    title="Control de Reservas y Cobro en Garita"
+                    onClick={handleLinkClick}
+                >
+                    <i className="fa-solid fa-calendar-check"></i>
+                    <span>Reservas Recibidas</span>
+                </Link>
+
 
                 <a
                     className="nav-item"

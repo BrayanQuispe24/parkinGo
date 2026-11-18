@@ -8,7 +8,11 @@ export class DeleteUsuarioAction {
     async execute(id: string, requestingUserId?: string, requestingRoleName?: string) {
         const currentUser = await this.usuarioRepository.findById(id);
 
-        if (requestingRoleName === 'PARKING_ADMIN' || requestingRoleName === 'HOST') {
+        if (requestingRoleName === 'HOST') {
+            throw new ForbiddenException("El rol Anfitrión no tiene permiso para eliminar operadores.");
+        }
+
+        if (requestingRoleName === 'PARKING_ADMIN') {
             if (currentUser.createdById !== requestingUserId) {
                 throw new ForbiddenException("No tienes permiso para eliminar este operador.");
             }

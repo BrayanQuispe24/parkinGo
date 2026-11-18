@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useMiEstacionamientoQuery } from '../../application/useEstacionamientosQuery';
-import { useRegistrarEstacionamientoMutation } from '../../application/useEstacionamientosMutations';
+import {
+  useEliminarEstacionamientoRechazadoMutation,
+  useRegistrarEstacionamientoMutation,
+} from '../../application/useEstacionamientosMutations';
 import type { EstacionamientoModel, RegistrarEstacionamientoPayload } from '../../domain/Estacionamiento';
 import { TenantEstadoCard } from '../components/TenantEstadoCard';
 import { FormularioEstacionamiento } from '../components/FormularioEstacionamiento';
@@ -9,6 +12,7 @@ import { HostOnboardingWizard } from '../../../host/presentation/components/Host
 import { useHostParkingPolicy } from '../../../host/application/useHostParkingPolicy';
 import { EstacionamientosEnterpriseTable } from '../components/EstacionamientosEnterpriseTable';
 import { TenantHorariosPanel } from '../components/TenantHorariosPanel';
+import { ModalEliminarEstacionamientoRechazado } from '../components/ModalEliminarEstacionamientoRechazado';
 import { showToast } from '../../../../core/utils/toastr';
 import '../styles/estacionamientos.css';
 
@@ -16,6 +20,7 @@ export const TenantEstacionamientoPage: React.FC = () => {
   const { isHost } = useHostParkingPolicy();
   const { data: miEstacionamiento, isLoading, error } = useMiEstacionamientoQuery();
   const registrarMutation = useRegistrarEstacionamientoMutation();
+  const eliminarRechazadoMutation = useEliminarEstacionamientoRechazadoMutation();
 
   // Lista normalizada (1 o más para soportar multi-estacionamiento a futuro)
   const estacionamientos: EstacionamientoModel[] = miEstacionamiento ? [miEstacionamiento] : [];
@@ -23,6 +28,8 @@ export const TenantEstacionamientoPage: React.FC = () => {
   // Pestañas: 'list' (Listado) | 'form' (Registrar) | 'horarios' (Gestionar Horarios)
   const [mainTab, setMainTab] = useState<'list' | 'form' | 'horarios'>('list');
   const [selectedForDetail, setSelectedForDetail] = useState<EstacionamientoModel | null>(null);
+  const [estacionamientoToDelete, setEstacionamientoToDelete] =
+    useState<EstacionamientoModel | null>(null);
 
   const handleRegisterSubmit = async (payload: RegistrarEstacionamientoPayload) => {
     try {
@@ -41,6 +48,28 @@ export const TenantEstacionamientoPage: React.FC = () => {
     }
   };
 
+  const handleDeleteRejectedConfirm = async (id: string) => {
+    try {
+      await eliminarRechazadoMutation.mutateAsync(id);
+      setEstacionamientoToDelete(null);
+      setSelectedForDetail(null);
+      setMainTab('list');
+      showToast.success(
+        'Solicitud rechazada eliminada. Ahora puedes registrar una nueva solicitud.',
+        'Parqueo Eliminado',
+      );
+    } catch (err: unknown) {
+      const msg =
+        axios.isAxiosError(err) && err.response?.data?.message
+          ? Array.isArray(err.response.data.message)
+            ? err.response.data.message.join(', ')
+            : err.response.data.message
+          : 'No se pudo eliminar el estacionamiento rechazado.';
+      showToast.error(msg, 'Error al Eliminar');
+      console.error('Error al eliminar estacionamiento rechazado:', err);
+    }
+  };
+
   return (
     <div className="tenant-page-container">
       {/* 1. Vista Completa Dedicada de Ficha Técnica */}
@@ -48,6 +77,7 @@ export const TenantEstacionamientoPage: React.FC = () => {
         <TenantEstadoCard
           estacionamiento={selectedForDetail}
           onBack={() => setSelectedForDetail(null)}
+          onDeleteRejected={(item) => setEstacionamientoToDelete(item)}
         />
       ) : (
         <>
@@ -71,7 +101,7 @@ export const TenantEstacionamientoPage: React.FC = () => {
               }}
             >
               <i className="fa-solid fa-square-parking"></i>
-              <span>Listado de Estacionamientos ({estacionamientos.length})</span>
+              <span>Listado de Estacionamientos ({isLoading ? '--' : estacionamientos.length})</span>
             </button>
 
             {/* Pestaña de Registro (Solo si no es host o si es host y aún no tiene cochera registrada) */}
@@ -121,20 +151,8 @@ export const TenantEstacionamientoPage: React.FC = () => {
             </button>
           </div>
 
-          {/* Estados de Carga y Vistas Normales */}
-          {isLoading ? (
-            <div
-              className="tenant-form-panel"
-              style={{ textAlign: 'center', padding: '3.5rem 2rem' }}
-            >
-              <div style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#006D36' }}>
-                <i className="fa-solid fa-circle-notch fa-spin"></i>
-              </div>
-              <p style={{ margin: 0, fontWeight: 700, color: '#334155' }}>
-                Cargando estacionamientos...
-              </p>
-            </div>
-          ) : error ? (
+          {/* Estados de Error y Vistas Normales con Skeletons Integrados */}
+          {error ? (
             <div
               style={{
                 background: '#FEF2F2',
@@ -144,7 +162,7 @@ export const TenantEstacionamientoPage: React.FC = () => {
                 padding: '1rem',
                 fontSize: '0.85rem',
                 maxWidth: '780px',
-                margin: '0 auto',
+                margin: '1.5rem auto',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.6rem',
@@ -182,10 +200,18 @@ export const TenantEstacionamientoPage: React.FC = () => {
               loading={isLoading}
               onViewEstacionamiento={(item) => setSelectedForDetail(item)}
               onGoToRegister={() => setMainTab('form')}
+              onDeleteRejected={(item) => setEstacionamientoToDelete(item)}
             />
           )}
         </>
       )}
+
+      <ModalEliminarEstacionamientoRechazado
+        estacionamiento={estacionamientoToDelete}
+        onClose={() => setEstacionamientoToDelete(null)}
+        onConfirm={handleDeleteRejectedConfirm}
+        isLoading={eliminarRechazadoMutation.isPending}
+      />
     </div>
   );
 };

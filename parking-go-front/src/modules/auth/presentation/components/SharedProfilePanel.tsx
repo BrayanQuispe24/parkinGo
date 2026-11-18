@@ -70,18 +70,21 @@ export const SharedProfilePanel: React.FC<SharedProfilePanelProps> = ({
             };
         }
 
-        switch (user?.role) {
+        switch (user?.role?.trim().toUpperCase()) {
             case 'SUPER_ADMIN':
             case 'GENERAL_ADMIN':
                 return { label: 'ADMINISTRADOR DEL SISTEMA', icon: 'fa-solid fa-shield-halved' };
             case 'PARKING_ADMIN':
                 return { label: 'ADMINISTRADOR DE PARQUEO', icon: 'fa-solid fa-square-parking' };
             case 'HOST':
+            case 'ANFITRION':
                 return { label: 'ANFITRIÓN DE PARQUEO', icon: 'fa-solid fa-building' };
             case 'PARKING_OPERATOR':
             case 'OPERATOR':
+            case 'OPERADOR':
                 return { label: 'OPERADOR DE CASETA', icon: 'fa-solid fa-user-tie' };
             case 'DRIVER':
+            case 'CONDUCTOR':
             default:
                 return { label: 'CONDUCTOR VERIFICADO', icon: 'fa-solid fa-car-side' };
         }

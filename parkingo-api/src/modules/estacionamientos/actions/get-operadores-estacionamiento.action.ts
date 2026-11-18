@@ -3,6 +3,7 @@ import { EstacionamientoRepository } from '../repositories/estacionamiento.repos
 import { EstacionamientoOperadorRepository } from '../repositories/estacionamiento-operador.repository.js';
 import { OperadorEstacionamientoResponseDto } from '../dto/operador-estacionamiento-response.dto.js';
 import { EstacionamientoOperadorMapper } from '../mappers/estacionamiento-operador.mapper.js';
+import { assertEstacionamientoPermiteOperadores } from '../utils/estacionamiento-operadores.policy.js';
 
 @Injectable()
 export class GetOperadoresEstacionamientoAction {
@@ -16,6 +17,8 @@ export class GetOperadoresEstacionamientoAction {
     if (!estacionamiento) {
       throw new NotFoundException(`Estacionamiento con ID ${estacionamientoId} no encontrado.`);
     }
+
+    assertEstacionamientoPermiteOperadores(estacionamiento);
 
     const operadores = await this.operadorRepository.findOperadoresByEstacionamientoId(estacionamientoId);
     return EstacionamientoOperadorMapper.toResponseDtoList(operadores);

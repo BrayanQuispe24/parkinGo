@@ -170,9 +170,7 @@
 }
 
 html {
-    scroll-behavior: smooth;
     font-size: 16px;
-    overflow-x: hidden;
     width: 100%;
     transition: font-size var(--transition-fast);
 }
@@ -196,7 +194,7 @@ body {
     color: var(--color-text-primary);
     font-family: var(--font-body);
     line-height: 1.6;
-    overflow-x: hidden;
+    overflow-x: clip;
     width: 100%;
     -webkit-font-smoothing: antialiased;
 }
@@ -367,6 +365,7 @@ a:hover {
 .reveal-visible {
     opacity: 1 !important;
     transform: translate(0, 0) !important;
+    will-change: auto;
 }
 
 /* Stagger Delays */

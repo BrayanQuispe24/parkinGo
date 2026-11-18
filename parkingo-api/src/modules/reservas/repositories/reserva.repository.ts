@@ -32,6 +32,7 @@ export interface CreateReservaData {
   estacionamientoId: string;
   clienteId: string;
   operadorId?: string;
+  metodoPago?: string;
   detalles: CreateDetalleData[];
 }
 
@@ -54,6 +55,13 @@ export type ReservacionConRelaciones = Reservacion & {
     lastName: string;
     email: string;
   } | null;
+  pagos?: Array<{
+    id: string;
+    monto: number;
+    metodoPago: string;
+    estado: string;
+    fechaPago: Date | null;
+  }>;
   detalles: Array<
     DetalleReservacion & {
       espacio: {
@@ -80,10 +88,18 @@ export type ReservacionConRelaciones = Reservacion & {
   >;
 };
 
+export interface RegistrarPagoData {
+  monto: number;
+  metodoPago: string;
+  fechaPago?: Date;
+  qrToken?: string;
+}
+
 export abstract class ReservaRepository {
   abstract create(data: CreateReservaData): Promise<ReservacionConRelaciones>;
   abstract findById(id: string): Promise<ReservacionConRelaciones | null>;
   abstract findByCodigo(codigoReserva: string): Promise<ReservacionConRelaciones | null>;
+  abstract findByQrToken(qrToken: string): Promise<ReservacionConRelaciones | null>;
   abstract findByClienteId(clienteId: string): Promise<ReservacionConRelaciones[]>;
   abstract findByEstacionamientoId(estacionamientoId: string): Promise<ReservacionConRelaciones[]>;
   abstract verificarColisionEspacios(
@@ -92,4 +108,8 @@ export abstract class ReservaRepository {
     fin: Date,
   ): Promise<{ espacioId: string; codigoEspacio: string; conflictoCon: string }[]>;
   abstract cancelar(id: string): Promise<ReservacionConRelaciones>;
+  abstract registrarPagoYConfirmar(
+    id: string,
+    data: RegistrarPagoData,
+  ): Promise<ReservacionConRelaciones>;
 }

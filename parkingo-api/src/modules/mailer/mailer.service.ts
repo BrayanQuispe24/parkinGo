@@ -458,5 +458,170 @@ export class MailerService {
         </html>
         `;
     }
+
+    /**
+     * Envía un correo al solicitante notificando el rechazo de su solicitud de estacionamiento y el motivo.
+     */
+    async sendParkingRejectionEmail(
+        to: string,
+        recipientName: string,
+        data: {
+            estacionamientoNombre: string;
+            tenantNombre?: string;
+            motivoRechazo: string;
+            fecha: string;
+        },
+    ): Promise<boolean> {
+        const subject = `Actualización de Solicitud: ${data.estacionamientoNombre} - ParkinGo`;
+        const html = this.buildParkingRejectionEmailTemplate(recipientName, data);
+
+        this.logger.log(`====================================================`);
+        this.logger.log(`🚫 [RECHAZO ESTACIONAMIENTO] Para: ${to} | Parqueo: ${data.estacionamientoNombre}`);
+        this.logger.log(`====================================================`);
+
+        return this.dispatchEmail(to, subject, html, 'rechazo de estacionamiento');
+    }
+
+    private async dispatchEmail(
+        to: string,
+        subject: string,
+        html: string,
+        contextLabel: string,
+    ): Promise<boolean> {
+        if (this.nodemailerTransporter) {
+            try {
+                await this.nodemailerTransporter.sendMail({
+                    from: this.mailFrom,
+                    to,
+                    subject,
+                    html,
+                });
+                this.logger.log(`Correo de ${contextLabel} enviado exitosamente vía SMTP a ${to}`);
+                return true;
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : 'Error desconocido';
+                this.logger.error(`Error al enviar ${contextLabel} vía SMTP a ${to}: ${message}`);
+                return false;
+            }
+        }
+
+        if (this.resendClient) {
+            try {
+                const { error } = await this.resendClient.emails.send({
+                    from: this.mailFrom,
+                    to: [to],
+                    subject,
+                    html,
+                });
+
+                if (error) {
+                    this.logger.error(`Error al enviar ${contextLabel} vía Resend a ${to}: ${error.message}`);
+                    return false;
+                }
+
+                this.logger.log(`Correo de ${contextLabel} enviado exitosamente vía Resend a ${to}`);
+                return true;
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : 'Error desconocido';
+                this.logger.error(`Excepción en despacho Resend (${contextLabel}) a ${to}: ${message}`);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private escapeHtml(value: string): string {
+        return value
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    private buildParkingRejectionEmailTemplate(
+        recipientName: string,
+        data: {
+            estacionamientoNombre: string;
+            tenantNombre?: string;
+            motivoRechazo: string;
+            fecha: string;
+        },
+    ): string {
+        const safeName = this.escapeHtml(recipientName || 'Administrador de Parqueo');
+        const safeParking = this.escapeHtml(data.estacionamientoNombre);
+        const safeTenant = data.tenantNombre ? this.escapeHtml(data.tenantNombre) : null;
+        const safeMotivo = this.escapeHtml(data.motivoRechazo).replace(/\r?\n/g, '<br />');
+        const safeFecha = this.escapeHtml(data.fecha);
+
+        return `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Solicitud de Estacionamiento Rechazada - ParkinGo</title>
+        </head>
+        <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F7F8F4; margin: 0; padding: 24px; color: #1E293B;">
+          <table width="100%" border="0" cellspacing="0" cellpadding="0">
+            <tr>
+              <td align="center">
+                <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%; background-color: #FFFFFF; border-radius: 12px; overflow: hidden; border: 1px solid #E2E8F0; box-shadow: 0 4px 14px rgba(0,0,0,0.06);">
+                  <!-- Encabezado -->
+                  <tr>
+                    <td style="background-color: #063D25; padding: 1.75rem 2.25rem; text-align: center;">
+                      <h1 style="color: #FFFFFF; margin: 0; font-size: 1.5rem; letter-spacing: 0.04em; font-weight: 800;">
+                        Parkin<span style="color: #22C55E;">Go</span>
+                      </h1>
+                      <p style="color: #A7F3D0; margin: 0.35rem 0 0 0; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em;">
+                        Evaluación de Solicitud de Estacionamiento
+                      </p>
+                    </td>
+                  </tr>
+
+                  <!-- Contenido -->
+                  <tr>
+                    <td style="padding: 2rem 2.25rem;">
+                      <h2 style="margin: 0 0 0.75rem 0; font-size: 1.15rem; color: #0F172A; font-weight: 700;">
+                        Hola, ${safeName}
+                      </h2>
+                      <p style="margin: 0 0 1.25rem 0; font-size: 0.92rem; color: #475569; line-height: 1.55;">
+                        Te informamos que la solicitud de registro del estacionamiento <strong>${safeParking}</strong>${safeTenant ? ` (empresa <strong>${safeTenant}</strong>)` : ''} ha sido <strong>rechazada</strong> tras la revisión del equipo administrador.
+                      </p>
+
+                      <!-- Bloque de Motivo del Rechazo -->
+                      <div style="background-color: #FEF2F2; border: 1px solid #FECACA; border-left: 4px solid #DC2626; border-radius: 8px; padding: 1.15rem 1.25rem; margin: 1.25rem 0;">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #991B1B; font-weight: 800; margin-bottom: 0.45rem;">
+                          Motivo del rechazo
+                        </div>
+                        <p style="margin: 0; font-size: 0.92rem; color: #7F1D1D; line-height: 1.5;">
+                          ${safeMotivo}
+                        </p>
+                      </div>
+
+                      <p style="margin: 0 0 0.75rem 0; font-size: 0.84rem; color: #64748B;">
+                        <strong>Fecha de evaluación:</strong> ${safeFecha}
+                      </p>
+                      <p style="margin: 0; font-size: 0.84rem; color: #64748B; line-height: 1.5; border-top: 1px solid #E2E8F0; padding-top: 1rem;">
+                        Puedes ingresar a tu panel de administración para revisar estas observaciones y realizar las correcciones necesarias.
+                      </p>
+                    </td>
+                  </tr>
+
+                  <!-- Footer -->
+                  <tr>
+                    <td style="background-color: #F8FAFC; padding: 1.25rem; text-align: center; border-top: 1px solid #E2E8F0; font-size: 0.75rem; color: #94A3B8;">
+                      © ${new Date().getFullYear()} ParkinGo Bolivia. Todos los derechos reservados.
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
+        `;
+    }
 }
 

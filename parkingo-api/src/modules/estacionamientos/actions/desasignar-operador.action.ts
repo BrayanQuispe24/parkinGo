@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { EstacionamientoRepository } from '../repositories/estacionamiento.repository.js';
 import { EstacionamientoOperadorRepository } from '../repositories/estacionamiento-operador.repository.js';
+import { assertEstacionamientoPermiteOperadores } from '../utils/estacionamiento-operadores.policy.js';
 
 @Injectable()
 export class DesasignarOperadorAction {
@@ -17,6 +18,8 @@ export class DesasignarOperadorAction {
     if (!estacionamiento) {
       throw new NotFoundException(`Estacionamiento con ID ${estacionamientoId} no encontrado.`);
     }
+
+    assertEstacionamientoPermiteOperadores(estacionamiento);
 
     await this.operadorRepository.desasignarOperador(estacionamientoId, usuarioId);
 

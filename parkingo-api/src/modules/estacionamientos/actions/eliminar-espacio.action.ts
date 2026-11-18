@@ -7,12 +7,14 @@ import { EspacioRepository } from '../repositories/espacio.repository.js';
 import { TenantRepository } from '../../tenants/repositories/tenant.repository.js';
 import { EspacioResponseDto } from '../dto/espacio-response.dto.js';
 import { EspacioMapper } from '../mappers/espacio.mapper.js';
+import { EspaciosRealtimeService } from '../../realtime/services/espacios-realtime.service.js';
 
 @Injectable()
 export class EliminarEspacioAction {
   constructor(
     private readonly espacioRepository: EspacioRepository,
     private readonly tenantRepository: TenantRepository,
+    private readonly espaciosRealtimeService: EspaciosRealtimeService,
   ) {}
 
   async execute(id: string, userId: string): Promise<EspacioResponseDto> {
@@ -34,6 +36,12 @@ export class EliminarEspacioAction {
     }
 
     const deleted = await this.espacioRepository.delete(id);
-    return EspacioMapper.toResponseDto(deleted);
+    const responseDto = EspacioMapper.toResponseDto(deleted);
+    this.espaciosRealtimeService.emitEspacioCambio(
+      'DELETED',
+      espacio.nivel.estacionamiento.id,
+      responseDto,
+    );
+    return responseDto;
   }
 }

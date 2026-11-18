@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface ModalRechazoEstacionamientoProps {
   isOpen: boolean;
@@ -16,7 +16,24 @@ export const ModalRechazoEstacionamiento: React.FC<ModalRechazoEstacionamientoPr
   const [motivo, setMotivo] = useState('');
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    if (!isOpen) {
+      setMotivo('');
+      setError('');
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
+
+  const handleOverlayClick = () => {
+    if (!isLoading) {
+      onClose();
+    }
+  };
+
+  const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -29,8 +46,8 @@ export const ModalRechazoEstacionamiento: React.FC<ModalRechazoEstacionamientoPr
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
+    <div className="estacionamiento-modal-overlay" onClick={handleOverlayClick}>
+      <div className="estacionamiento-modal-content" onClick={handleContentClick}>
         <h3 className="card-title" style={{ color: '#DC2626' }}>
           Rechazar Solicitud de Estacionamiento
         </h3>
@@ -62,7 +79,7 @@ export const ModalRechazoEstacionamiento: React.FC<ModalRechazoEstacionamientoPr
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
             <button
               type="button"
-              className="btn-secondary"
+              className="btn btn-secondary"
               onClick={onClose}
               disabled={isLoading}
             >
@@ -70,7 +87,7 @@ export const ModalRechazoEstacionamiento: React.FC<ModalRechazoEstacionamientoPr
             </button>
             <button
               type="submit"
-              className="btn-danger"
+              className="btn btn-danger"
               disabled={isLoading}
             >
               {isLoading ? 'Rechazando...' : 'Confirmar Rechazo'}

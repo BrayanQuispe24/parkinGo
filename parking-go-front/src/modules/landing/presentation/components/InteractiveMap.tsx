@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -34,7 +34,13 @@ const getCustomIcon = (isCommercial: boolean) => {
 
 function MapUpdater({ spots }: { spots: ParkingSpot[] }) {
     const map = useMap();
+    const isFirstRender = useRef<boolean>(true);
+
     useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
         if (spots.length > 0) {
             map.flyTo(spots[0].coords, 14, { duration: 1.2 });
         } else {
@@ -49,18 +55,20 @@ export function InteractiveMap() {
     const [typeFilter, setTypeFilter] = useState('all');
     const [categoryFilter] = useState('all');
 
-    const filteredSpots = parkingSpotsData.filter(s => {
-        if (categoryFilter !== 'all') {
-            if (categoryFilter === 'host' || categoryFilter === 'commercial') {
-                if (s.type !== categoryFilter) return false;
-            } else {
-                if (s.zone !== categoryFilter) return false;
+    const filteredSpots = useMemo<ParkingSpot[]>(() => {
+        return parkingSpotsData.filter(s => {
+            if (categoryFilter !== 'all') {
+                if (categoryFilter === 'host' || categoryFilter === 'commercial') {
+                    if (s.type !== categoryFilter) return false;
+                } else {
+                    if (s.zone !== categoryFilter) return false;
+                }
             }
-        }
-        if (zoneFilter !== 'all' && s.zone !== zoneFilter) return false;
-        if (typeFilter !== 'all' && s.type !== typeFilter) return false;
-        return true;
-    });
+            if (zoneFilter !== 'all' && s.zone !== zoneFilter) return false;
+            if (typeFilter !== 'all' && s.type !== typeFilter) return false;
+            return true;
+        });
+    }, [categoryFilter, zoneFilter, typeFilter]);
 
     const [selectedSpot, setSelectedSpot] = useState<ParkingSpot | null>(null);
 
@@ -107,7 +115,7 @@ export function InteractiveMap() {
 
                     <div className="map-layout-grid">
                         <div className="map-canvas-wrapper" style={{ height: '500px' }}>
-                            <MapContainer center={[-17.7833, -63.1880]} zoom={13} style={{ height: '100%', width: '100%', borderRadius: '12px' }}>
+                            <MapContainer center={[-17.7833, -63.1880]} zoom={13} scrollWheelZoom={false} style={{ height: '100%', width: '100%', borderRadius: '12px' }}>
                                 <TileLayer
                                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

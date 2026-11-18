@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { EstadoEstacionamiento } from '../domain/Estacionamiento';
 import { httpEstacionamientoRepository } from '../infrastructure/HttpEstacionamientoRepository';
 
@@ -21,6 +21,7 @@ export const useAdminEstacionamientosQuery = (estado?: EstadoEstacionamiento) =>
   return useQuery({
     queryKey: ESTACIONAMIENTOS_QUERY_KEYS.adminList(estado),
     queryFn: () => httpEstacionamientoRepository.listarEstacionamientos(estado),
+    placeholderData: keepPreviousData,
     staleTime: 1000 * 30, // 30 segundos
   });
 };

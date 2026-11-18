@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { BACKEND_URL } from '../../../../core/api/parkingoApi';
 import type { FotoEstacionamientoModel } from '../../domain/Estacionamiento';
 import { FotoLightboxModal } from './FotoLightboxModal';
 import {
@@ -288,7 +289,7 @@ export const GaleriaFotosEnterprise: React.FC<GaleriaFotosEnterpriseProps> = ({
             {fotos.map((foto, index) => {
               const fullUrl = foto.url.startsWith('http')
                 ? foto.url
-                : `http://localhost:3000${foto.url}`;
+                : `${BACKEND_URL}${foto.url}`;
               const isDeleting = deletingId === foto.id;
 
               // Patrón Quilted MUI: [2x2, 1x1, 1x1, 2x1, 2x1, 2x2, 1x1, 1x1, 2x2, 1x1, 1x1, 2x1]

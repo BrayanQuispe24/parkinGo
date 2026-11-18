@@ -42,11 +42,27 @@ export const FotosUploader: React.FC<FotosUploaderProps> = ({
         className="dropzone-box"
         onClick={() => !disabled && fileInputRef.current?.click()}
       >
-        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📸</div>
-        <p style={{ margin: 0, fontWeight: 600, color: 'var(--text-main, #17211B)' }}>
+        <div
+          style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '6px',
+            background: '#DCFCE7',
+            color: '#006D36',
+            border: '1px solid #BBF7D0',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.1rem',
+            marginBottom: '0.6rem',
+          }}
+        >
+          <i className="fa-solid fa-cloud-arrow-up"></i>
+        </div>
+        <p style={{ margin: 0, fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-main, #17211B)' }}>
           Haz clic aquí para seleccionar fotografías del estacionamiento
         </p>
-        <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted, #64748B)' }}>
+        <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.76rem', color: 'var(--text-muted, #64748B)' }}>
           JPG, PNG o WEBP (puedes subir fachada, plazas, accesos y señalética)
         </p>
       </div>

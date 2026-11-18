@@ -1,11 +1,13 @@
 // src/modules/driver/presentation/components/ActiveTicketCard.tsx
 import React, { useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import type { DriverBooking } from '../../domain/DriverBooking';
 
 interface ActiveTicketCardProps {
     booking: DriverBooking | null;
     onFinishBooking: (bookingId: string) => Promise<void>;
     onGoToSearch: () => void;
+    onPayWithQr?: () => void;
     isFinishing?: boolean;
 }
 
@@ -13,6 +15,7 @@ export const ActiveTicketCard: React.FC<ActiveTicketCardProps> = ({
     booking,
     onFinishBooking,
     onGoToSearch,
+    onPayWithQr,
     isFinishing,
 }) => {
     const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
@@ -87,6 +90,10 @@ export const ActiveTicketCard: React.FC<ActiveTicketCardProps> = ({
     const boleta = booking.boletaOriginal;
     const isPendientePago = boleta?.estado === 'PENDIENTE_PAGO';
     const isCancelada = boleta?.estado === 'CANCELADA';
+    const metodoPago = boleta?.metodoPago || booking.paymentMethod || 'EFECTIVO';
+    const isCashMethod = metodoPago === 'EFECTIVO';
+    const isQrMethod = metodoPago === 'QR';
+    const qrTokenValue = boleta?.qrToken || booking.qrCodeText || `PARKINGO:RESERVA:${boleta?.id || booking.id}`;
 
     const handleConfirmCancel = async () => {
         setConfirmCancelOpen(false);
@@ -232,21 +239,98 @@ export const ActiveTicketCard: React.FC<ActiveTicketCardProps> = ({
                                 gap: '0.75rem',
                             }}
                         >
+                            {/* Lógica de visualización QR según método de pago y estado */}
+                            {isQrMethod && isPendientePago ? (
+                                <div
+                                    style={{
+                                        width: '150px',
+                                        height: '150px',
+                                        background: '#FEF3C7',
+                                        border: '2px dashed #D97706',
+                                        borderRadius: '8px',
+                                        padding: '12px',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        boxShadow: '0 2px 8px rgba(217, 119, 6, 0.1)',
+                                        textAlign: 'center',
+                                        gap: '0.35rem',
+                                    }}
+                                >
+                                    <i className="fa-solid fa-lock" style={{ fontSize: '2.4rem', color: '#B45309' }}></i>
+                                    <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#92400E', lineHeight: 1.2 }}>
+                                        QR de Acceso Protegido
+                                    </span>
+                                    <span style={{ fontSize: '0.66rem', color: '#78350F', lineHeight: 1.1 }}>
+                                        Completa tu pago QR para desbloquear tu ingreso
+                                    </span>
+                                </div>
+                            ) : (
+                                <div
+                                    style={{
+                                        background: '#FFFFFF',
+                                        border: '2px solid #0F172A',
+                                        borderRadius: '8px',
+                                        padding: '10px',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                                    }}
+                                >
+                                    <QRCodeSVG
+                                        value={qrTokenValue}
+                                        size={135}
+                                        level="M"
+                                        includeMargin={false}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Badge explicativo */}
                             <div
                                 style={{
-                                    width: '130px',
-                                    height: '130px',
-                                    background: '#FFFFFF',
-                                    border: '2px solid #0F172A',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
                                     borderRadius: '6px',
-                                    padding: '8px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                                    padding: '0.35rem 0.65rem',
+                                    maxWidth: '220px',
+                                    lineHeight: 1.3,
+                                    background: isCashMethod
+                                        ? '#ECFDF5'
+                                        : isPendientePago
+                                          ? '#FFFBEB'
+                                          : '#F0FDF4',
+                                    color: isCashMethod
+                                        ? '#065F46'
+                                        : isPendientePago
+                                          ? '#92400E'
+                                          : '#166534',
+                                    border: isCashMethod
+                                        ? '1px solid #A7F3D0'
+                                        : isPendientePago
+                                          ? '1px solid #FCD34D'
+                                          : '1px solid #BBF7D0',
                                 }}
                             >
-                                <i className="fa-solid fa-qrcode" style={{ fontSize: '6.5rem', color: '#0F172A' }}></i>
+                                {isCashMethod ? (
+                                    <>
+                                        <i className="fa-solid fa-hand-holding-dollar" style={{ marginRight: '4px' }}></i>
+                                        Pagarás en efectivo al llegar a la garita. Muestra este QR para ingresar.
+                                    </>
+                                ) : isPendientePago ? (
+                                    <>
+                                        <i className="fa-solid fa-clock" style={{ marginRight: '4px' }}></i>
+                                        Presiona "Pagar con QR Ahora" para habilitar tu ingreso.
+                                    </>
+                                ) : (
+                                    <>
+                                        <i className="fa-solid fa-circle-check" style={{ marginRight: '4px' }}></i>
+                                        Pago QR acreditado. QR verificado listo para control en garita.
+                                    </>
+                                )}
                             </div>
 
                             <div
@@ -469,7 +553,29 @@ export const ActiveTicketCard: React.FC<ActiveTicketCardProps> = ({
                             Cancelación exclusiva autorizada para el conductor titular
                         </span>
 
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            {isPendientePago && onPayWithQr && (
+                                <button
+                                    type="button"
+                                    onClick={onPayWithQr}
+                                    style={{
+                                        background: '#006D36',
+                                        color: '#FFFFFF',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        padding: '0.5rem 1rem',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '0.45rem',
+                                    }}
+                                >
+                                    <i className="fa-solid fa-qrcode"></i>
+                                    <span>Pagar con QR Ahora</span>
+                                </button>
+                            )}
                             {!confirmCancelOpen ? (
                                 <button
                                     type="button"

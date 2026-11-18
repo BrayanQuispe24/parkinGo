@@ -18,7 +18,7 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.35rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -53,7 +53,7 @@
 .estacionamiento-card {
   background: var(--surface-card, #FFFFFF);
   border: 1px solid var(--border-subtle, #E2E8E4);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
@@ -86,7 +86,7 @@
   align-items: flex-start;
   gap: 1rem;
   padding: 1.25rem;
-  border-radius: 10px;
+  border-radius: 6px;
   margin-bottom: 1.5rem;
 }
 
@@ -243,17 +243,17 @@
   position: absolute;
   top: 6px;
   right: 6px;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.7);
   color: #FFFFFF;
   border: none;
-  border-radius: 50%;
+  border-radius: 4px;
   width: 24px;
   height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   transition: background 0.15s ease;
 }
 
@@ -263,7 +263,7 @@
 
 .dropzone-box {
   border: 2px dashed #94A3B8;
-  border-radius: 10px;
+  border-radius: 6px;
   padding: 1.75rem;
   text-align: center;
   cursor: pointer;
@@ -282,7 +282,7 @@
   color: #FFFFFF;
   font-weight: 600;
   padding: 0.65rem 1.25rem;
-  border-radius: 8px;
+  border-radius: 6px;
   border: none;
   cursor: pointer;
   transition: background 0.15s ease;
@@ -305,7 +305,7 @@
   color: #FFFFFF;
   font-weight: 600;
   padding: 0.65rem 1.25rem;
-  border-radius: 8px;
+  border-radius: 6px;
   border: none;
   cursor: pointer;
   transition: background 0.15s ease;
@@ -320,16 +320,17 @@
   color: #334155;
   font-weight: 600;
   padding: 0.65rem 1.25rem;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid #CBD5E1;
   cursor: pointer;
 }
 
 /* Modal */
-.modal-overlay {
+.estacionamiento-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(15, 36, 23, 0.55);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -337,9 +338,9 @@
   padding: 1rem;
 }
 
-.modal-content {
+.estacionamiento-modal-content {
   background: var(--surface-card, #FFFFFF);
-  border-radius: 12px;
+  border-radius: 8px;
   width: 100%;
   max-width: 500px;
   padding: 1.5rem;
@@ -348,7 +349,7 @@
 
 /* Dark mode support */
 [data-theme="dark"] .estacionamiento-card,
-[data-theme="dark"] .modal-content {
+[data-theme="dark"] .estacionamiento-modal-content {
   background: #1E293B;
   border-color: #334155;
   color: #F8FAFC;

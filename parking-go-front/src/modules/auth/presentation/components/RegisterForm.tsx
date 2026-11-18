@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { DocumentUploadField } from './DocumentUploadField';
 import { EmailOtpModal } from './EmailOtpModal';
 import { TermsModal } from './TermsModal';
+import { getDefaultDashboardRoute } from '../../domain/roleRouting';
 
 export const RegisterForm = () => {
     const [fullname, setFullname] = useState('');
@@ -103,19 +104,7 @@ export const RegisterForm = () => {
         const verifiedUser = await verifyOtp(registeredEmail, code);
         if (verifiedUser) {
             setIsOtpModalOpen(false);
-                const operatorRoles = ['PARKING_OPERATOR', 'OPERATOR', 'operador'];
-                const parkingRoles = ['PARKING_ADMIN', 'HOST', 'anfitrion'];
-                if (operatorRoles.includes(verifiedUser.role)) {
-                    navigate('/dashboard/operator');
-                } else if (parkingRoles.includes(verifiedUser.role)) {
-                    navigate('/dashboard/parking-admin');
-                } else if (verifiedUser.role === 'GENERAL_ADMIN') {
-                    navigate('/dashboard/general-admin');
-                } else if (['SUPER_ADMIN', 'admin'].includes(verifiedUser.role)) {
-                    navigate('/dashboard/admin');
-                } else {
-                    navigate('/dashboard');
-                }
+            navigate(getDefaultDashboardRoute(verifiedUser.role));
             return true;
         } else {
             setOtpError(error || 'Código incorrecto o expirado');

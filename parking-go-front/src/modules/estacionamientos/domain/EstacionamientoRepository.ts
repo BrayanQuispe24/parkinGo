@@ -1,4 +1,5 @@
 import type {
+  DeleteEstacionamientoResponse,
   EstacionamientoModel,
   EstadoEstacionamiento,
   FotoEstacionamientoModel,
@@ -14,6 +15,7 @@ export interface EstacionamientoRepository {
   aprobarEstacionamiento(id: string): Promise<EstacionamientoModel>;
   rechazarEstacionamiento(id: string, motivoRechazo: string): Promise<EstacionamientoModel>;
   inhabilitarEstacionamiento(id: string): Promise<EstacionamientoModel>;
+  eliminarEstacionamientoRechazado(id: string): Promise<DeleteEstacionamientoResponse>;
   subirFotos(fotos: File[]): Promise<FotoEstacionamientoModel[]>;
   eliminarFoto(fotoId: string): Promise<FotoEstacionamientoModel>;
 }

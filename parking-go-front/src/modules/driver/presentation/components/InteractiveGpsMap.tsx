@@ -5,6 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { DriverParking } from '../../domain/DriverParking';
 import { useDriverGeolocation } from '../../application/useDriverGeolocation';
+import { DEFAULT_FALLBACK_COORDINATES } from '../../../../core/services/geocoding/useDeviceGeolocation';
 import {
   calculateHaversineDistance,
   estimateDrivingMinutes,
@@ -120,13 +121,16 @@ export const InteractiveGpsMap: React.FC<InteractiveGpsMapProps> = ({
   selectedParkingId: externalSelectedId,
 }) => {
   // Geolocalización del Conductor
-  const { coordinates: userCoords, isLocating, refreshLocation } = useDriverGeolocation();
+  const {
+    coordinates: userCoords,
+    isLocating,
+    hasGpsPermission,
+    isFallback,
+    refreshLocation,
+  } = useDriverGeolocation();
 
-  // Coordenadas base de referencia
-  const driverPosition: Coordinates = userCoords || {
-    lat: -17.3935,
-    lng: -66.157,
-  };
+  // Coordenadas base de referencia (Plaza Principal 24 de Septiembre si no hay GPS/Wi-Fi)
+  const driverPosition: Coordinates = userCoords || DEFAULT_FALLBACK_COORDINATES;
 
   // Parqueo seleccionado local o externamente
   const [internalSelectedId, setInternalSelectedId] = useState<string>(
@@ -141,8 +145,14 @@ export const InteractiveGpsMap: React.FC<InteractiveGpsMapProps> = ({
   // Calcular distancias y tiempos reales desde la posición del conductor
   const parkingsWithDistance = useMemo(() => {
     return parkings.map((p) => {
-      const lat = typeof p.latitude === 'number' && p.latitude !== 0 ? p.latitude : -17.3935;
-      const lng = typeof p.longitude === 'number' && p.longitude !== 0 ? p.longitude : -66.157;
+      const lat =
+        typeof p.latitude === 'number' && p.latitude !== 0
+          ? p.latitude
+          : DEFAULT_FALLBACK_COORDINATES.lat;
+      const lng =
+        typeof p.longitude === 'number' && p.longitude !== 0
+          ? p.longitude
+          : DEFAULT_FALLBACK_COORDINATES.lng;
       const pCoords: Coordinates = { lat, lng };
 
       const distanceKm = calculateHaversineDistance(driverPosition, pCoords);
@@ -234,7 +244,11 @@ export const InteractiveGpsMap: React.FC<InteractiveGpsMapProps> = ({
           <span>
             {isLocating
               ? 'OBTENIENDO GPS...'
-              : `UBICACIÓN: ${activeParking?.zone ? activeParking.zone.toUpperCase() : 'ZONA METROPOLITANA'}`}
+              : activeParking?.zone
+                ? `UBICACIÓN: ${activeParking.zone.toUpperCase()}`
+                : parkings.length === 0
+                  ? 'SIN PARQUEOS EN CATÁLOGO'
+                  : 'GPS ACTIVO'}
           </span>
         </div>
       </div>
@@ -274,10 +288,12 @@ export const InteractiveGpsMap: React.FC<InteractiveGpsMapProps> = ({
             <Popup>
               <div style={{ padding: '0.45rem 0.65rem', textAlign: 'center' }}>
                 <strong style={{ fontSize: '0.82rem', color: '#1E293B', display: 'block' }}>
-                  Tu Posición Actual
+                  {hasGpsPermission && !isFallback ? 'Tu Posición Actual' : 'Plaza Principal (Por Defecto)'}
                 </strong>
                 <span style={{ fontSize: '0.74rem', color: '#64748B' }}>
-                  GPS de búsqueda activo
+                  {hasGpsPermission && !isFallback
+                    ? 'GPS de búsqueda activo'
+                    : 'Plaza 24 de Septiembre (sin GPS/Wi-Fi)'}
                 </span>
               </div>
             </Popup>

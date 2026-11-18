@@ -43,6 +43,7 @@ import { ActualizarServicioExtraAction } from './actions/actualizar-servicio-ext
 import { EliminarServicioExtraAction } from './actions/eliminar-servicio-extra.action.js';
 import { SubirFotosAction } from './actions/subir-fotos.action.js';
 import { EliminarFotoAction } from './actions/eliminar-foto.action.js';
+import { EliminarEstacionamientoRechazadoAction } from './actions/eliminar-estacionamiento-rechazado.action.js';
 import { CrearTarifaAction } from './actions/crear-tarifa.action.js';
 import { GetMisTarifasAction } from './actions/get-mis-tarifas.action.js';
 import { GetTarifasByEstacionamientoAction } from './actions/get-tarifas-by-estacionamiento.action.js';
@@ -127,6 +128,7 @@ import { EstacionamientoProvisioningContext } from './strategies/estacionamiento
     EliminarServicioExtraAction,
     SubirFotosAction,
     EliminarFotoAction,
+    EliminarEstacionamientoRechazadoAction,
     CrearTarifaAction,
     GetMisTarifasAction,
     GetTarifasByEstacionamientoAction,

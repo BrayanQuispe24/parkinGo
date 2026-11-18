@@ -1,12 +1,14 @@
 // src/modules/driver/presentation/components/DriverFichaTecnicaCard.tsx
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import type { DriverParking } from '../../domain/DriverParking';
+import { showToast } from '../../../../core/utils/toastr';
 import { EstadoBadge } from '../../../estacionamientos/presentation/components/EstadoBadge';
 import { EstacionamientoMapViewer } from '../../../estacionamientos/presentation/components/EstacionamientoMapViewer';
 import { GaleriaFotosEnterprise } from '../../../estacionamientos/presentation/components/GaleriaFotosEnterprise';
 import { DriverCroquisViewer } from './DriverCroquisViewer';
 import { CalificacionesListPanel } from '../../../calificaciones/presentation/components/CalificacionesListPanel';
 import { useCalificacionesEstacionamientoQuery } from '../../../calificaciones/application/useCalificacionesQuery';
+import { DEFAULT_FALLBACK_COORDINATES } from '../../../../core/services/geocoding/useDeviceGeolocation';
 import '../../../estacionamientos/presentation/styles/estacionamientos.css';
 
 export type DriverFichaTecnicaTab =
@@ -51,37 +53,38 @@ export const DriverFichaTecnicaCard: React.FC<DriverFichaTecnicaCardProps> = ({
     createdAt: new Date().toISOString(),
   }));
 
-  // Generación de espacios de respaldo si no vinieran desglosados en el catálogo
-  const rawSpaces = parking.spaces && parking.spaces.length > 0 ? parking.spaces : [];
-  const spacesList = rawSpaces.length > 0
-    ? rawSpaces
-    : Array.from({ length: Math.min(parking.totalSpots || 12, 30) }, (_, i) => {
-        const isFree = i < (parking.availableSpots || 0);
-        const levelName = parking.tags.includes('cubierto')
-          ? (i < 12 ? 'Nivel 1' : 'Nivel 2')
-          : 'Planta Baja';
+  // Espacios reales retornados por el catálogo del estacionamiento
+  const spacesList = useMemo(
+    () => (parking.spaces && parking.spaces.length > 0 ? parking.spaces : []),
+    [parking.spaces],
+  );
 
-        let spaceType = 'AUTO';
-        if (parking.tags.includes('ev') && (i === 0 || i === 1)) {
-          spaceType = 'ELECTRICO';
-        } else if (i % 6 === 2) {
-          spaceType = 'MOTO';
-        } else if (i % 8 === 4) {
-          spaceType = 'CAMIONETA';
-        } else if (i === 3) {
-          spaceType = 'DISCAPACITADO';
-        }
+  const selectedSpaceRecord = useMemo(
+    () => (selectedSpaceId ? spacesList.find((s) => s.id === selectedSpaceId) : undefined),
+    [spacesList, selectedSpaceId],
+  );
 
-        const codeNum = (i + 1).toString().padStart(2, '0');
-        const prefix = levelName === 'Nivel 2' ? 'B' : 'A';
-        return {
-          id: `slot-${parking.id}-${i}`,
-          code: `${prefix}-${codeNum}`,
-          type: spaceType,
-          level: levelName,
-          status: isFree ? 'DISPONIBLE' : 'OCUPADO',
-        };
-      });
+  const isSelectedSpaceStillAvailable = Boolean(
+    selectedSpaceRecord && selectedSpaceRecord.status === 'DISPONIBLE',
+  );
+
+  const effectiveSelectedSpaceId = isSelectedSpaceStillAvailable ? selectedSpaceId : null;
+  const effectiveSelectedSpaceCode = isSelectedSpaceStillAvailable ? selectedSpaceCode : null;
+
+  const lastWarnedLostSelectionRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (selectedSpaceId && !isSelectedSpaceStillAvailable) {
+      if (lastWarnedLostSelectionRef.current !== selectedSpaceId) {
+        lastWarnedLostSelectionRef.current = selectedSpaceId;
+        showToast.warning(
+          `El espacio ${selectedSpaceCode ?? ''} acaba de dejar de estar disponible. Selecciona otro box.`,
+          'Disponibilidad actualizada',
+        );
+      }
+    } else if (!selectedSpaceId || isSelectedSpaceStillAvailable) {
+      lastWarnedLostSelectionRef.current = null;
+    }
+  }, [selectedSpaceId, selectedSpaceCode, isSelectedSpaceStillAvailable]);
 
   const uniqueLevels = Array.from(new Set(spacesList.map((s) => s.level).filter(Boolean)));
   const uniqueTypes = Array.from(new Set(spacesList.map((s) => s.type).filter(Boolean)));
@@ -302,8 +305,8 @@ export const DriverFichaTecnicaCard: React.FC<DriverFichaTecnicaCardProps> = ({
 
               <div style={{ padding: '0.85rem' }}>
                 <EstacionamientoMapViewer
-                  latitud={parking.latitude || -17.7682}
-                  longitud={parking.longitude || -63.1834}
+                  latitud={parking.latitude || DEFAULT_FALLBACK_COORDINATES.lat}
+                  longitud={parking.longitude || DEFAULT_FALLBACK_COORDINATES.lng}
                   nombre={parking.name}
                   direccion={parking.address}
                   height="360px"
@@ -574,7 +577,7 @@ export const DriverFichaTecnicaCard: React.FC<DriverFichaTecnicaCardProps> = ({
                   letterSpacing: '0.03em',
                 }}
               >
-                {parking.horarios?.length || 7} DÍAS HABILITADOS
+                {parking.horarios?.length ?? 0} DÍAS HABILITADOS
               </span>
             </div>
 
@@ -742,6 +745,23 @@ export const DriverFichaTecnicaCard: React.FC<DriverFichaTecnicaCardProps> = ({
             </div>
 
             {/* Grilla de Tarjetas Representativas de Espacios */}
+            {filteredSpaces.length === 0 ? (
+              <div
+                style={{
+                  padding: '2.25rem 1.5rem',
+                  textAlign: 'center',
+                  background: '#F8FAFC',
+                  border: '1px dashed #CBD5E1',
+                  borderRadius: '8px',
+                  color: '#64748B',
+                  fontSize: '0.84rem',
+                  fontWeight: 600,
+                }}
+              >
+                <i className="fa-solid fa-square-parking" style={{ fontSize: '1.6rem', color: '#94A3B8', marginBottom: '0.5rem', display: 'block' }}></i>
+                No hay espacios individuales disponibles o configurados en el catálogo para este estacionamiento.
+              </div>
+            ) : (
             <div
               style={{
                 display: 'grid',
@@ -754,7 +774,7 @@ export const DriverFichaTecnicaCard: React.FC<DriverFichaTecnicaCardProps> = ({
             >
               {filteredSpaces.map((space) => {
                 const isAvailable = space.status === 'DISPONIBLE';
-                const isSelected = selectedSpaceId === space.id;
+                const isSelected = effectiveSelectedSpaceId === space.id;
                 const typeInfo = getTypeInfo(space.type);
 
                 return (
@@ -762,7 +782,7 @@ export const DriverFichaTecnicaCard: React.FC<DriverFichaTecnicaCardProps> = ({
                     key={space.id}
                     onClick={() => {
                       if (isAvailable) {
-                        if (selectedSpaceId === space.id) {
+                        if (effectiveSelectedSpaceId === space.id) {
                           setSelectedSpaceId(null);
                           setSelectedSpaceCode(null);
                         } else {
@@ -884,8 +904,9 @@ export const DriverFichaTecnicaCard: React.FC<DriverFichaTecnicaCardProps> = ({
                 );
               })}
             </div>
+            )}
 
-            {selectedSpaceId && (
+            {effectiveSelectedSpaceId && (
               <div
                 style={{
                   padding: '0.75rem 1rem',
@@ -904,7 +925,7 @@ export const DriverFichaTecnicaCard: React.FC<DriverFichaTecnicaCardProps> = ({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <i className="fa-solid fa-circle-check" style={{ color: '#006D36', fontSize: '1.1rem' }}></i>
                   <span>
-                    Has elegido el espacio <strong>{selectedSpaceCode}</strong>. Al presionar "Reservar", este box se asignará automáticamente a tu reserva.
+                    Has elegido el espacio <strong>{effectiveSelectedSpaceCode}</strong>. Al presionar "Reservar", este box se asignará automáticamente a tu reserva.
                   </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -956,8 +977,8 @@ export const DriverFichaTecnicaCard: React.FC<DriverFichaTecnicaCardProps> = ({
         {activeTab === 'croquis' && (
           <DriverCroquisViewer
             parking={parking}
-            selectedSpaceId={selectedSpaceId}
-            selectedSpaceCode={selectedSpaceCode}
+            selectedSpaceId={effectiveSelectedSpaceId}
+            selectedSpaceCode={effectiveSelectedSpaceCode}
             onSelectSpace={(spaceId, spaceCode) => {
               setSelectedSpaceId(spaceId);
               setSelectedSpaceCode(spaceCode);
@@ -967,7 +988,7 @@ export const DriverFichaTecnicaCard: React.FC<DriverFichaTecnicaCardProps> = ({
               setSelectedSpaceCode(null);
             }}
             onProceedToBooking={() => {
-              onProceedToBooking(parking, selectedSpaceCode);
+              onProceedToBooking(parking, effectiveSelectedSpaceCode);
             }}
           />
         )}
@@ -1025,7 +1046,7 @@ export const DriverFichaTecnicaCard: React.FC<DriverFichaTecnicaCardProps> = ({
             <div style={{ fontSize: '0.92rem', fontWeight: 800 }}>{parking.name}</div>
             <div style={{ fontSize: '0.74rem', color: '#86EFAC' }}>
               Tarifa: <strong>Bs {parking.pricePerHour}.00 / hora</strong> • {availableCount} plazas libres
-              {selectedSpaceCode && <span> • Box elegido: <strong>{selectedSpaceCode}</strong></span>}
+              {effectiveSelectedSpaceCode && <span> • Box elegido: <strong>{effectiveSelectedSpaceCode}</strong></span>}
             </div>
           </div>
         </div>
@@ -1033,7 +1054,7 @@ export const DriverFichaTecnicaCard: React.FC<DriverFichaTecnicaCardProps> = ({
         <button
           type="button"
           onClick={() => {
-            onProceedToBooking(parking, selectedSpaceCode);
+            onProceedToBooking(parking, effectiveSelectedSpaceCode);
           }}
           style={{
             background: '#22C55E',
@@ -1056,7 +1077,7 @@ export const DriverFichaTecnicaCard: React.FC<DriverFichaTecnicaCardProps> = ({
         >
           <i className="fa-solid fa-calendar-check"></i>
           <span>
-            {selectedSpaceCode ? `Reservar Box ${selectedSpaceCode}` : 'Reservar Plaza Ahora'}
+            {effectiveSelectedSpaceCode ? `Reservar Box ${effectiveSelectedSpaceCode}` : 'Reservar Plaza Ahora'}
           </span>
         </button>
       </div>

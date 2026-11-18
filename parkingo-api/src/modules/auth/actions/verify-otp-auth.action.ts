@@ -29,6 +29,7 @@ export class VerifyOtpAuthAction {
                 sub: user.id,
                 email: user.email,
                 roleId: user.roleId,
+                roleName: user.role?.name,
             });
 
             return {
@@ -86,6 +87,7 @@ export class VerifyOtpAuthAction {
             sub: user.id,
             email: user.email,
             roleId: user.roleId,
+            roleName: user.role?.name,
         });
 
         return {

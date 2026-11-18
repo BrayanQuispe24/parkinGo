@@ -1,43 +1,70 @@
-import { useState, useRef, useEffect } from 'react';
-import { parkingSpotsData } from '../../data/parkingSpotsData';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { parkingSpotsData, type ParkingSpot } from '../../data/parkingSpotsData';
 
 export function FeaturedParkingsCarousel() {
     const [category, setCategory] = useState('all');
-    const trackRef = useRef<HTMLDivElement>(null);
-    const categoryTrackRef = useRef<HTMLDivElement>(null);
+    const trackRef = useRef<HTMLDivElement | null>(null);
+    const categoryTrackRef = useRef<HTMLDivElement | null>(null);
     const [wishlisted, setWishlisted] = useState<Set<number>>(new Set());
 
     // Drag to scroll logic for listing carousel
     const [isDragging, setIsDragging] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
+    const [isInViewport, setIsInViewport] = useState(false);
     const [startX, setStartX] = useState(0);
     const [scrollLeftState, setScrollLeftState] = useState(0);
 
+    // Observe visibility so auto-scroll only runs when visible in viewport
+    useEffect(() => {
+        const el = trackRef.current;
+        if (!el) return;
+
+        const observer = new IntersectionObserver(
+            (entries: IntersectionObserverEntry[]) => {
+                const entry = entries[0];
+                if (entry) {
+                    setIsInViewport(entry.isIntersecting);
+                }
+            },
+            { threshold: 0.2 }
+        );
+
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
+
     // Auto scroll logic
     useEffect(() => {
+        if (!isInViewport || isDragging || isHovered) return;
+
         const intervalId = setInterval(() => {
-            if (!isDragging && trackRef.current) {
+            if (trackRef.current) {
                 const maxScrollLeft = trackRef.current.scrollWidth - trackRef.current.clientWidth;
                 if (trackRef.current.scrollLeft >= maxScrollLeft - 10) {
-                     trackRef.current.scrollBy({ left: -trackRef.current.scrollLeft, behavior: 'smooth' });
+                    trackRef.current.scrollBy({ left: -trackRef.current.scrollLeft, behavior: 'smooth' });
                 } else {
-                     trackRef.current.scrollBy({ left: 350, behavior: 'smooth' });
+                    trackRef.current.scrollBy({ left: 350, behavior: 'smooth' });
                 }
             }
         }, 4000);
         return () => clearInterval(intervalId);
-    }, [isDragging, category]);
+    }, [isInViewport, isDragging, isHovered, category]);
 
-    const handleMouseDown = (e: React.MouseEvent) => {
+    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!trackRef.current) return;
         setIsDragging(true);
         setStartX(e.pageX - trackRef.current.offsetLeft);
         setScrollLeftState(trackRef.current.scrollLeft);
     };
 
-    const handleMouseLeave = () => setIsDragging(false);
+    const handleMouseEnter = () => setIsHovered(true);
+    const handleMouseLeave = () => {
+        setIsDragging(false);
+        setIsHovered(false);
+    };
     const handleMouseUp = () => setIsDragging(false);
     
-    const handleMouseMove = (e: React.MouseEvent) => {
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!isDragging || !trackRef.current) return;
         e.preventDefault();
         const x = e.pageX - trackRef.current.offsetLeft;
@@ -62,14 +89,16 @@ export function FeaturedParkingsCarousel() {
         });
     };
 
-    const filteredSpots = parkingSpotsData.filter(s => {
-        if (category === 'all') return true;
-        if (category === 'near') return s.zone === 'equipetrol'; // mock near
-        if (category === 'hour') return true; 
-        if (category === 'day') return s.type === 'commercial';
-        if (category === 'monthly') return s.type === 'host';
-        return true;
-    });
+    const filteredSpots = useMemo<ParkingSpot[]>(() => {
+        return parkingSpotsData.filter(s => {
+            if (category === 'all') return true;
+            if (category === 'near') return s.zone === 'equipetrol'; // mock near
+            if (category === 'hour') return true; 
+            if (category === 'day') return s.type === 'commercial';
+            if (category === 'monthly') return s.type === 'host';
+            return true;
+        });
+    }, [category]);
 
     const scrollLeft = () => {
         if (trackRef.current) {
@@ -147,6 +176,7 @@ export function FeaturedParkingsCarousel() {
                         <div 
                             className={`listing-cards-carousel ${isDragging ? 'dragging' : ''}`} 
                             ref={trackRef}
+                            onMouseEnter={handleMouseEnter}
                             onMouseDown={handleMouseDown}
                             onMouseLeave={handleMouseLeave}
                             onMouseUp={handleMouseUp}

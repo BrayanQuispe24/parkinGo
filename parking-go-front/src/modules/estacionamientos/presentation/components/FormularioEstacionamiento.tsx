@@ -6,11 +6,10 @@ import type {
 import { useTenantsQuery, useTenantHorariosQuery } from '../../../tenants/application/useTenantsQuery';
 import { HorariosSemanaPicker } from './HorariosSemanaPicker';
 import { FotosUploader } from './FotosUploader';
-import {
-  EstacionamientoLocationPicker,
-  type LocationCoordinates,
-} from './EstacionamientoLocationPicker';
+import { EstacionamientoLocationPicker } from './EstacionamientoLocationPicker';
+import { useParkingLocationState } from '../../application/useParkingLocationState';
 import { showToast } from '../../../../core/utils/toastr';
+import { DEFAULT_FALLBACK_COORDINATES } from '../../../../core/services/geocoding/useDeviceGeolocation';
 import { useAuthStore } from '../../../../store/useAuthStore';
 
 interface FormularioEstacionamientoProps {
@@ -34,12 +33,27 @@ export const FormularioEstacionamiento: React.FC<FormularioEstacionamientoProps>
   onCancel,
 }) => {
   const [nombre, setNombre] = useState('');
-  const [direccion, setDireccion] = useState('');
-  const [latitud, setLatitud] = useState<string>('-17.3935');
-  const [longitud, setLongitud] = useState<string>('-66.1570');
-  const [coordinates, setCoordinates] = useState<LocationCoordinates | null>({
-    lat: -17.3935,
-    lng: -66.157,
+  const [latitud, setLatitud] = useState<string>('');
+  const [longitud, setLongitud] = useState<string>('');
+
+  const {
+    coordinates,
+    direccion,
+    isLocatingDevice,
+    isResolvingAddress,
+    handleDireccionInputChange,
+    handleCoordinatesChange,
+    setManualCoordinates,
+  } = useParkingLocationState({
+    onCoordinatesApplied: (coords) => {
+      if (coords) {
+        setLatitud(coords.lat.toString());
+        setLongitud(coords.lng.toString());
+      } else {
+        setLatitud('');
+        setLongitud('');
+      }
+    },
   });
 
   const { user } = useAuthStore();
@@ -70,25 +84,14 @@ export const FormularioEstacionamiento: React.FC<FormularioEstacionamientoProps>
 
   const [fotos, setFotos] = useState<File[]>([]);
 
-  const handleCoordinatesChange = (coords: LocationCoordinates | null) => {
-    setCoordinates(coords);
-    if (coords) {
-      setLatitud(coords.lat.toString());
-      setLongitud(coords.lng.toString());
-    } else {
-      setLatitud('');
-      setLongitud('');
-    }
-  };
-
   const handleLatitudChange = (val: string) => {
     setLatitud(val);
     const parsed = parseFloat(val);
     if (!isNaN(parsed)) {
-      setCoordinates((prev) => ({
+      setManualCoordinates({
         lat: parsed,
-        lng: prev?.lng ?? -66.157,
-      }));
+        lng: coordinates?.lng ?? DEFAULT_FALLBACK_COORDINATES.lng,
+      });
     }
   };
 
@@ -96,10 +99,10 @@ export const FormularioEstacionamiento: React.FC<FormularioEstacionamientoProps>
     setLongitud(val);
     const parsed = parseFloat(val);
     if (!isNaN(parsed)) {
-      setCoordinates((prev) => ({
-        lat: prev?.lat ?? -17.3935,
+      setManualCoordinates({
+        lat: coordinates?.lat ?? DEFAULT_FALLBACK_COORDINATES.lat,
         lng: parsed,
-      }));
+      });
     }
   };
 
@@ -503,13 +506,21 @@ export const FormularioEstacionamiento: React.FC<FormularioEstacionamientoProps>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', width: '100%' }}>
-            <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155' }}>
-              Dirección Completa <span style={{ color: '#DC2626' }}>*</span>
-            </label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155' }}>
+                Dirección Completa <span style={{ color: '#DC2626' }}>*</span>
+              </label>
+              {isResolvingAddress && (
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#006D36', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <i className="fa-solid fa-spinner fa-spin"></i>
+                  Autocompletando...
+                </span>
+              )}
+            </div>
             <input
               type="text"
               value={direccion}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDireccion(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleDireccionInputChange(e.target.value)}
               placeholder="Ej. Calle Jordán #234 entre Ayacucho y Junín"
               required
               disabled={isLoading}
@@ -537,7 +548,7 @@ export const FormularioEstacionamiento: React.FC<FormularioEstacionamientoProps>
               type="text"
               value={latitud}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleLatitudChange(e.target.value)}
-              placeholder="-17.3935"
+              placeholder={String(DEFAULT_FALLBACK_COORDINATES.lat)}
               required
               disabled={isLoading}
               style={{
@@ -561,7 +572,7 @@ export const FormularioEstacionamiento: React.FC<FormularioEstacionamientoProps>
               type="text"
               value={longitud}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleLongitudChange(e.target.value)}
-              placeholder="-66.1570"
+              placeholder={String(DEFAULT_FALLBACK_COORDINATES.lng)}
               required
               disabled={isLoading}
               style={{
@@ -587,6 +598,8 @@ export const FormularioEstacionamiento: React.FC<FormularioEstacionamientoProps>
             coordinates={coordinates}
             onChangeCoordinates={handleCoordinatesChange}
             disabled={isLoading}
+            isResolvingAddress={isResolvingAddress}
+            isDetectingInitialLocation={isLocatingDevice}
           />
         </div>
 

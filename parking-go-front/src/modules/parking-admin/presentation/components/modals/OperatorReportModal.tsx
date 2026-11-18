@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import type { ParkingOperator } from '../../../domain/ParkingOperator';
 import { useOperatorReportQuery } from '../../../application/useParkingAdminQueries';
+import { useMiEstacionamientoQuery } from '../../../../estacionamientos/application/useEstacionamientosQuery';
 
 interface OperatorReportModalProps {
     isOpen: boolean;
@@ -17,16 +18,19 @@ export const OperatorReportModal = ({
     onClose,
 }: OperatorReportModalProps) => {
     const defaultOpId = initialOperatorId || operators[0]?.id || '';
-    const [selectedBranch, setSelectedBranch] = useState('101');
+    const { data: miEstacionamiento } = useMiEstacionamientoQuery();
+    const defaultBranchName = miEstacionamiento?.nombre || '';
+    const [selectedBranch, setSelectedBranch] = useState('');
     const [selectedOpId, setSelectedOpId] = useState(defaultOpId);
     const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'week' | 'month'>('today');
 
+    const activeBranch = selectedBranch || defaultBranchName;
     const activeOpId = selectedOpId || defaultOpId;
 
     const { data: report, isLoading } = useOperatorReportQuery(
         activeOpId,
         selectedPeriod,
-        selectedBranch,
+        activeBranch,
         isOpen
     );
 
@@ -105,14 +109,18 @@ export const OperatorReportModal = ({
                                 1. Sucursal Parqueo:
                             </label>
                             <select
-                                value={selectedBranch}
+                                value={activeBranch}
                                 onChange={(e) => setSelectedBranch(e.target.value)}
                                 className="form-select"
                                 style={{ width: '100%', fontSize: '0.8rem', padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-strong)', background: 'var(--bg-card)', color: 'var(--text-main)', outline: 'none' }}
                             >
-                                <option value="101">ParkinGo Equipetrol Central</option>
-                                <option value="102">Sucursal Centro Histórico</option>
-                                <option value="103">Parqueo San Martín</option>
+                                {miEstacionamiento ? (
+                                    <option value={miEstacionamiento.nombre}>
+                                        {miEstacionamiento.nombre}
+                                    </option>
+                                ) : (
+                                    <option value="">Sin estacionamiento registrado</option>
+                                )}
                             </select>
                         </div>
 
@@ -159,6 +167,26 @@ export const OperatorReportModal = ({
                         </div>
                     ) : report ? (
                         <div>
+                            <div
+                                style={{
+                                    background: 'rgba(245, 158, 11, 0.12)',
+                                    border: '1px solid rgba(245, 158, 11, 0.35)',
+                                    borderRadius: '6px',
+                                    padding: '0.65rem 0.9rem',
+                                    marginBottom: '1rem',
+                                    fontSize: '0.78rem',
+                                    color: 'var(--text-main)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                }}
+                            >
+                                <i className="fa-solid fa-circle-info" style={{ color: '#F59E0B' }}></i>
+                                <span>
+                                    Los totales operativos muestran registros en 0 hasta conectar el endpoint de telemetría de turnos y caja por operador.
+                                </span>
+                            </div>
+
                             {/* Summary Cards */}
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.85rem', marginBottom: '1.2rem' }}>
                                 <div style={{ background: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.25)', padding: '0.9rem', borderRadius: '8px' }}>

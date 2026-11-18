@@ -9,11 +9,20 @@ import { CreateUsuarioDto } from "../dto/create-usuario.dto.js";
 import { UpdateUsuarioDto } from "../dto/update-usuario.dto.js";
 import { UsuarioMapper } from "../mappers/usuario.mapper.js";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard.js";
+import { RolesGuard } from "../../auth/guards/roles.guard.js";
+import { Roles } from "../../auth/decorators/roles.decorator.js";
 import { CurrentUser } from "../../auth/decorators/current-user.decorator.js";
+
+interface AuthenticatedUser {
+    userId: string;
+    roleId: string;
+    roleName: string;
+    email?: string;
+}
 
 @ApiTags('Usuarios')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard) // Protege todos los endpoints de este controlador
+@UseGuards(JwtAuthGuard, RolesGuard) // Protege todos los endpoints de este controlador
 @Controller('usuarios')
 export class UsuariosController {
     constructor(
@@ -24,11 +33,13 @@ export class UsuariosController {
         private readonly deleteUsuarioAction: DeleteUsuarioAction,
     ) { }
 
-    @ApiOperation({ summary: 'Obtener todos los usuarios', description: 'Devuelve una lista de todos los usuarios registrados en el sistema.' })
+    @ApiOperation({ summary: 'Obtener todos los usuarios', description: 'Devuelve una lista de usuarios/operadores autorizados según el rol solicitante.' })
     @ApiResponse({ status: 200, description: 'Lista de usuarios obtenida exitosamente.' })
+    @ApiResponse({ status: 403, description: 'Acceso denegado para el rol Anfitrión.' })
+    @Roles('PARKING_ADMIN', 'GENERAL_ADMIN', 'SUPER_ADMIN')
     @Get()
     @HttpCode(HttpStatus.OK)
-    async findAll(@CurrentUser() user: any) {
+    async findAll(@CurrentUser() user: AuthenticatedUser) {
         const users = await this.getUsuariosAction.execute(user.userId, user.roleName);
         return {
             message: "Usuarios obtenidos exitosamente",
@@ -39,22 +50,25 @@ export class UsuariosController {
     @ApiOperation({ summary: 'Obtener un usuario por ID', description: 'Busca y devuelve los detalles de un usuario específico.' })
     @ApiParam({ name: 'id', description: 'ID UUID del usuario', type: 'string' })
     @ApiResponse({ status: 200, description: 'Usuario obtenido exitosamente.' })
+    @ApiResponse({ status: 403, description: 'No autorizado para consultar otros usuarios.' })
     @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
     @Get(':id')
     @HttpCode(HttpStatus.OK)
-    async findOne(@Param('id', ParseUUIDPipe) id: string) {
-        const user = await this.getUsuarioAction.execute(id);
+    async findOne(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthenticatedUser) {
+        const foundUser = await this.getUsuarioAction.execute(id, user.userId, user.roleName);
         return {
             message: "Usuario obtenido exitosamente",
-            data: { user: UsuarioMapper.toResponse(user) }
+            data: { user: UsuarioMapper.toResponse(foundUser) }
         };
     }
 
-    @ApiOperation({ summary: 'Crear usuario manual', description: 'Permite crear usuarios desde la administración (Ej: Operadores).' })
+    @ApiOperation({ summary: 'Crear usuario manual', description: 'Permite crear usuarios desde la administración (Ej: Operadores para PARKING_ADMIN).' })
     @ApiResponse({ status: 201, description: 'Usuario creado exitosamente.' })
+    @ApiResponse({ status: 403, description: 'El rol Anfitrión no tiene permiso para registrar operadores.' })
+    @Roles('PARKING_ADMIN', 'SUPER_ADMIN')
     @Post()
     @HttpCode(HttpStatus.CREATED)
-    async create(@Body() dto: CreateUsuarioDto, @CurrentUser() user: any) {
+    async create(@Body() dto: CreateUsuarioDto, @CurrentUser() user: AuthenticatedUser) {
         // user proviene del JwtStrategy tras validar el token
         const createdUser = await this.createUsuarioAction.execute(dto, user.userId, user.roleId);
         return {
@@ -63,12 +77,13 @@ export class UsuariosController {
         };
     }
 
-    @ApiOperation({ summary: 'Actualizar usuario', description: 'Actualiza los datos de un usuario existente por su ID.' })
+    @ApiOperation({ summary: 'Actualizar usuario', description: 'Actualiza los datos de un usuario existente por su ID (los Anfitriones solo pueden editar su propio perfil).' })
     @ApiParam({ name: 'id', description: 'ID UUID del usuario', type: 'string' })
     @ApiResponse({ status: 200, description: 'Usuario actualizado exitosamente.' })
+    @ApiResponse({ status: 403, description: 'No autorizado para modificar este usuario.' })
     @Patch(':id')
     @HttpCode(HttpStatus.OK)
-    async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateUsuarioDto, @CurrentUser() user: any) {
+    async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateUsuarioDto, @CurrentUser() user: AuthenticatedUser) {
         const updatedUser = await this.updateUsuarioAction.execute(id, dto, user.userId, user.roleName);
         return {
             message: "Usuario actualizado exitosamente",
@@ -79,9 +94,11 @@ export class UsuariosController {
     @ApiOperation({ summary: 'Eliminar usuario', description: 'Elimina lógicamente o físicamente a un usuario por su ID.' })
     @ApiParam({ name: 'id', description: 'ID UUID del usuario', type: 'string' })
     @ApiResponse({ status: 200, description: 'Usuario eliminado exitosamente.' })
+    @ApiResponse({ status: 403, description: 'El rol Anfitrión no tiene permiso para eliminar operadores.' })
+    @Roles('PARKING_ADMIN', 'GENERAL_ADMIN', 'SUPER_ADMIN')
     @Delete(':id')
     @HttpCode(HttpStatus.OK)
-    async delete(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: any) {
+    async delete(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthenticatedUser) {
         const deletedUser = await this.deleteUsuarioAction.execute(id, user.userId, user.roleName);
         return {
             message: "Usuario eliminado exitosamente",

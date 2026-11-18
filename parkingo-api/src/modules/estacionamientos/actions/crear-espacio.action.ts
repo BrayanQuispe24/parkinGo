@@ -11,6 +11,7 @@ import { EspacioRepository } from '../repositories/espacio.repository.js';
 import { CreateEspacioDto } from '../dto/create-espacio.dto.js';
 import { EspacioResponseDto } from '../dto/espacio-response.dto.js';
 import { EspacioMapper } from '../mappers/espacio.mapper.js';
+import { EspaciosRealtimeService } from '../../realtime/services/espacios-realtime.service.js';
 
 @Injectable()
 export class CrearEspacioAction {
@@ -18,6 +19,7 @@ export class CrearEspacioAction {
     private readonly espacioRepository: EspacioRepository,
     private readonly nivelRepository: NivelRepository,
     private readonly tenantRepository: TenantRepository,
+    private readonly espaciosRealtimeService: EspaciosRealtimeService,
   ) {}
 
   async execute(
@@ -63,7 +65,13 @@ export class CrearEspacioAction {
         nivelId: dto.nivelId,
       });
 
-      return EspacioMapper.toResponseDto(created);
+      const responseDto = EspacioMapper.toResponseDto(created);
+      this.espaciosRealtimeService.emitEspacioCambio(
+        'CREATED',
+        nivel.estacionamiento.id,
+        responseDto,
+      );
+      return responseDto;
     } catch (err: unknown) {
       if (typeof err === 'object' && err !== null && 'code' in err && (err as { code: string }).code === 'P2002') {
         throw new ConflictException(

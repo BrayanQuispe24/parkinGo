@@ -49,12 +49,19 @@ export class TenantHorariosController {
   @Get()
   async getHorarios(
     @Param('tenantId', ParseUUIDPipe) tenantId: string,
-    @CurrentUser() user: { userId: string; role?: { name: string } },
+    @CurrentUser() user: { userId: string; roleName?: string; role?: string | { name: string } },
   ): Promise<HorarioResponseDto[]> {
+    const resolvedRole =
+      typeof user.roleName === 'string' && user.roleName
+        ? user.roleName
+        : typeof user.role === 'string'
+          ? user.role
+          : user.role?.name;
+
     return this.getTenantHorariosAction.execute(
       tenantId,
       user.userId,
-      user.role?.name ? [user.role.name] : [],
+      resolvedRole ? [resolvedRole] : [],
     );
   }
 
@@ -74,13 +81,20 @@ export class TenantHorariosController {
   async actualizarHorarios(
     @Param('tenantId', ParseUUIDPipe) tenantId: string,
     @Body() dto: ActualizarHorariosDto,
-    @CurrentUser() user: { userId: string; role?: { name: string } },
+    @CurrentUser() user: { userId: string; roleName?: string; role?: string | { name: string } },
   ): Promise<HorarioResponseDto[]> {
+    const resolvedRole =
+      typeof user.roleName === 'string' && user.roleName
+        ? user.roleName
+        : typeof user.role === 'string'
+          ? user.role
+          : user.role?.name;
+
     return this.actualizarTenantHorariosAction.execute(
       tenantId,
       dto,
       user.userId,
-      user.role?.name ? [user.role.name] : [],
+      resolvedRole ? [resolvedRole] : [],
     );
   }
 }

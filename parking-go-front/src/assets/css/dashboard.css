@@ -104,7 +104,7 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-main);
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
   line-height: 1.45;
   font-size: 0.875rem;
 }
@@ -682,6 +682,29 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0.28rem 0.55rem;
   font-size: 0.75rem;
   border-radius: var(--radius-xs);
+}
+
+/* Internal System Enterprise Overrides (preserves public landing page styles) */
+.app-container,
+.admin-layout {
+  --radius-max: var(--radius-md);
+}
+
+.app-container .btn:not(.btn-sm),
+.app-container .btn-primary,
+.app-container .btn-secondary,
+.app-container .btn-outline,
+.app-container .btn-danger,
+.app-container .btn-ghost,
+.app-container .btn-accent,
+.admin-layout .btn:not(.btn-sm),
+.admin-layout .btn-primary,
+.admin-layout .btn-secondary,
+.admin-layout .btn-outline,
+.admin-layout .btn-danger,
+.admin-layout .btn-ghost,
+.admin-layout .btn-accent {
+  border-radius: var(--radius-md);
 }
 
 /* Card System */
@@ -1537,7 +1560,7 @@ textarea:focus {
 
 .profile-card {
   background: var(--bg-card);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-subtle);
   padding: 1.75rem;
   box-shadow: var(--card-shadow);
@@ -1558,7 +1581,7 @@ textarea:focus {
 .profile-avatar {
   width: 64px;
   height: 64px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   background: var(--bg-secondary);
   color: #FFFFFF;
   font-size: 1.5rem;
@@ -1585,7 +1608,7 @@ textarea:focus {
   font-size: 0.72rem;
   font-weight: 800;
   padding: 0.2rem 0.65rem;
-  border-radius: 20px;
+  border-radius: var(--radius-sm);
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -1685,5 +1708,43 @@ textarea:focus {
 [data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
 }
+
+/* ==========================================================================
+   ENTERPRISE SKELETON SHIMMER SYSTEM
+   GPU-accelerated shimmer animations for zero-layout-shift loading states
+   ========================================================================== */
+
+@keyframes table-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--border-subtle, #E2E8F0) 25%,
+    var(--bg-card-hover, #F8FAFC) 50%,
+    var(--border-subtle, #E2E8F0) 75%
+  );
+  background-size: 200% 100%;
+  animation: table-shimmer 1.6s ease-in-out infinite;
+  border-radius: var(--radius-sm, 4px);
+  display: inline-block;
+}
+
+[data-theme="dark"] .skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    #1E293B 25%,
+    #334155 50%,
+    #1E293B 75%
+  );
+  background-size: 200% 100%;
+}
+
 
 

@@ -14,6 +14,7 @@ import {
   ReservaPriceAssembler,
   ParametrosEspacioEnsamblaje,
 } from '../domain/decorator/reserva-price.assembler.js';
+import { QrTokenUtil } from '../utils/qr-token.util.js';
 
 @Injectable()
 export class CrearReservaAction {
@@ -217,11 +218,26 @@ export class CrearReservaAction {
       });
     }
 
-    // Generar código de reserva y QR token
+    // Generar código de reserva y QR token según el método de pago
     const añoActual = ahora.getFullYear();
     const correlativo = Math.floor(1000 + Math.random() * 9000);
     const codigoReserva = `TKT-${añoActual}-${correlativo}`;
-    const qrToken = `PARKINGO:RES:${codigoReserva}:${clienteId}:${dto.estacionamientoId}`;
+    const metodoPago = dto.metodoPago || 'EFECTIVO';
+
+    // Regla de Negocio:
+    // Si es EFECTIVO: El QR identificador único de acceso se genera de inmediato para mostrar en garita.
+    // Si es QR digital: El QR de acceso se mantiene protegido/bloqueado hasta que el pago digital sea verificado.
+    let qrToken = '';
+    if (metodoPago === 'EFECTIVO') {
+      qrToken = QrTokenUtil.generarTokenAcceso({
+        codigoReserva,
+        clienteId,
+        estacionamientoId: dto.estacionamientoId,
+        metodoPago: 'EFECTIVO',
+      });
+    } else {
+      qrToken = `PARKINGO:PROTECTED_PENDING_PAYMENT:${codigoReserva}`;
+    }
 
     // Persistir de manera atómica
     const reservacionCreada = await this.reservaRepo.create({
@@ -232,6 +248,7 @@ export class CrearReservaAction {
       estacionamientoId: dto.estacionamientoId,
       clienteId,
       operadorId,
+      metodoPago,
       detalles: detallesPersistencia,
     });
 

@@ -4,8 +4,10 @@ import type Konva from 'konva';
 import axios from 'axios';
 import { useAuthStore } from '../../../../store/useAuthStore';
 
+import { useMiEstacionamientoQuery } from '../../application/useEstacionamientosQuery';
 import { useMisNivelesQuery } from '../../application/useNivelesQuery';
 import { useMisEspaciosQuery } from '../../application/useEspaciosQuery';
+import { useEspaciosRealtimeSync } from '../../application/useEspaciosRealtimeSync';
 import { useCroquisByNivelQuery } from '../../application/useCroquisQuery';
 import { useGuardarCroquisMutation } from '../../application/useCroquisMutations';
 import { useCroquisEditorStore } from '../../application/useCroquisEditorStore';
@@ -47,6 +49,8 @@ export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
 }) => {
   const { user } = useAuthStore();
   const isHost = user?.role === 'HOST' || user?.role === 'anfitrion';
+  const { data: miEstacionamiento } = useMiEstacionamientoQuery();
+  useEspaciosRealtimeSync(miEstacionamiento?.id);
   const { data: niveles = [], isLoading: isLoadingNiveles, refetch: refetchNiveles } = useMisNivelesQuery();
   const [selectedNivelId, setSelectedNivelId] = useState<string>('');
 

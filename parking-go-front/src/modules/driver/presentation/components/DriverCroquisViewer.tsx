@@ -11,12 +11,48 @@ import type {
   CroquisPuertaNode as CroquisPuertaNodeType,
   CroquisEntradaNode as CroquisEntradaNodeType,
 } from '../../../estacionamientos/domain/Croquis';
+import type { EstadoEspacio, TipoEspacio } from '../../../estacionamientos/domain/Espacio';
 import { CroquisGridBackground } from '../../../estacionamientos/presentation/components/croquis/CroquisGridBackground';
 import { CroquisBoxNode } from '../../../estacionamientos/presentation/components/croquis/CroquisBoxNode';
 import { CroquisMuroNode } from '../../../estacionamientos/presentation/components/croquis/CroquisMuroNode';
 import { CroquisFlechaNode } from '../../../estacionamientos/presentation/components/croquis/CroquisFlechaNode';
 import { CroquisPuertaNode } from '../../../estacionamientos/presentation/components/croquis/CroquisPuertaNode';
 import { CroquisEntradaNode } from '../../../estacionamientos/presentation/components/croquis/CroquisEntradaNode';
+
+const VALID_ESTADOS: ReadonlySet<EstadoEspacio> = new Set([
+  'DISPONIBLE',
+  'OCUPADO',
+  'RESERVADO',
+  'MANTENIMIENTO',
+]);
+
+const VALID_TIPOS: ReadonlySet<TipoEspacio> = new Set([
+  'AUTO',
+  'MOTO',
+  'CAMIONETA',
+  'DISCAPACITADO',
+  'ELECTRICO',
+]);
+
+function normalizeEstadoEspacio(
+  status: string | undefined,
+  fallback: EstadoEspacio,
+): EstadoEspacio {
+  if (status && VALID_ESTADOS.has(status as EstadoEspacio)) {
+    return status as EstadoEspacio;
+  }
+  return fallback;
+}
+
+function normalizeTipoEspacio(
+  type: string | undefined,
+  fallback: TipoEspacio,
+): TipoEspacio {
+  if (type && VALID_TIPOS.has(type as TipoEspacio)) {
+    return type as TipoEspacio;
+  }
+  return fallback;
+}
 
 interface DriverCroquisViewerProps {
   parking: DriverParking;
@@ -43,7 +79,10 @@ export const DriverCroquisViewer: React.FC<DriverCroquisViewerProps> = ({
   onProceedToBooking,
 }) => {
   // 1. Extraer los niveles del parqueo a partir de los espacios
-  const rawSpaces: DriverParkingSpace[] = parking.spaces && parking.spaces.length > 0 ? parking.spaces : [];
+  const rawSpaces: DriverParkingSpace[] = useMemo(
+    () => (parking.spaces && parking.spaces.length > 0 ? parking.spaces : []),
+    [parking.spaces],
+  );
 
   const nivelesOptions: NivelOption[] = useMemo(() => {
     const map = new Map<string, { id: string; code: string; label: string; count: number }>();
@@ -136,18 +175,44 @@ export const DriverCroquisViewer: React.FC<DriverCroquisViewerProps> = ({
     });
   }, [rawSpaces, currentNivel, parking.availableSpots, parking.id]);
 
-  // Nodos Konva remotos (si existen)
+  // Nodos Konva remotos hidratados con el estado en tiempo real de parking.spaces
   const nodosRemotos: CroquisNode[] = useMemo(() => {
     if (
-      croquisRemoto &&
-      croquisRemoto.contenido &&
-      Array.isArray(croquisRemoto.contenido.nodos) &&
-      croquisRemoto.contenido.nodos.length > 0
+      !croquisRemoto ||
+      !croquisRemoto.contenido ||
+      !Array.isArray(croquisRemoto.contenido.nodos) ||
+      croquisRemoto.contenido.nodos.length === 0
     ) {
-      return croquisRemoto.contenido.nodos;
+      return [];
     }
-    return [];
-  }, [croquisRemoto]);
+
+    const spacesById = new Map<string, DriverParkingSpace>();
+    const spacesByCode = new Map<string, DriverParkingSpace>();
+    rawSpaces.forEach((s) => {
+      spacesById.set(s.id, s);
+      spacesByCode.set(s.code, s);
+    });
+
+    return croquisRemoto.contenido.nodos.map((nodo) => {
+      if (nodo.tipo !== 'ESPACIO') {
+        return nodo;
+      }
+
+      const liveSpace =
+        spacesById.get(nodo.espacioId) ?? spacesByCode.get(nodo.codigoEspacio);
+
+      if (!liveSpace) {
+        return nodo;
+      }
+
+      return {
+        ...nodo,
+        codigoEspacio: liveSpace.code,
+        estado: normalizeEstadoEspacio(liveSpace.status, nodo.estado),
+        tipoVehiculo: normalizeTipoEspacio(liveSpace.type, nodo.tipoVehiculo),
+      };
+    });
+  }, [croquisRemoto, rawSpaces]);
 
   const hasRemoteCanvas = nodosRemotos.length > 0;
 

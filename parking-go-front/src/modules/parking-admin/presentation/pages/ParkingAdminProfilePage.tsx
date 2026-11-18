@@ -3,12 +3,14 @@ import React, { useState } from 'react';
 import { useAuthStore } from '../../../../store/useAuthStore';
 import { useUpdateUserProfileMutation } from '../../../auth/application/useUserProfileMutation';
 import { SharedProfilePanel } from '../../../auth/presentation/components/SharedProfilePanel';
+import { isHostRole } from '../../../auth/domain/roleRouting';
 import type { UpdateUserProfilePayload } from '../../../auth/domain/UserProfile';
 
 export const ParkingAdminProfilePage: React.FC = () => {
     const { user, updateUserProfile } = useAuthStore();
     const updateProfileMutation = useUpdateUserProfileMutation();
     const [toastMessage, setToastMessage] = useState<string | null>(null);
+    const isHost = isHostRole(user?.role);
 
     const showToast = (msg: string) => {
         setToastMessage(msg);
@@ -28,15 +30,17 @@ export const ParkingAdminProfilePage: React.FC = () => {
                 payload,
             });
             updateUserProfile(payload);
-            showToast('¡Perfil de administrador de parqueo actualizado exitosamente!');
+            showToast(
+                isHost
+                    ? '¡Perfil de anfitrión actualizado exitosamente!'
+                    : '¡Perfil de administrador de parqueo actualizado exitosamente!'
+            );
         } catch (error) {
             console.error('Error al actualizar perfil en servidor:', error);
             updateUserProfile(payload);
             showToast('Datos de perfil guardados en tu sesión local.');
         }
     };
-
-    const isHost = user?.role === 'HOST' || user?.role?.toUpperCase() === 'HOST';
 
     return (
         <div className="admin-page-content" style={{ padding: '1.5rem', width: '100%', boxSizing: 'border-box' }}>

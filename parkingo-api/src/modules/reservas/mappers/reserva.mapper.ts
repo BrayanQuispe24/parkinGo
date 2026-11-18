@@ -50,6 +50,15 @@ export class ReservaMapper {
       clienteId: r.clienteId,
       clienteNombre: `${r.cliente.firstName} ${r.cliente.lastName}`.trim(),
       clienteEmail: r.cliente.email,
+      clienteTelefono: r.cliente.phone || null,
+      metodoPago: r.pagos && r.pagos.length > 0 ? r.pagos[0].metodoPago : 'EFECTIVO',
+      pagos: (r.pagos || []).map((p) => ({
+        id: p.id,
+        monto: p.monto,
+        metodoPago: p.metodoPago,
+        estado: p.estado,
+        fechaPago: p.fechaPago,
+      })),
       operadorNombre: r.operador
         ? `${r.operador.firstName} ${r.operador.lastName}`.trim()
         : null,

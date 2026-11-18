@@ -29,12 +29,14 @@ interface TenantEstadoCardProps {
   estacionamiento: EstacionamientoModel;
   onBack?: () => void;
   initialTab?: FichaTecnicaTab;
+  onDeleteRejected?: (estacionamiento: EstacionamientoModel) => void;
 }
 
 export const TenantEstadoCard: React.FC<TenantEstadoCardProps> = ({
   estacionamiento,
   onBack,
   initialTab = 'resumen',
+  onDeleteRejected,
 }) => {
   const { user } = useAuthStore();
   const isHost = user?.role === 'HOST' || user?.role === 'anfitrion';
@@ -72,19 +74,46 @@ export const TenantEstadoCard: React.FC<TenantEstadoCardProps> = ({
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.65rem',
-              padding: '0.55rem 0.95rem',
-              borderRadius: '3px',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
+              padding: '0.65rem 0.95rem',
+              borderRadius: '4px',
               border: '1px solid #FECACA',
               background: '#FEF2F2',
               color: '#991B1B',
               fontSize: '0.78rem',
             }}
           >
-            <i className="fa-solid fa-circle-exclamation" style={{ color: '#DC2626', fontSize: '0.85rem' }}></i>
-            <div>
-              <strong>Solicitud Rechazada:</strong> "{estacionamiento.motivoRechazo || 'Sin motivo detallado'}"
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <i className="fa-solid fa-circle-exclamation" style={{ color: '#DC2626', fontSize: '0.9rem' }}></i>
+              <div>
+                <strong>Solicitud Rechazada:</strong> "{estacionamiento.motivoRechazo || 'Sin motivo detallado'}"
+              </div>
             </div>
+            {onDeleteRejected && (
+              <button
+                type="button"
+                onClick={() => onDeleteRejected(estacionamiento)}
+                style={{
+                  background: '#DC2626',
+                  color: '#FFFFFF',
+                  border: '1px solid #DC2626',
+                  borderRadius: '6px',
+                  padding: '0.4rem 0.85rem',
+                  fontSize: '0.76rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  flexShrink: 0,
+                }}
+              >
+                <i className="fa-solid fa-trash-can"></i>
+                <span>Eliminar Parqueo Rechazado</span>
+              </button>
+            )}
           </div>
         );
       case 'INHABILITADO':
@@ -415,7 +444,7 @@ export const TenantEstadoCard: React.FC<TenantEstadoCardProps> = ({
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#006D36', fontFamily: 'monospace' }}>
-                      {estacionamiento.latitud.toFixed(4)} , {estacionamiento.longitud.toFixed(4)}
+                      {estacionamiento.latitud != null ? Number(estacionamiento.latitud).toFixed(4) : '--'} , {estacionamiento.longitud != null ? Number(estacionamiento.longitud).toFixed(4) : '--'}
                     </span>
                     <a
                       href={googleMapsUrl}

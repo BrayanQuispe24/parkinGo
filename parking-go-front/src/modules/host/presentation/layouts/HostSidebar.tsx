@@ -119,7 +119,7 @@ export const HostSidebar: React.FC<HostSidebarProps> = ({
 
                 <Link
                     to="/dashboard/parking-admin/estacionamiento"
-                    className={`nav-item ${isCurrent('/dashboard/parking-admin/estacionamiento') || isCurrent('/dashboard/parking-admin') || isCurrent('/dashboard/parking-admin/users') ? 'active' : ''}`}
+                    className={`nav-item ${isCurrent('/dashboard/parking-admin/estacionamiento') ? 'active' : ''}`}
                     title="Mi Garaje & Cochera Residencial"
                     onClick={handleLinkClick}
                 >
@@ -149,14 +149,11 @@ export const HostSidebar: React.FC<HostSidebarProps> = ({
 
                 <div className="nav-section-label">Gestión de Reservas C2C</div>
 
-                <a
-                    className="nav-item"
-                    href="#reservas-recibidas"
+                <Link
+                    to="/dashboard/parking-admin/reservas"
+                    className={`nav-item ${isCurrent('/dashboard/parking-admin/reservas') ? 'active' : ''}`}
                     title="Solicitudes y Reservas de Conductores"
-                    onClick={(e) => {
-                        e.preventDefault();
-                        handleLinkClick();
-                    }}
+                    onClick={handleLinkClick}
                 >
                     <i className="fa-solid fa-calendar-check"></i>
                     <span>Reservas Recibidas</span>
@@ -175,20 +172,7 @@ export const HostSidebar: React.FC<HostSidebarProps> = ({
                             En Vivo
                         </span>
                     )}
-                </a>
-
-                <a
-                    className="nav-item"
-                    href="#tarifas-anfitrion"
-                    title="Precios por Hora, Día o Mensualidad"
-                    onClick={(e) => {
-                        e.preventDefault();
-                        handleLinkClick();
-                    }}
-                >
-                    <i className="fa-solid fa-tags"></i>
-                    <span>Tarifas por Hora/Día</span>
-                </a>
+                </Link>
 
                 <a
                     className="nav-item"

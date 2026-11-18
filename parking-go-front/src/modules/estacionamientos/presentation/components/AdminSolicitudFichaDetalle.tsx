@@ -74,7 +74,7 @@ export const AdminSolicitudFichaDetalle: React.FC<AdminSolicitudFichaDetalleProp
       <div
         style={{
           background: 'var(--surface-card, #FFFFFF)',
-          borderRadius: '10px',
+          borderRadius: '8px',
           border: '1px solid var(--border-subtle, #CBD5CE)',
           boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
           overflow: 'hidden',
@@ -439,7 +439,7 @@ export const AdminSolicitudFichaDetalle: React.FC<AdminSolicitudFichaDetalleProp
         >
           <button
             type="button"
-            className="btn-secondary"
+            className="btn btn-secondary"
             onClick={onBackToList}
             disabled={isProcessing}
           >
@@ -452,7 +452,7 @@ export const AdminSolicitudFichaDetalle: React.FC<AdminSolicitudFichaDetalleProp
               <>
                 <button
                   type="button"
-                  className="btn-danger"
+                  className="btn btn-danger"
                   onClick={() => onRechazar(parqueo.id)}
                   disabled={isProcessing}
                 >
@@ -461,7 +461,7 @@ export const AdminSolicitudFichaDetalle: React.FC<AdminSolicitudFichaDetalleProp
                 </button>
                 <button
                   type="button"
-                  className="btn-primary"
+                  className="btn btn-primary"
                   onClick={() => onAprobar(parqueo.id)}
                   disabled={isProcessing}
                 >
@@ -474,7 +474,7 @@ export const AdminSolicitudFichaDetalle: React.FC<AdminSolicitudFichaDetalleProp
             {parqueo.estado === 'APROBADO' && (
               <button
                 type="button"
-                className="btn-danger"
+                className="btn btn-danger"
                 onClick={() => onInhabilitar(parqueo.id)}
                 disabled={isProcessing}
               >
@@ -486,7 +486,7 @@ export const AdminSolicitudFichaDetalle: React.FC<AdminSolicitudFichaDetalleProp
             {parqueo.estado === 'INHABILITADO' && (
               <button
                 type="button"
-                className="btn-primary"
+                className="btn btn-primary"
                 onClick={() => onAprobar(parqueo.id)}
                 disabled={isProcessing}
               >

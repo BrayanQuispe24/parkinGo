@@ -1,8 +1,10 @@
 import axios from 'axios';
+import { clearBrowserSessionData } from '../auth/clearBrowserSessionData';
+
+export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 export const parkingoApi = axios.create({
-    // Asumiendo que el backend NestJS corre en el puerto 3000 y el prefijo global es /api
-    baseURL: 'http://localhost:3000/api', 
+    baseURL: import.meta.env.VITE_API_URL || `${BACKEND_URL}/api`, 
     headers: {
         'Content-Type': 'application/json',
     },
@@ -34,9 +36,8 @@ parkingoApi.interceptors.response.use(
         const isOnAuthPage = typeof window !== 'undefined' && window.location.pathname.startsWith('/auth');
 
         if (error.response?.status === 401 && !isAuthRequest && !isOnAuthPage) {
-            console.warn('Sesión expirada o token inválido. Redirigiendo al login...');
-            localStorage.removeItem('parkingo_token');
-            localStorage.removeItem('parkingo_user');
+            console.warn('Sesión expirada o token inválido. Limpiando datos locales y redirigiendo al login...');
+            clearBrowserSessionData();
             window.location.href = '/auth?mode=login';
         }
         return Promise.reject(error);

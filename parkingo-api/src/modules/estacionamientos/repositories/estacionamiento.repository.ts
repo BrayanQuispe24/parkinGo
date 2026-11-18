@@ -135,4 +135,6 @@ export abstract class EstacionamientoRepository {
   ): Promise<(FotoEstacionamiento & { estacionamiento: { tenantId: string } }) | null>;
 
   abstract eliminarFoto(fotoId: string): Promise<FotoEstacionamiento>;
+
+  abstract delete(id: string): Promise<void>;
 }

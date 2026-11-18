@@ -347,4 +347,10 @@ export class PrismaEstacionamientoRepository implements EstacionamientoRepositor
       where: { id: fotoId },
     });
   }
+
+  async delete(id: string): Promise<void> {
+    await this.prisma.estacionamiento.delete({
+      where: { id },
+    });
+  }
 }

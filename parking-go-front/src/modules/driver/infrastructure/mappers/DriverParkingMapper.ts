@@ -1,6 +1,7 @@
 // src/modules/driver/infrastructure/mappers/DriverParkingMapper.ts
+import { BACKEND_URL } from '../../../../core/api/parkingoApi';
 import type { DriverParking } from '../../domain/DriverParking';
-import imgEmpresarial from '../../../../assets/parking_empresarial_1789393502203.png';
+import { DEFAULT_FALLBACK_COORDINATES } from '../../../../core/services/geocoding/useDeviceGeolocation';
 
 export interface CatalogoEstacionamientoApiDto {
     id: string;
@@ -30,11 +31,11 @@ export interface CatalogoEstacionamientoApiDto {
 }
 
 export class DriverParkingMapper {
-    private static readonly API_BASE = 'http://localhost:3000';
+    private static readonly API_BASE = BACKEND_URL;
 
     static toDomain(dto: CatalogoEstacionamientoApiDto, index: number = 0): DriverParking {
-        // Resolver URL absoluta de la fotografía
-        let photoUrl = imgEmpresarial;
+        // Resolver URL absoluta de la fotografía (vacío si no tiene fotos cargadas)
+        let photoUrl = '';
         if (dto.fotoPrincipal) {
             photoUrl = dto.fotoPrincipal.startsWith('http')
                 ? dto.fotoPrincipal
@@ -55,9 +56,6 @@ export class DriverParkingMapper {
                 if (lower === 'seguridad' && !validTags.includes('seguridad')) validTags.push('seguridad');
             }
         }
-        if (validTags.length === 0) {
-            validTags.push('seguridad');
-        }
 
         // Cálculo de posición en mapa estilizado (porcentaje en lienzo relativo)
         const topOffsets = [42, 58, 35, 65, 28, 50];
@@ -69,26 +67,26 @@ export class DriverParkingMapper {
             id: dto.id,
             name: dto.nombre,
             address: dto.direccion,
-            zone: dto.zona || 'Santa Cruz',
-            pricePerHour: dto.precioHora > 0 ? dto.precioHora : 10,
-            totalSpots: dto.totalEspacios > 0 ? dto.totalEspacios : 30,
-            availableSpots: dto.totalEspacios > 0 ? dto.espaciosDisponibles : 12,
+            zone: dto.zona || '',
+            pricePerHour: dto.precioHora ?? 0,
+            totalSpots: dto.totalEspacios ?? 0,
+            availableSpots: dto.espaciosDisponibles ?? 0,
             photoUrl,
             tags: validTags,
             latitude:
                 typeof dto.latitud === 'number' && !isNaN(dto.latitud) && dto.latitud !== 0
                     ? dto.latitud
-                    : parseFloat(String(dto.latitud)) || -17.7682,
+                    : parseFloat(String(dto.latitud)) || DEFAULT_FALLBACK_COORDINATES.lat,
             longitude:
                 typeof dto.longitud === 'number' && !isNaN(dto.longitud) && dto.longitud !== 0
                     ? dto.longitud
-                    : parseFloat(String(dto.longitud)) || -63.1834,
+                    : parseFloat(String(dto.longitud)) || DEFAULT_FALLBACK_COORDINATES.lng,
             mapPosition: {
                 topPercent,
                 leftPercent,
             },
-            distanceKm: Number((0.5 + (index * 0.4)).toFixed(1)),
-            estimatedMinutes: 2 + (index * 2),
+            distanceKm: 0,
+            estimatedMinutes: 0,
             isFavorite: false,
             fotos: (dto.fotos || []).map((f) => (f.startsWith('http') ? f : `${this.API_BASE}${f}`)),
             horarios: dto.horarios,

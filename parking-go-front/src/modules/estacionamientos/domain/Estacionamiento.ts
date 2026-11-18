@@ -78,3 +78,8 @@ export interface RegistrarEstacionamientoPayload {
   fotos: File[];
   tenantId?: string;
 }
+
+export interface DeleteEstacionamientoResponse {
+  id: string;
+  message: string;
+}

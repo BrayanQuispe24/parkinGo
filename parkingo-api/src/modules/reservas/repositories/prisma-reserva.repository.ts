@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { EstadoReserva, EstadoDetalleReserva } from '@prisma/client';
+import { EstadoReserva, EstadoDetalleReserva, EstadoPago } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma/prisma.service.js';
 import {
   ReservaRepository,
   CreateReservaData,
   ReservacionConRelaciones,
+  RegistrarPagoData,
 } from './reserva.repository.js';
 
 @Injectable()
@@ -34,6 +35,15 @@ export class PrismaReservaRepository implements ReservaRepository {
         firstName: true,
         lastName: true,
         email: true,
+      },
+    },
+    pagos: {
+      select: {
+        id: true,
+        monto: true,
+        metodoPago: true,
+        estado: true,
+        fechaPago: true,
       },
     },
     detalles: {
@@ -132,6 +142,18 @@ export class PrismaReservaRepository implements ReservaRepository {
         },
       });
 
+      // Registrar método de pago inicial pendiente
+      if (data.metodoPago) {
+        await tx.pago.create({
+          data: {
+            reservacionId: reservacion.id,
+            monto: data.total,
+            metodoPago: data.metodoPago,
+            estado: EstadoPago.PENDIENTE,
+          },
+        });
+      }
+
       // 2. Crear detalles de espacios y sus extras correspondientes
       for (const detalleData of data.detalles) {
         const detalle = await tx.detalleReservacion.create({
@@ -190,6 +212,14 @@ export class PrismaReservaRepository implements ReservaRepository {
     return res as unknown as ReservacionConRelaciones | null;
   }
 
+  async findByQrToken(qrToken: string): Promise<ReservacionConRelaciones | null> {
+    const res = await this.prisma.reservacion.findFirst({
+      where: { qrToken },
+      include: this.includeRelaciones,
+    });
+    return res as unknown as ReservacionConRelaciones | null;
+  }
+
   async findByClienteId(clienteId: string): Promise<ReservacionConRelaciones[]> {
     const list = await this.prisma.reservacion.findMany({
       where: { clienteId },
@@ -226,6 +256,36 @@ export class PrismaReservaRepository implements ReservaRepository {
       });
 
       return cancelada as unknown as ReservacionConRelaciones;
+    });
+  }
+
+  async registrarPagoYConfirmar(
+    id: string,
+    data: RegistrarPagoData,
+  ): Promise<ReservacionConRelaciones> {
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Crear el pago asociado
+      await tx.pago.create({
+        data: {
+          reservacionId: id,
+          monto: data.monto,
+          metodoPago: data.metodoPago,
+          estado: EstadoPago.COMPLETADO,
+          fechaPago: data.fechaPago || new Date(),
+        },
+      });
+
+      // 2. Confirmar la reservación y opcionalmente actualizar qrToken emitido
+      const confirmada = await tx.reservacion.update({
+        where: { id },
+        data: {
+          estado: EstadoReserva.CONFIRMADA,
+          ...(data.qrToken ? { qrToken: data.qrToken } : {}),
+        },
+        include: this.includeRelaciones,
+      });
+
+      return confirmada as unknown as ReservacionConRelaciones;
     });
   }
 }

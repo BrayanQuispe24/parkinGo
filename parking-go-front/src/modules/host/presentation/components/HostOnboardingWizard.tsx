@@ -3,11 +3,11 @@ import type {
   HorarioItemPayload,
   RegistrarEstacionamientoPayload,
 } from '../../../estacionamientos/domain/Estacionamiento';
-import type { LocationCoordinates } from '../../../estacionamientos/presentation/components/EstacionamientoLocationPicker';
+import { useParkingLocationState } from '../../../estacionamientos/application/useParkingLocationState';
 import { HostStepUbicacion } from './HostStepUbicacion';
-import { HostStepEspacioTarifas, type VehicleCategory } from './HostStepEspacioTarifas';
 import { HostStepReglasAcceso } from './HostStepReglasAcceso';
 import { showToast } from '../../../../core/utils/toastr';
+import { DEFAULT_FALLBACK_COORDINATES } from '../../../../core/services/geocoding/useDeviceGeolocation';
 import '../styles/host-wizard.css';
 
 interface HostOnboardingWizardProps {
@@ -30,26 +30,22 @@ export const HostOnboardingWizard: React.FC<HostOnboardingWizardProps> = ({
   isLoading = false,
   onCancel,
 }) => {
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
 
   // Datos Paso 1: Ubicación & Garaje
   const [nombre, setNombre] = useState('');
-  const [direccion, setDireccion] = useState('');
-  const [coordinates, setCoordinates] = useState<LocationCoordinates | null>({
-    lat: -17.3935,
-    lng: -66.157,
-  });
+  const {
+    coordinates,
+    direccion,
+    isLocatingDevice,
+    isResolvingAddress,
+    handleDireccionInputChange,
+    handleCoordinatesChange,
+  } = useParkingLocationState();
   const [fotos, setFotos] = useState<File[]>([]);
 
-  // Datos Paso 2: Espacio & Tarifas
-  const [vehiculoPermitido, setVehiculoPermitido] = useState<VehicleCategory>('AUTOMOVIL');
-  const [esTechado, setEsTechado] = useState<boolean>(true);
-  const [tarifaHora, setTarifaHora] = useState<number>(5);
-  const [observacionesEspacio, setObservacionesEspacio] = useState('');
-
-  // Datos Paso 3: Horarios & Acceso
+  // Datos Paso 2: Horarios & Confirmación
   const [horarios, setHorarios] = useState<HorarioItemPayload[]>(DEFAULT_RESIDENTIAL_HORARIOS);
-  const [instruccionesAcceso, setInstruccionesAcceso] = useState('');
 
   const validateStep1 = (): boolean => {
     if (!nombre.trim()) {
@@ -67,51 +63,30 @@ export const HostOnboardingWizard: React.FC<HostOnboardingWizardProps> = ({
     return true;
   };
 
-  const validateStep2 = (): boolean => {
-    if (tarifaHora <= 0) {
-      showToast.warning('Ingresa una tarifa válida por hora (mínimo 1 Bs.).', 'Paso 2');
-      return false;
-    }
-    return true;
-  };
-
   const handleNext = () => {
     if (currentStep === 1) {
       if (!validateStep1()) return;
       setCurrentStep(2);
-    } else if (currentStep === 2) {
-      if (!validateStep2()) return;
-      setCurrentStep(3);
     }
   };
 
   const handlePrev = () => {
     if (currentStep === 2) setCurrentStep(1);
-    if (currentStep === 3) setCurrentStep(2);
   };
 
   const handleFinalSubmit = () => {
-    if (!validateStep1() || !validateStep2()) return;
+    if (!validateStep1()) return;
 
     if (horarios.length === 0) {
-      showToast.warning('Debes habilitar al menos un día de atención con su horario.', 'Paso 3');
+      showToast.warning('Debes habilitar al menos un día de atención con su horario.', 'Paso 2');
       return;
     }
 
-    // Combinar detalles de acceso y características en la dirección o descripción para preservar el valor C2C
-    const notasExtras = [
-      `[Espacio: ${vehiculoPermitido} - ${esTechado ? 'Techado' : 'Al aire libre'} - Tarifa ref: Bs. ${tarifaHora}/h]`,
-      observacionesEspacio ? `Detalles: ${observacionesEspacio}` : '',
-      instruccionesAcceso ? `Acceso: ${instruccionesAcceso}` : '',
-    ]
-      .filter(Boolean)
-      .join(' | ');
-
     const payload: RegistrarEstacionamientoPayload = {
       nombre: nombre.trim(),
-      direccion: notasExtras ? `${direccion.trim()} (${notasExtras})` : direccion.trim(),
-      latitud: coordinates ? coordinates.lat : -17.3935,
-      longitud: coordinates ? coordinates.lng : -66.157,
+      direccion: direccion.trim(),
+      latitud: coordinates ? coordinates.lat : DEFAULT_FALLBACK_COORDINATES.lat,
+      longitud: coordinates ? coordinates.lng : DEFAULT_FALLBACK_COORDINATES.lng,
       horarios,
       fotos,
     };
@@ -121,53 +96,49 @@ export const HostOnboardingWizard: React.FC<HostOnboardingWizardProps> = ({
 
   return (
     <div className="host-wizard-container">
-      {/* Header con Stepper Progress */}
+      {/* Header Enterprise con Stepper Tabular */}
       <div className="host-wizard-header">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <div className="host-wizard-badge">
-              <i className="fa-solid fa-house-user"></i>
-              <span>Alta Residencial · Plan Anfitrión</span>
+        <div className="host-wizard-header-top">
+          <div className="host-wizard-header-main">
+            <div className="host-wizard-header-icon">
+              <i className="fa-solid fa-warehouse"></i>
             </div>
-            <h2 className="host-wizard-title">Publica tu Cochera en 3 Pasos</h2>
-            <p className="host-wizard-subtitle">
-              Generaremos automáticamente la estructura de tu garaje (1 Nivel, 1 Croquis y 1 Plaza Única).
-            </p>
+            <div>
+              <div className="host-wizard-badge">
+                <i className="fa-solid fa-house-user"></i>
+                <span>Alta Residencial · Plan Anfitrión</span>
+              </div>
+              <h2 className="host-wizard-title">Publica tu Cochera en 2 Pasos</h2>
+              <p className="host-wizard-subtitle">
+                Generaremos automáticamente la estructura de tu garaje (1 Nivel, 1 Croquis y 1 Plaza Única).
+              </p>
+            </div>
           </div>
           {onCancel && (
             <button
               type="button"
+              className="btn btn-secondary"
               onClick={onCancel}
-              style={{
-                background: 'rgba(255, 255, 255, 0.15)',
-                border: 'none',
-                color: '#FFFFFF',
-                borderRadius: '6px',
-                padding: '0.4rem 0.75rem',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}
             >
-              <i className="fa-solid fa-xmark" style={{ marginRight: '0.35rem' }}></i>
-              Cancelar
+              <i className="fa-solid fa-xmark"></i>
+              <span>Cancelar</span>
             </button>
           )}
         </div>
 
-        {/* Stepper Bar */}
+        {/* Stepper Bar Enterprise */}
         <div className="host-stepper-bar">
           <div className="host-stepper-track">
             <div
               className="host-stepper-progress"
               style={{
-                width: currentStep === 1 ? '0%' : currentStep === 2 ? '50%' : '100%',
+                width: currentStep === 1 ? '0%' : '100%',
               }}
             ></div>
           </div>
 
           <div
-            className={`host-step-item ${currentStep === 1 ? 'active' : currentStep > 1 ? 'completed' : ''}`}
+            className={`host-step-item ${currentStep === 1 ? 'active' : 'completed'}`}
             onClick={() => setCurrentStep(1)}
           >
             <div className="host-step-circle">
@@ -177,21 +148,11 @@ export const HostOnboardingWizard: React.FC<HostOnboardingWizardProps> = ({
           </div>
 
           <div
-            className={`host-step-item ${currentStep === 2 ? 'active' : currentStep > 2 ? 'completed' : ''}`}
+            className={`host-step-item ${currentStep === 2 ? 'active' : ''}`}
             onClick={() => validateStep1() && setCurrentStep(2)}
           >
-            <div className="host-step-circle">
-              {currentStep > 2 ? <i className="fa-solid fa-check"></i> : 2}
-            </div>
-            <span className="host-step-label">2. Tu Espacio y Tarifa</span>
-          </div>
-
-          <div
-            className={`host-step-item ${currentStep === 3 ? 'active' : ''}`}
-            onClick={() => validateStep1() && validateStep2() && setCurrentStep(3)}
-          >
-            <div className="host-step-circle">3</div>
-            <span className="host-step-label">3. Horarios y Acceso</span>
+            <div className="host-step-circle">2</div>
+            <span className="host-step-label">2. Horarios y Confirmación</span>
           </div>
         </div>
       </div>
@@ -203,54 +164,38 @@ export const HostOnboardingWizard: React.FC<HostOnboardingWizardProps> = ({
             nombre={nombre}
             setNombre={setNombre}
             direccion={direccion}
-            setDireccion={setDireccion}
+            setDireccion={handleDireccionInputChange}
             coordinates={coordinates}
-            setCoordinates={setCoordinates}
+            setCoordinates={handleCoordinatesChange}
             fotos={fotos}
             setFotos={setFotos}
             disabled={isLoading}
+            isResolvingAddress={isResolvingAddress}
+            isDetectingInitialLocation={isLocatingDevice}
           />
         )}
 
         {currentStep === 2 && (
-          <HostStepEspacioTarifas
-            vehiculoPermitido={vehiculoPermitido}
-            setVehiculoPermitido={setVehiculoPermitido}
-            esTechado={esTechado}
-            setEsTechado={setEsTechado}
-            tarifaHora={tarifaHora}
-            setTarifaHora={setTarifaHora}
-            observacionesEspacio={observacionesEspacio}
-            setObservacionesEspacio={setObservacionesEspacio}
-            disabled={isLoading}
-          />
-        )}
-
-        {currentStep === 3 && (
           <HostStepReglasAcceso
             horarios={horarios}
             setHorarios={setHorarios}
-            instruccionesAcceso={instruccionesAcceso}
-            setInstruccionesAcceso={setInstruccionesAcceso}
             resumen={{
               nombre,
               direccion,
-              vehiculoPermitido,
-              tarifaHora,
-              esTechado,
               fotosCount: fotos.length,
+              horariosCount: horarios.length,
             }}
             disabled={isLoading}
           />
         )}
       </div>
 
-      {/* Footer con Botones de Navegación */}
+      {/* Footer con Botones Enterprise */}
       <div className="host-wizard-footer">
         {currentStep > 1 ? (
           <button
             type="button"
-            className="host-wizard-btn-prev"
+            className="btn btn-secondary"
             onClick={handlePrev}
             disabled={isLoading}
           >
@@ -261,10 +206,10 @@ export const HostOnboardingWizard: React.FC<HostOnboardingWizardProps> = ({
           <div></div>
         )}
 
-        {currentStep < 3 ? (
+        {currentStep < 2 ? (
           <button
             type="button"
-            className="host-wizard-btn-next"
+            className="btn btn-primary"
             onClick={handleNext}
             disabled={isLoading}
           >
@@ -274,10 +219,9 @@ export const HostOnboardingWizard: React.FC<HostOnboardingWizardProps> = ({
         ) : (
           <button
             type="button"
-            className="host-wizard-btn-next"
+            className="btn btn-primary"
             onClick={handleFinalSubmit}
             disabled={isLoading}
-            style={{ background: '#006D36' }}
           >
             {isLoading ? (
               <>

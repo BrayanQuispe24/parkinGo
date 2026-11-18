@@ -9,6 +9,7 @@ interface TenantLocationPickerProps {
     coordinates: LocationCoordinates | null;
     onChangeCoordinates: (coords: LocationCoordinates | null) => void;
     disabled?: boolean;
+    isResolvingAddress?: boolean;
 }
 
 // Icono personalizado ParkinGo para el marcador en el mapa
@@ -78,6 +79,7 @@ export const TenantLocationPicker: React.FC<TenantLocationPickerProps> = ({
     coordinates,
     onChangeCoordinates,
     disabled = false,
+    isResolvingAddress = false,
 }) => {
     // Coordenadas por defecto (Santa Cruz de la Sierra, Bolivia)
     const defaultCenter: [number, number] = [-17.7833, -63.188];
@@ -222,6 +224,23 @@ export const TenantLocationPicker: React.FC<TenantLocationPickerProps> = ({
                         >
                             <i className="fa-solid fa-map-pin" style={{ color: '#006D36' }}></i>
                             {coordinates.lat.toFixed(5)}, {coordinates.lng.toFixed(5)}
+                            {isResolvingAddress && (
+                                <span
+                                    style={{
+                                        marginLeft: '0.45rem',
+                                        color: '#0284C7',
+                                        fontWeight: 600,
+                                        fontFamily: 'system-ui, sans-serif',
+                                        fontSize: '0.72rem',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '0.25rem',
+                                    }}
+                                >
+                                    <i className="fa-solid fa-spinner fa-spin"></i>
+                                    Identificando dirección...
+                                </span>
+                            )}
                         </span>
                     ) : (
                         <span style={{ color: '#94A3B8', fontStyle: 'italic' }}>

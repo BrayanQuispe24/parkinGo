@@ -38,6 +38,7 @@ export const RolesSection = () => {
                         <i className="fa-solid fa-chevron-right"></i>
                     </button>
                     
+                    <div className="role-panels-grid">
                     <div className="role-panel active" id="panel-conductor">
                         <div className="grid grid-2 align-center calculator-wrapper">
                             <div className="calc-box surface-card reveal-left">
@@ -97,7 +98,7 @@ export const RolesSection = () => {
                                             <span>74 Parqueos Libres Ahora</span>
                                         </div>
                                         <div className="phone-mascot-wrapper">
-                                            <img src={VehiculopngImg} alt="Vehículo ParkinGo"/>
+                                            <img src={VehiculopngImg} alt="Vehículo ParkinGo" loading="lazy" decoding="async"/>
                                         </div>
                                     </div>
                                 </div>
@@ -126,7 +127,7 @@ export const RolesSection = () => {
 
                             <div className="role-visual">
                                 <div className="surface-card" style={{overflow: 'hidden', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-lg)'}}>
-                                    <img src={admindashboardpreviewpngImg} alt="ParkinGo Web Admin Dashboard Preview" style={{width: '100%', height: 'auto', display: 'block'}}/>
+                                    <img src={admindashboardpreviewpngImg} alt="ParkinGo Web Admin Dashboard Preview" loading="lazy" decoding="async" style={{width: '100%', height: 'auto', display: 'block'}}/>
                                 </div>
                             </div>
                         </div>
@@ -173,6 +174,7 @@ export const RolesSection = () => {
                                 </div>
                             </div>
                         </div>
+                    </div>
                     </div>
 
                     <div className="role-carousel-dots">

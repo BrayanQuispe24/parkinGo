@@ -12,5 +12,6 @@ export const useMisEspaciosQuery = (nivelId?: string) => {
     queryKey: ESPACIOS_QUERY_KEYS.mine(nivelId),
     queryFn: () => espacioRepositoryInstance.getMisEspacios(nivelId),
     staleTime: 1000 * 60 * 2, // 2 minutos
+    refetchOnWindowFocus: true,
   });
 };

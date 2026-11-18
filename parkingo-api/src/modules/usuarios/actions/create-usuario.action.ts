@@ -41,9 +41,14 @@ export class CreateUsuarioAction {
             throw new ForbiddenException("Solo el SUPER_ADMIN puede registrar a un GENERAL_ADMIN.");
         }
 
-        // Regla: el PARKING_ADMIN / HOST solo puede crear usuarios con rol PARKING_OPERATOR u OPERATOR
+        // Regla: el HOST (Anfitrión C2C) no puede crear operadores ni otros usuarios
+        if (requesterRole.name === 'HOST') {
+            throw new ForbiddenException("El rol Anfitrión no tiene permiso para registrar operadores.");
+        }
+
+        // Regla: solo PARKING_ADMIN puede crear usuarios con rol PARKING_OPERATOR u OPERATOR desde este flujo
         const isOperatorRole = roleToAssign.name === 'PARKING_OPERATOR' || roleToAssign.name === 'OPERATOR';
-        if ((requesterRole.name === 'PARKING_ADMIN' || requesterRole.name === 'HOST') && !isOperatorRole) {
+        if (requesterRole.name === 'PARKING_ADMIN' && !isOperatorRole) {
             throw new ForbiddenException("Los administradores de parqueo solo pueden registrar operadores de caseta.");
         }
 
@@ -77,7 +82,7 @@ export class CreateUsuarioAction {
         const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
         // 6. Asignar createdById si fue creado por un usuario administrativo
-        const createdById = (requesterRole.name === 'PARKING_ADMIN' || requesterRole.name === 'HOST')
+        const createdById = requesterRole.name === 'PARKING_ADMIN'
             ? requestingUserId
             : dto.createdById;
 

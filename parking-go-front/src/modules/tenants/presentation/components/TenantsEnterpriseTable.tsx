@@ -239,7 +239,7 @@ export const TenantsEnterpriseTable: React.FC<TenantsEnterpriseTableProps> = ({
                                                     )}
                                                     {t.latitud != null && t.longitud != null && (
                                                         <span style={{ fontSize: '0.7rem', color: '#006D36', fontFamily: 'monospace' }}>
-                                                            📍 {t.latitud.toFixed(4)}, {t.longitud.toFixed(4)}
+                                                            📍 {Number(t.latitud).toFixed(4)}, {Number(t.longitud).toFixed(4)}
                                                         </span>
                                                     )}
                                                 </div>

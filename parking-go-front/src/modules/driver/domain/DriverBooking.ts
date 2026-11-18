@@ -46,7 +46,16 @@ export interface BoletaReserva {
     clienteId: string;
     clienteNombre: string;
     clienteEmail: string;
+    clienteTelefono?: string | null;
+    metodoPago?: 'EFECTIVO' | 'QR';
     operadorNombre?: string | null;
+    pagos?: Array<{
+        id: string;
+        monto: number;
+        metodoPago: string;
+        estado: string;
+        fechaPago?: string | null;
+    }>;
     detalles: DetalleBoletaEspacio[];
     fechaCreacion: string;
 }
@@ -124,6 +133,7 @@ export interface DriverBooking {
     totalAmount: number;
     status: BookingStatus;
     qrCodeText: string;
+    paymentMethod?: 'EFECTIVO' | 'QR';
     createdAt: string;
     boletaOriginal?: BoletaReserva;
 }
@@ -131,7 +141,9 @@ export interface DriverBooking {
 export interface CreateBookingPayload {
     parkingId: string;
     vehiclePlate: string;
+    vehiculoId?: string;
     durationHours: number;
+    paymentMethod?: 'EFECTIVO' | 'QR';
     espacioId?: string;
     serviciosExtrasIds?: string[];
     detallesEspacios?: Array<{

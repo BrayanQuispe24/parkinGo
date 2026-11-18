@@ -4,6 +4,7 @@ import { EstacionamientoOperadorRepository } from '../repositories/estacionamien
 import { AsignarOperadoresDto } from '../dto/asignar-operadores.dto.js';
 import { OperadorEstacionamientoResponseDto } from '../dto/operador-estacionamiento-response.dto.js';
 import { EstacionamientoOperadorMapper } from '../mappers/estacionamiento-operador.mapper.js';
+import { assertEstacionamientoPermiteOperadores } from '../utils/estacionamiento-operadores.policy.js';
 
 @Injectable()
 export class AsignarOperadoresAction {
@@ -20,6 +21,8 @@ export class AsignarOperadoresAction {
     if (!estacionamiento) {
       throw new NotFoundException(`Estacionamiento con ID ${estacionamientoId} no encontrado.`);
     }
+
+    assertEstacionamientoPermiteOperadores(estacionamiento);
 
     if (!dto.usuarioIds || dto.usuarioIds.length === 0) {
       throw new BadRequestException('Debe proporcionar al menos un ID de operador.');

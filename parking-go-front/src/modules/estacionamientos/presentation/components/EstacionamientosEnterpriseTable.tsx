@@ -2,12 +2,14 @@ import React, { useMemo, useState } from 'react';
 import type { EstacionamientoModel, EstadoEstacionamiento } from '../../domain/Estacionamiento';
 import { EstadoBadge } from './EstadoBadge';
 import { useHostParkingPolicy } from '../../../host/application/useHostParkingPolicy';
+import { TableSkeletonRows } from './TableSkeletonRows';
 
 interface EstacionamientosEnterpriseTableProps {
   estacionamientos: EstacionamientoModel[];
   loading?: boolean;
   onViewEstacionamiento: (estacionamiento: EstacionamientoModel) => void;
   onGoToRegister: () => void;
+  onDeleteRejected?: (estacionamiento: EstacionamientoModel) => void;
 }
 
 export const EstacionamientosEnterpriseTable: React.FC<EstacionamientosEnterpriseTableProps> = ({
@@ -15,6 +17,7 @@ export const EstacionamientosEnterpriseTable: React.FC<EstacionamientosEnterpris
   loading = false,
   onViewEstacionamiento,
   onGoToRegister,
+  onDeleteRejected,
 }) => {
   const { isHost } = useHostParkingPolicy();
   const [searchTerm, setSearchTerm] = useState('');
@@ -114,17 +117,32 @@ export const EstacionamientosEnterpriseTable: React.FC<EstacionamientosEnterpris
 
         {/* Contador */}
         <div style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: 600 }}>
-          Total: <strong style={{ color: '#0F172A' }}>{filtered.length}</strong> estacionamiento(s)
+          Total:{' '}
+          <strong style={{ color: '#0F172A' }}>
+            {loading ? '--' : filtered.length}
+          </strong>{' '}
+          estacionamiento(s)
         </div>
       </div>
 
-      {/* Contenido: Tabla o Estado Vacío */}
+      {/* Contenido: Tabla con Skeletons, Estado Vacío o Filas de Datos */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-          <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: '2rem', color: '#006D36' }}></i>
-          <p style={{ margin: '0.75rem 0 0 0', fontWeight: 600, color: '#475569' }}>
-            Cargando listado de estacionamientos...
-          </p>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
+            <thead>
+              <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <th style={{ padding: '0.75rem 1.25rem', fontWeight: 700 }}>Estacionamiento</th>
+                <th style={{ padding: '0.75rem 1rem', fontWeight: 700 }}>Ubicación</th>
+                <th style={{ padding: '0.75rem 1rem', fontWeight: 700 }}>Horarios</th>
+                <th style={{ padding: '0.75rem 1rem', fontWeight: 700 }}>Fotos</th>
+                <th style={{ padding: '0.75rem 1rem', fontWeight: 700 }}>Estado</th>
+                <th style={{ padding: '0.75rem 1.25rem', fontWeight: 700, textAlign: 'right' }}>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <TableSkeletonRows rowsCount={2} />
+            </tbody>
+          </table>
         </div>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
@@ -132,7 +150,7 @@ export const EstacionamientosEnterpriseTable: React.FC<EstacionamientosEnterpris
             style={{
               width: '64px',
               height: '64px',
-              borderRadius: '50%',
+              borderRadius: '6px',
               background: '#F1F5F9',
               display: 'flex',
               alignItems: 'center',
@@ -149,7 +167,7 @@ export const EstacionamientosEnterpriseTable: React.FC<EstacionamientosEnterpris
           </h3>
           <p style={{ margin: '0.35rem 0 1.25rem 0', fontSize: '0.85rem', color: '#64748B' }}>
             {isHost
-              ? 'Publica el espacio libre o garaje de tu domicilio en 3 sencillos pasos para comenzar a recibir reservas de conductores.'
+              ? 'Publica el espacio libre o garaje de tu domicilio en 2 sencillos pasos para comenzar a recibir reservas de conductores.'
               : 'Aún no tienes estacionamientos registrados. Utiliza la pestaña de registro para crear tu solicitud.'}
           </p>
           <button
@@ -170,7 +188,7 @@ export const EstacionamientosEnterpriseTable: React.FC<EstacionamientosEnterpris
             }}
           >
             <i className={isHost ? 'fa-solid fa-house-chimney-window' : 'fa-solid fa-plus'}></i>
-            <span>{isHost ? 'Publicar Mi Cochera en 3 Pasos' : 'Registrar Nuevo Estacionamiento'}</span>
+            <span>{isHost ? 'Publicar Mi Cochera en 2 Pasos' : 'Registrar Nuevo Estacionamiento'}</span>
           </button>
         </div>
       ) : (
@@ -187,9 +205,9 @@ export const EstacionamientosEnterpriseTable: React.FC<EstacionamientosEnterpris
               </tr>
             </thead>
             <tbody>
-              {filtered.map((item) => (
+              {filtered.map((item, index) => (
                 <tr
-                  key={item.id}
+                  key={item.id || `est-${index}`}
                   style={{
                     borderBottom: '1px solid #E2E8F0',
                     transition: 'background 0.15s ease',
@@ -203,7 +221,7 @@ export const EstacionamientosEnterpriseTable: React.FC<EstacionamientosEnterpris
                         style={{
                           width: '38px',
                           height: '38px',
-                          borderRadius: '8px',
+                          borderRadius: '6px',
                           background: '#ECFDF5',
                           color: '#006D36',
                           display: 'flex',
@@ -224,21 +242,21 @@ export const EstacionamientosEnterpriseTable: React.FC<EstacionamientosEnterpris
 
                   <td style={{ padding: '1rem' }}>
                     <div style={{ fontSize: '0.8rem', fontFamily: 'monospace', color: '#475569' }}>
-                      {item.latitud.toFixed(4)}, {item.longitud.toFixed(4)}
+                      {item.latitud != null ? Number(item.latitud).toFixed(4) : '--'}, {item.longitud != null ? Number(item.longitud).toFixed(4) : '--'}
                     </div>
                   </td>
 
                   <td style={{ padding: '1rem' }}>
                     <div style={{ fontSize: '0.8rem', color: '#334155' }}>
                       <i className="fa-regular fa-clock" style={{ marginRight: '0.35rem', color: '#006D36' }}></i>
-                      {item.horarios.length} día(s) configurado(s)
+                      {item.horarios?.length ?? 0} día(s) configurado(s)
                     </div>
                   </td>
 
                   <td style={{ padding: '1rem' }}>
                     <div style={{ fontSize: '0.8rem', color: '#334155' }}>
                       <i className="fa-solid fa-camera" style={{ marginRight: '0.35rem', color: '#0284C7' }}></i>
-                      {item.fotos.length} foto(s)
+                      {item.fotos?.length ?? 0} foto(s)
                     </div>
                   </td>
 
@@ -247,37 +265,73 @@ export const EstacionamientosEnterpriseTable: React.FC<EstacionamientosEnterpris
                   </td>
 
                   <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
-                    <button
-                      type="button"
-                      onClick={() => onViewEstacionamiento(item)}
-                      style={{
-                        background: '#F1F5F9',
-                        border: '1px solid #CBD5E1',
-                        borderRadius: '6px',
-                        padding: '0.4rem 0.85rem',
-                        fontSize: '0.8rem',
-                        fontWeight: 600,
-                        color: '#0F172A',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.35rem',
-                        transition: 'all 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#006D36';
-                        e.currentTarget.style.color = '#FFFFFF';
-                        e.currentTarget.style.borderColor = '#006D36';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = '#F1F5F9';
-                        e.currentTarget.style.color = '#0F172A';
-                        e.currentTarget.style.borderColor = '#CBD5E1';
-                      }}
-                    >
-                      <i className="fa-solid fa-eye"></i>
-                      <span>Ver Ficha Técnica</span>
-                    </button>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', justifyContent: 'flex-end' }}>
+                      {item.estado === 'RECHAZADO' && onDeleteRejected && (
+                        <button
+                          type="button"
+                          onClick={() => onDeleteRejected(item)}
+                          title="Eliminar parqueo rechazado para volver a registrar"
+                          style={{
+                            background: '#FEF2F2',
+                            border: '1px solid #FCA5A5',
+                            borderRadius: '6px',
+                            padding: '0.4rem 0.75rem',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            color: '#B91C1C',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.35rem',
+                            transition: 'all 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#DC2626';
+                            e.currentTarget.style.color = '#FFFFFF';
+                            e.currentTarget.style.borderColor = '#DC2626';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#FEF2F2';
+                            e.currentTarget.style.color = '#B91C1C';
+                            e.currentTarget.style.borderColor = '#FCA5A5';
+                          }}
+                        >
+                          <i className="fa-solid fa-trash-can"></i>
+                          <span>Eliminar</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => onViewEstacionamiento(item)}
+                        style={{
+                          background: '#F1F5F9',
+                          border: '1px solid #CBD5E1',
+                          borderRadius: '6px',
+                          padding: '0.4rem 0.85rem',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          color: '#0F172A',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = '#006D36';
+                          e.currentTarget.style.color = '#FFFFFF';
+                          e.currentTarget.style.borderColor = '#006D36';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = '#F1F5F9';
+                          e.currentTarget.style.color = '#0F172A';
+                          e.currentTarget.style.borderColor = '#CBD5E1';
+                        }}
+                      >
+                        <i className="fa-solid fa-eye"></i>
+                        <span>Ver Ficha Técnica</span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

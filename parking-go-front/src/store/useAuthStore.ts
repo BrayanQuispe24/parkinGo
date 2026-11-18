@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User } from '../modules/auth/domain/User';
+import { clearBrowserSessionData } from '../core/auth/clearBrowserSessionData';
 
 interface AuthState {
     user: User | null;
@@ -26,9 +27,9 @@ export const useAuthStore = create<AuthState>()(
             },
             
             logoutState: () => {
-                localStorage.removeItem('parkingo_token');
-                localStorage.removeItem('parkingo_user');
                 set({ user: null, isAuthenticated: false, token: null });
+                useAuthStore.persist.clearStorage();
+                clearBrowserSessionData();
             },
 
             updateUserProfile: (updatedFields) => {

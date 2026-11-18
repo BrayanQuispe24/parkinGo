@@ -1,7 +1,7 @@
 // src/modules/driver/presentation/pages/DriverDashboardPage.tsx
 import { useState, useMemo } from 'react';
-import type { DriverParking, ParkingTag } from '../../domain/DriverParking';
-import type { CreateBookingPayload } from '../../domain/DriverBooking';
+import type { ParkingTag } from '../../domain/DriverParking';
+import type { CreateBookingPayload, BoletaReserva } from '../../domain/DriverBooking';
 import type { CreateVehiclePayload } from '../../domain/DriverVehicle';
 import type { UpdateDriverProfilePayload } from '../../domain/DriverProfile';
 
@@ -12,6 +12,7 @@ import {
     useDriverActiveBookingQuery,
     useDriverBookingsHistoryQuery,
 } from '../../application/useDriverQueries';
+import { useDriverRealtimeSync } from '../../application/useDriverRealtimeSync';
 import {
     useCreateBookingMutation,
     useCancelBookingMutation,
@@ -20,6 +21,7 @@ import {
     useDeleteVehicleMutation,
     useUpdateDriverProfileMutation,
 } from '../../application/useDriverMutations';
+import { useConfirmarPagoMutation } from '../../../reservas/application/usePagosReservaMutations';
 import { useMisCalificacionesQuery } from '../../../calificaciones/application/useCalificacionesQuery';
 import { useCrearCalificacionMutation } from '../../../calificaciones/application/useCalificacionesMutations';
 import type { CrearCalificacionPayload } from '../../../calificaciones/domain/Calificacion';
@@ -37,6 +39,7 @@ import { VehiclesManager } from '../components/VehiclesManager';
 import { BookingHistoryTable } from '../components/BookingHistoryTable';
 import { ServiceReviewPanel } from '../components/ServiceReviewPanel';
 import { DriverProfilePanel } from '../components/DriverProfilePanel';
+import { QrPaymentCheckoutModal } from '../components/QrPaymentCheckoutModal';
 
 export const DriverDashboardPage = () => {
     // Vista activa en el portal del conductor
@@ -47,10 +50,14 @@ export const DriverDashboardPage = () => {
     const [activeCategory, setActiveCategory] = useState<ParkingTag>('all');
     const [showMap, setShowMap] = useState(true);
     const [selectedVehiclePlate, setSelectedVehiclePlate] = useState<string>('');
-    const [selectedParkingForBooking, setSelectedParkingForBooking] = useState<DriverParking | null>(null);
-    const [selectedParkingForDetails, setSelectedParkingForDetails] = useState<DriverParking | null>(null);
+    const [selectedParkingBookingId, setSelectedParkingBookingId] = useState<string | null>(null);
+    const [selectedParkingDetailsId, setSelectedParkingDetailsId] = useState<string | null>(null);
     const [selectedSpotForBooking, setSelectedSpotForBooking] = useState<string | null>(null);
     const [hoveredParkingId, setHoveredParkingId] = useState<string | null>(null);
+
+    // Estado para Checkout QR (Patrón Estrategia - Pago Digital)
+    const [pendingQrReserva, setPendingQrReserva] = useState<BoletaReserva | null>(null);
+    const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
     // Feedback Toast Notifier
     const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -65,7 +72,18 @@ export const DriverDashboardPage = () => {
 
     // Consultas remotas con TanStack Query
     const { data: parkings = [], isLoading: isLoadingParkings } = useDriverParkingsQuery();
+    useDriverRealtimeSync(selectedParkingDetailsId ?? selectedParkingBookingId);
     const { data: vehicles = [] } = useDriverVehiclesQuery();
+
+    const selectedParkingForDetails = useMemo(
+        () => parkings.find((p) => p.id === selectedParkingDetailsId) ?? null,
+        [parkings, selectedParkingDetailsId],
+    );
+
+    const selectedParkingForBooking = useMemo(
+        () => parkings.find((p) => p.id === selectedParkingBookingId) ?? null,
+        [parkings, selectedParkingBookingId],
+    );
     const { data: activeBooking = null } = useDriverActiveBookingQuery();
     const { data: bookingsHistory = [] } = useDriverBookingsHistoryQuery();
     const { data: misCalificaciones = [] } = useMisCalificacionesQuery();
@@ -78,6 +96,7 @@ export const DriverDashboardPage = () => {
     const deleteVehicleMutation = useDeleteVehicleMutation();
     const crearCalificacionMutation = useCrearCalificacionMutation();
     const updateProfileMutation = useUpdateDriverProfileMutation();
+    const confirmarPagoMutation = useConfirmarPagoMutation();
 
     // Sincronizar placa seleccionada si está vacía
     const currentPlate = selectedVehiclePlate || vehicles.find((v) => v.isDefault)?.plate || vehicles[0]?.plate || '';
@@ -101,13 +120,36 @@ export const DriverDashboardPage = () => {
     // Handlers
     const handleConfirmBooking = async (payload: CreateBookingPayload) => {
         try {
-            await createBookingMutation.mutateAsync(payload);
-            setSelectedParkingForBooking(null);
-            showToast('¡Reserva creada exitosamente! Tu ticket activo está listo.');
-            setActiveView('ticket-activo');
+            const created = await createBookingMutation.mutateAsync(payload);
+            setSelectedParkingBookingId(null);
+            setSelectedSpotForBooking(null);
+
+            if (payload.paymentMethod === 'QR' && created?.boletaOriginal) {
+                setPendingQrReserva(created.boletaOriginal);
+                setIsQrModalOpen(true);
+            } else {
+                showToast('¡Reserva creada exitosamente! Tu ticket activo está listo para cobro en garita.');
+                setActiveView('ticket-activo');
+            }
         } catch (error) {
             console.error('Error al crear reserva:', error);
             showToast('No se pudo procesar la reserva');
+        }
+    };
+
+    const handleConfirmQrPayment = async (reservaId: string) => {
+        try {
+            await confirmarPagoMutation.mutateAsync({
+                reservaId,
+                metodoPago: 'QR',
+            });
+            setIsQrModalOpen(false);
+            setPendingQrReserva(null);
+            showToast('¡Pago QR acreditado y verificado con éxito!');
+            setActiveView('ticket-activo');
+        } catch (error) {
+            console.error('Error al confirmar pago QR:', error);
+            showToast('No se pudo verificar el pago QR. Intenta nuevamente.');
         }
     };
 
@@ -230,10 +272,10 @@ export const DriverDashboardPage = () => {
                 selectedParkingForDetails ? (
                     <DriverFichaTecnicaCard
                         parking={selectedParkingForDetails}
-                        onBack={() => setSelectedParkingForDetails(null)}
+                        onBack={() => setSelectedParkingDetailsId(null)}
                         onProceedToBooking={(parking, selectedSpaceCode) => {
                             setSelectedSpotForBooking(selectedSpaceCode || null);
-                            setSelectedParkingForBooking(parking);
+                            setSelectedParkingBookingId(parking.id);
                         }}
                     />
                 ) : (
@@ -248,7 +290,7 @@ export const DriverDashboardPage = () => {
                                 onSelectVehicle={setSelectedVehiclePlate}
                                 durationLabel="Hoy • 2 Horas"
                                 onOpenDurationModal={() => {
-                                    if (parkings[0]) setSelectedParkingForBooking(parkings[0]);
+                                    if (parkings[0]) setSelectedParkingBookingId(parkings[0].id);
                                 }}
                             />
                         </div>
@@ -268,7 +310,7 @@ export const DriverDashboardPage = () => {
                             <div className="driver-stagger-3">
                                 <InteractiveGpsMap
                                     parkings={filteredParkings}
-                                    onSelectParking={(parking) => setSelectedParkingForBooking(parking)}
+                                    onSelectParking={(parking) => setSelectedParkingBookingId(parking.id)}
                                     selectedParkingId={hoveredParkingId || undefined}
                                 />
                             </div>
@@ -279,8 +321,8 @@ export const DriverDashboardPage = () => {
                             <ParkingCardGrid
                                 parkings={filteredParkings}
                                 isLoading={isLoadingParkings}
-                                onReserveParking={(parking) => setSelectedParkingForBooking(parking)}
-                                onViewDetails={(parking) => setSelectedParkingForDetails(parking)}
+                                onReserveParking={(parking) => setSelectedParkingBookingId(parking.id)}
+                                onViewDetails={(parking) => setSelectedParkingDetailsId(parking.id)}
                                 selectedParkingId={hoveredParkingId || undefined}
                                 onHoverParking={setHoveredParkingId}
                             />
@@ -295,6 +337,12 @@ export const DriverDashboardPage = () => {
                     booking={activeBooking}
                     onFinishBooking={handleFinishBooking}
                     onGoToSearch={() => setActiveView('mapa-busqueda')}
+                    onPayWithQr={() => {
+                        if (activeBooking?.boletaOriginal) {
+                            setPendingQrReserva(activeBooking.boletaOriginal);
+                            setIsQrModalOpen(true);
+                        }
+                    }}
                     isFinishing={cancelBookingMutation.isPending}
                 />
             )}
@@ -341,13 +389,27 @@ export const DriverDashboardPage = () => {
                 isOpen={Boolean(selectedParkingForBooking)}
                 parking={selectedParkingForBooking}
                 vehicles={vehicles}
+                selectedVehiclePlate={currentPlate}
                 onClose={() => {
-                    setSelectedParkingForBooking(null);
+                    setSelectedParkingBookingId(null);
                     setSelectedSpotForBooking(null);
                 }}
                 onConfirmBooking={handleConfirmBooking}
                 isSubmitting={createBookingMutation.isPending}
                 preselectedSpot={selectedSpotForBooking}
+            />
+
+            {/* Modal de Checkout QR (Patrón Estrategia - Pago Digital Inmediato) */}
+            <QrPaymentCheckoutModal
+                isOpen={isQrModalOpen}
+                onClose={() => {
+                    setIsQrModalOpen(false);
+                    setPendingQrReserva(null);
+                    setActiveView('ticket-activo');
+                }}
+                reserva={pendingQrReserva}
+                onConfirmPayment={handleConfirmQrPayment}
+                isConfirming={confirmarPagoMutation.isPending}
             />
         </DriverLayout>
     );

@@ -2,16 +2,17 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import type { LocationCoordinates } from '../../../../core/services/geocoding/geocoding.types';
+import { DEFAULT_FALLBACK_COORDINATES } from '../../../../core/services/geocoding/useDeviceGeolocation';
 
-export interface LocationCoordinates {
-  lat: number;
-  lng: number;
-}
+export type { LocationCoordinates };
 
 interface EstacionamientoLocationPickerProps {
   coordinates: LocationCoordinates | null;
   onChangeCoordinates: (coords: LocationCoordinates | null) => void;
   disabled?: boolean;
+  isResolvingAddress?: boolean;
+  isDetectingInitialLocation?: boolean;
 }
 
 // Icono personalizado ParkinGo para el marcador del estacionamiento
@@ -68,7 +69,7 @@ function MapCenterUpdater({ coords }: { coords: LocationCoordinates | null }) {
   useEffect(() => {
     if (coords) {
       map.flyTo([coords.lat, coords.lng], Math.max(map.getZoom(), 15), {
-        duration: 1.2,
+        duration: 0.8,
       });
     }
   }, [coords, map]);
@@ -79,9 +80,14 @@ export const EstacionamientoLocationPicker: React.FC<EstacionamientoLocationPick
   coordinates,
   onChangeCoordinates,
   disabled = false,
+  isResolvingAddress = false,
+  isDetectingInitialLocation = false,
 }) => {
-  // Centro por defecto: Bolivia (-17.3935, -66.1570 Cochabamba / -17.7833, -63.1880 Santa Cruz)
-  const defaultCenter: [number, number] = [-17.3935, -66.157];
+  // Centro por defecto: Plaza Principal 24 de Septiembre, Santa Cruz de la Sierra
+  const defaultCenter: [number, number] = [
+    DEFAULT_FALLBACK_COORDINATES.lat,
+    DEFAULT_FALLBACK_COORDINATES.lng,
+  ];
   const markerIcon = useMemo(() => createParkingPinIcon(), []);
   const markerRef = useRef<L.Marker | null>(null);
 
@@ -159,10 +165,10 @@ export const EstacionamientoLocationPicker: React.FC<EstacionamientoLocationPick
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.4rem',
-              padding: '0.45rem 0.85rem',
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              borderRadius: '6px',
+              padding: '0.4rem 0.75rem',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              borderRadius: '4px',
               border: '1px solid #BBF7D0',
               background: '#F0FDF4',
               color: '#166534',
@@ -188,37 +194,73 @@ export const EstacionamientoLocationPicker: React.FC<EstacionamientoLocationPick
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.35rem',
-                padding: '0.45rem 0.75rem',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                borderRadius: '6px',
-                border: '1px solid #E2E8F0',
+                padding: '0.4rem 0.7rem',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                borderRadius: '4px',
+                border: '1px solid #CBD5E1',
                 background: '#FFFFFF',
-                color: '#64748B',
+                color: '#475569',
                 cursor: disabled ? 'not-allowed' : 'pointer',
               }}
             >
-              <i className="fa-solid fa-trash-can" style={{ fontSize: '0.75rem', color: '#EF4444' }}></i>
+              <i className="fa-solid fa-trash-can" style={{ fontSize: '0.75rem', color: '#DC2626' }}></i>
               Quitar marcador
             </button>
           )}
         </div>
 
         {/* Badge de coordenadas seleccionadas */}
-        <div style={{ fontSize: '0.8rem', color: '#475569' }}>
+        <div style={{ fontSize: '0.78rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {isDetectingInitialLocation && (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                padding: '0.28rem 0.6rem',
+                background: '#FEF3C7',
+                border: '1px solid #FDE68A',
+                borderRadius: '4px',
+                color: '#92400E',
+                fontWeight: 700,
+              }}
+            >
+              <i className="fa-solid fa-location-crosshairs fa-spin"></i>
+              Obteniendo ubicación del dispositivo...
+            </span>
+          )}
+          {isResolvingAddress && (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                padding: '0.28rem 0.6rem',
+                background: '#F0F9FF',
+                border: '1px solid #BAE6FD',
+                borderRadius: '4px',
+                color: '#0369A1',
+                fontWeight: 700,
+              }}
+            >
+              <i className="fa-solid fa-spinner fa-spin"></i>
+              Resolviendo dirección...
+            </span>
+          )}
           {coordinates ? (
             <span
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.35rem',
-                padding: '0.25rem 0.65rem',
+                padding: '0.3rem 0.6rem',
                 background: '#ECFDF5',
                 border: '1px solid #A7F3D0',
-                borderRadius: '6px',
+                borderRadius: '4px',
                 color: '#065F46',
                 fontFamily: 'monospace',
-                fontWeight: 600,
+                fontWeight: 700,
               }}
             >
               <i className="fa-solid fa-map-pin" style={{ color: '#006D36' }}></i>
@@ -239,7 +281,7 @@ export const EstacionamientoLocationPicker: React.FC<EstacionamientoLocationPick
             padding: '0.5rem 0.75rem',
             background: '#FEF2F2',
             border: '1px solid #FECACA',
-            borderRadius: '6px',
+            borderRadius: '4px',
             color: '#991B1B',
             fontSize: '0.8rem',
             marginBottom: '0.5rem',
@@ -258,10 +300,9 @@ export const EstacionamientoLocationPicker: React.FC<EstacionamientoLocationPick
         style={{
           height: '280px',
           width: '100%',
-          borderRadius: '10px',
+          borderRadius: '6px',
           overflow: 'hidden',
           border: '1px solid #CBD5E1',
-          boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.06)',
           position: 'relative',
         }}
       >

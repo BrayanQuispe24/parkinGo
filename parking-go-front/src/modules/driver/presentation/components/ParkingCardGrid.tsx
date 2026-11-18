@@ -1,7 +1,6 @@
 // src/modules/driver/presentation/components/ParkingCardGrid.tsx
 import React, { useState } from 'react';
 import type { DriverParking } from '../../domain/DriverParking';
-import imgEmpresarial from '../../../../assets/parking_empresarial_1789393502203.png';
 
 interface ParkingCardGridProps {
     parkings: DriverParking[];
@@ -20,9 +19,8 @@ export const ParkingCardGrid: React.FC<ParkingCardGridProps> = ({
     selectedParkingId,
     onHoverParking,
 }) => {
-    const [favorites, setFavorites] = useState<Record<string, boolean>>({
-        'p-102': true,
-    });
+    const [favorites, setFavorites] = useState<Record<string, boolean>>({});
+    const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
     const toggleFavorite = (parkingId: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -129,22 +127,50 @@ export const ParkingCardGrid: React.FC<ParkingCardGridProps> = ({
                             {/* Imagen y Badges */}
                             <div
                                 onClick={() => onViewDetails?.(p)}
-                                style={{ position: 'relative', width: '100%', height: '175px', overflow: 'hidden', cursor: 'pointer' }}
+                                style={{
+                                    position: 'relative',
+                                    width: '100%',
+                                    height: '175px',
+                                    overflow: 'hidden',
+                                    cursor: 'pointer',
+                                    background: 'linear-gradient(135deg, #063D25 0%, #0F5132 100%)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}
                                 title="Clic para ver detalles completos del parqueo"
                             >
-                                <img
-                                    src={p.photoUrl}
-                                    alt={p.name}
-                                    className="driver-card-img"
-                                    onError={(e) => {
-                                        (e.currentTarget as HTMLImageElement).src = imgEmpresarial;
-                                    }}
-                                    style={{
-                                        width: '100%',
-                                        height: '100%',
-                                        objectFit: 'cover',
-                                    }}
-                                />
+                                {p.photoUrl && !failedImages[p.id] ? (
+                                    <img
+                                        src={p.photoUrl}
+                                        alt={p.name}
+                                        className="driver-card-img"
+                                        onError={() =>
+                                            setFailedImages((prev) => ({ ...prev, [p.id]: true }))
+                                        }
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover',
+                                        }}
+                                    />
+                                ) : (
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '0.45rem',
+                                            color: '#A7F3D0',
+                                        }}
+                                    >
+                                        <i className="fa-solid fa-square-parking" style={{ fontSize: '2.4rem' }}></i>
+                                        <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.03em' }}>
+                                            Sin fotografía cargada
+                                        </span>
+                                    </div>
+                                )}
 
                                 {/* Badge de Vacantes */}
                                 <div
@@ -154,7 +180,7 @@ export const ParkingCardGrid: React.FC<ParkingCardGridProps> = ({
                                         left: '10px',
                                         background: 'rgba(6, 61, 37, 0.92)',
                                         backdropFilter: 'blur(4px)',
-                                        color: isLow ? '#FCD34D' : '#34D399',
+                                        color: p.totalSpots === 0 ? '#CBD5E1' : isLow ? '#FCD34D' : '#34D399',
                                         fontWeight: 800,
                                         fontSize: '0.72rem',
                                         padding: '0.22rem 0.6rem',
@@ -170,11 +196,15 @@ export const ParkingCardGrid: React.FC<ParkingCardGridProps> = ({
                                             width: '6px',
                                             height: '6px',
                                             borderRadius: '50%',
-                                            background: isLow ? '#F59E0B' : '#10B981',
+                                            background: p.totalSpots === 0 ? '#94A3B8' : isLow ? '#F59E0B' : '#10B981',
                                             display: 'inline-block',
                                         }}
                                     ></span>
-                                    <span>{p.availableSpots} de {p.totalSpots} Libres</span>
+                                    <span>
+                                        {p.totalSpots > 0
+                                            ? `${p.availableSpots} de ${p.totalSpots} Libres`
+                                            : 'Sin plazas configuradas'}
+                                    </span>
                                 </div>
 
                                 {/* Botón de Favorito */}
@@ -239,10 +269,18 @@ export const ParkingCardGrid: React.FC<ParkingCardGridProps> = ({
                                 {/* Footer con Precio y Botón Reservar */}
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #F1F5F9', paddingTop: '0.75rem' }}>
                                     <div>
-                                        <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#006D36' }}>
-                                             Bs {p.pricePerHour}
-                                        </span>
-                                        <span style={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 600 }}> / hora</span>
+                                        {p.pricePerHour > 0 ? (
+                                            <>
+                                                <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#006D36' }}>
+                                                    Bs {p.pricePerHour}
+                                                </span>
+                                                <span style={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 600 }}> / hora</span>
+                                            </>
+                                        ) : (
+                                            <span style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 700 }}>
+                                                Consultar tarifa
+                                            </span>
+                                        )}
                                     </div>
 
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>

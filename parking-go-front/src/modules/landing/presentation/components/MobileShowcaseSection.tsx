@@ -70,7 +70,7 @@ export const MobileShowcaseSection = () => {
                                 <span>74 Parqueos Libres Ahora</span>
                             </div>
                             <div className="phone-mascot-wrapper">
-                                <img src={VehiculopngImg} alt="Vehículo ParkinGo"/>
+                                <img src={VehiculopngImg} alt="Vehículo ParkinGo" loading="lazy" decoding="async"/>
                             </div>
                         </div>
                     </div>

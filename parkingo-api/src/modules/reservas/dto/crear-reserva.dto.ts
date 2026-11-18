@@ -12,6 +12,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ModalidadTarifa } from '@prisma/client';
+import { METODOS_PAGO, type MetodoPagoTipo } from '../strategies/payment-strategy.interface.js';
 
 export class CrearServicioExtraItemDto {
   @ApiProperty({ description: 'ID del servicio extra configurable de BD' })
@@ -78,6 +79,15 @@ export class CrearReservaDto {
   @IsOptional()
   @IsEnum(ModalidadTarifa, { message: 'Modalidad de tarifa inválida' })
   modalidad?: ModalidadTarifa = ModalidadTarifa.HORA;
+
+  @ApiPropertyOptional({
+    description: 'Método de pago seleccionado (EFECTIVO o QR)',
+    enum: METODOS_PAGO,
+    default: 'EFECTIVO',
+  })
+  @IsOptional()
+  @IsEnum(METODOS_PAGO, { message: 'El método de pago debe ser EFECTIVO o QR' })
+  metodoPago?: MetodoPagoTipo = 'EFECTIVO';
 
   @ApiPropertyOptional({
     description:

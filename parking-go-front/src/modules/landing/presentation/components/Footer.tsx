@@ -14,7 +14,7 @@ export const Footer = () => {
                 <div className="footer-top grid grid-4">
                     <div className="footer-col brand-col">
                         <a href="#" className="logo">
-                            <img src={logopngImg} alt="ParkinGo Logo" className="logo-img"/>
+                            <img src={logopngImg} alt="ParkinGo Logo" className="logo-img" loading="lazy" decoding="async"/>
                             <span className="logo-text">Parkin<span>Go</span></span>
                         </a>
                         <p>

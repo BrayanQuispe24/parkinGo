@@ -13,6 +13,7 @@ interface BookingModalProps {
     onConfirmBooking: (payload: CreateBookingPayload) => Promise<void>;
     isSubmitting?: boolean;
     preselectedSpot?: string | null;
+    selectedVehiclePlate?: string;
 }
 
 interface EspacioSeleccionadoState {
@@ -29,11 +30,29 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     onConfirmBooking,
     isSubmitting,
     preselectedSpot,
+    selectedVehiclePlate,
 }) => {
     const [durationHours, setDurationHours] = useState<number>(2);
-    const [selectedPlate, setSelectedPlate] = useState<string>(
-        vehicles.find((v) => v.isDefault)?.plate || vehicles[0]?.plate || '',
-    );
+    const defaultVehiclePlate = useMemo(() => {
+        if (selectedVehiclePlate && vehicles.some((v) => v.plate === selectedVehiclePlate)) {
+            return selectedVehiclePlate;
+        }
+        return vehicles.find((v) => v.isDefault)?.plate || vehicles[0]?.plate || '';
+    }, [vehicles, selectedVehiclePlate]);
+
+    const [selectedPlate, setSelectedPlate] = useState<string>(defaultVehiclePlate);
+    const effectivePlate = selectedPlate || defaultVehiclePlate || (vehicles.length > 0 ? vehicles[0].plate : '');
+    const [paymentMethod, setPaymentMethod] = useState<'EFECTIVO' | 'QR'>('EFECTIVO');
+
+    // Sincronizar placa automáticamente cuando se abre el modal o cuando cambian los vehículos cargados
+    useEffect(() => {
+        if (!isOpen) return;
+        if (vehicles.length > 0) {
+            if (!selectedPlate || !vehicles.some((v) => v.plate === selectedPlate)) {
+                setSelectedPlate(defaultVehiclePlate || vehicles[0].plate);
+            }
+        }
+    }, [isOpen, vehicles, selectedPlate, defaultVehiclePlate]);
 
     // Lista de espacios seleccionados con sus decoradores (servicios extras) configurados individualmente
     const [selectedSpaces, setSelectedSpaces] = useState<EspacioSeleccionadoState[]>([]);
@@ -163,8 +182,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         );
     };
 
-    // Cálculo local reactivo de respaldo
-    const baseHourPrice = parking.pricePerHour || 10;
+    // Cálculo local basado estrictamente en la tarifa del estacionamiento
+    const baseHourPrice = parking.pricePerHour || 0;
     const subtotalPlazasLocal = selectedSpaces.length * baseHourPrice * durationHours;
     const subtotalExtrasLocal = selectedSpaces.reduce((acc, s) => {
         const extrasCost = s.serviciosExtrasIds.reduce((sum, extraId) => {
@@ -183,22 +202,30 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedPlate) {
-            alert('Por favor selecciona un vehículo registrado');
+        const plateToUse = selectedPlate || defaultVehiclePlate || (vehicles.length > 0 ? vehicles[0].plate : '');
+        if (!plateToUse) {
+            alert('Por favor agrega un vehículo en la sección "Mis Vehículos" antes de reservar.');
             return;
         }
 
-        const primerEspacioReal = selectedSpaces.find((s) => s.espacioId !== 'auto-asignado');
+        const matchingVehicle = vehicles.find((v) => v.plate === plateToUse);
+        const espaciosReales = selectedSpaces.filter((s) => s.espacioId !== 'auto-asignado');
+        const primerEspacioReal = espaciosReales[0];
 
         await onConfirmBooking({
             parkingId: parking.id,
-            vehiclePlate: selectedPlate,
+            vehiclePlate: plateToUse,
+            vehiculoId: matchingVehicle?.id,
             durationHours,
+            paymentMethod,
             espacioId: primerEspacioReal?.espacioId,
-            detallesEspacios: selectedSpaces.map((s) => ({
-                espacioId: s.espacioId,
-                serviciosExtrasIds: s.serviciosExtrasIds,
-            })),
+            detallesEspacios:
+                espaciosReales.length > 0
+                    ? espaciosReales.map((s) => ({
+                          espacioId: s.espacioId,
+                          serviciosExtrasIds: s.serviciosExtrasIds,
+                      }))
+                    : undefined,
         });
     };
 
@@ -422,7 +449,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                                 Vehículo con el que ingresarás:
                             </label>
                             <select
-                                value={selectedPlate}
+                                value={effectivePlate}
                                 onChange={(e) => setSelectedPlate(e.target.value)}
                                 required
                                 style={{
@@ -438,11 +465,15 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                                     cursor: 'pointer',
                                 }}
                             >
-                                {vehicles.map((v) => (
-                                    <option key={v.id} value={v.plate}>
-                                        {v.plate} — {v.model} ({v.color})
-                                    </option>
-                                ))}
+                                {vehicles.length === 0 ? (
+                                    <option value="">No tienes vehículos registrados</option>
+                                ) : (
+                                    vehicles.map((v) => (
+                                        <option key={v.id} value={v.plate}>
+                                            {v.plate} — {v.model} ({v.color}) {v.isDefault ? '• Predeterminado' : ''}
+                                        </option>
+                                    ))
+                                )}
                             </select>
                         </div>
 
@@ -835,6 +866,56 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                         >
                             <span>Servicios Extras Adicionados (Decoradores):</span>
                             <span style={{ fontWeight: 700, color: '#006D36' }}>+Bs {subtotalExtrasLocal}.00</span>
+                        </div>
+
+                        {/* Selector de Método de Pago (Patrón Component Strategy) */}
+                        <div style={{ marginBottom: '0.85rem' }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '0.45rem' }}>
+                                Selecciona el Método de Pago:
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
+                                <div
+                                    onClick={() => setPaymentMethod('EFECTIVO')}
+                                    style={{
+                                        border: paymentMethod === 'EFECTIVO' ? '2px solid #006D36' : '1px solid #CBD5E1',
+                                        background: paymentMethod === 'EFECTIVO' ? '#ECFDF5' : '#FFFFFF',
+                                        borderRadius: '8px',
+                                        padding: '0.6rem 0.75rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        transition: 'all 0.15s ease',
+                                    }}
+                                >
+                                    <i className="fa-solid fa-money-bill-wave" style={{ color: '#006D36', fontSize: '1.1rem' }}></i>
+                                    <div>
+                                        <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0F172A' }}>Efectivo en Garita</div>
+                                        <div style={{ fontSize: '0.68rem', color: '#64748B' }}>Pagas en persona al llegar</div>
+                                    </div>
+                                </div>
+
+                                <div
+                                    onClick={() => setPaymentMethod('QR')}
+                                    style={{
+                                        border: paymentMethod === 'QR' ? '2px solid #006D36' : '1px solid #CBD5E1',
+                                        background: paymentMethod === 'QR' ? '#ECFDF5' : '#FFFFFF',
+                                        borderRadius: '8px',
+                                        padding: '0.6rem 0.75rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        transition: 'all 0.15s ease',
+                                    }}
+                                >
+                                    <i className="fa-solid fa-qrcode" style={{ color: '#0284C7', fontSize: '1.1rem' }}></i>
+                                    <div>
+                                        <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0F172A' }}>Pago QR Simple</div>
+                                        <div style={{ fontSize: '0.68rem', color: '#64748B' }}>Pagas ahora desde tu app</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Línea divisoria estilo ticket */}

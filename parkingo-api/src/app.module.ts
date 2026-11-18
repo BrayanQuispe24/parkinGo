@@ -12,6 +12,7 @@ import { EstacionamientosModule } from './modules/estacionamientos/estacionamien
 import { CalificacionesModule } from './modules/calificaciones/calificaciones.module.js';
 import { VehiculosModule } from './modules/vehiculos/vehiculos.module.js';
 import { ReservasModule } from './modules/reservas/reservas.module.js';
+import { RealtimeModule } from './modules/realtime/realtime.module.js';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
@@ -30,9 +31,10 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
     CalificacionesModule,
     VehiculosModule,
     ReservasModule,
+    RealtimeModule,
     ThrottlerModule.forRoot([{
       ttl: 60000, // Tiempo en milisegundos (60 segundos)
-      limit: 20,  // Máximo 10 peticiones en ese tiempo
+      limit: 120, // Límite global para SPA (los endpoints críticos de /auth mantienen su @Throttle estricto)
     }]),
   ],
   providers: [
