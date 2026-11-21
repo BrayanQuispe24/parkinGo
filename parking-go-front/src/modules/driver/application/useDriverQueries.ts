@@ -33,7 +33,16 @@ export const useDriverActiveBookingQuery = () => {
     return useQuery({
         queryKey: DRIVER_KEYS.activeBooking(),
         queryFn: () => driverRepository.getActiveBooking(),
-        staleTime: 1000 * 30, // 30 segundos para reflejar cambios en tiempo real
+        staleTime: 1000 * 5,
+        refetchInterval: (query) => {
+            const data = query.state.data;
+            const estado = data?.boletaOriginal?.estado;
+            if (estado === 'EN_CURSO' || estado === 'CONFIRMADA' || estado === 'PENDIENTE_PAGO') {
+                return 4000;
+            }
+            return false;
+        },
+        refetchOnWindowFocus: true,
     });
 };
 
@@ -41,7 +50,8 @@ export const useDriverBookingsHistoryQuery = () => {
     return useQuery({
         queryKey: DRIVER_KEYS.bookingsHistory(),
         queryFn: () => driverRepository.getBookingsHistory(),
-        staleTime: 1000 * 60 * 2,
+        staleTime: 1000 * 5,
+        refetchOnWindowFocus: true,
     });
 };
 

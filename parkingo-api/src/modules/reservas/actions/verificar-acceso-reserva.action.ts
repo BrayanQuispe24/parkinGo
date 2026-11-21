@@ -97,9 +97,30 @@ export class VerificarAccesoReservaAction {
       Math.round((fechaFin.getTime() - fechaIngreso.getTime()) / (1000 * 60 * 60)) || 1,
     );
 
+    const todosMovimientos = (reserva.detalles || []).flatMap((d) =>
+      (d.movimientos || []).map((m) => ({
+        tipoMovimiento: m.tipoMovimiento as 'ENTRADA' | 'SALIDA',
+        fechaHora: m.fechaHora instanceof Date ? m.fechaHora.toISOString() : String(m.fechaHora),
+        operadorNombre: m.operador
+          ? `${m.operador.firstName} ${m.operador.lastName}`.trim()
+          : null,
+      })),
+    );
+    const entrada = todosMovimientos.find((m) => m.tipoMovimiento === 'ENTRADA');
+    const salida = todosMovimientos.find((m) => m.tipoMovimiento === 'SALIDA');
+
+    const siguienteAccion: 'ENTRADA' | 'SALIDA' | null =
+      reserva.estado === EstadoReserva.EN_CURSO
+        ? 'SALIDA'
+        : reserva.estado === EstadoReserva.CONFIRMADA ||
+          (metodoPago === 'EFECTIVO' && reserva.estado === EstadoReserva.PENDIENTE_PAGO)
+        ? 'ENTRADA'
+        : null;
+
     const baseResponse: Omit<ResultadoVerificacionAccesoDto, 'valido' | 'mensaje'> = {
       reservaId: reserva.id,
       codigoReserva: reserva.codigoReserva,
+      detalleReservacionId: primerDetalle?.id,
       clienteNombre: `${reserva.cliente.firstName} ${reserva.cliente.lastName}`.trim(),
       clienteEmail: reserva.cliente.email,
       clienteTelefono: reserva.cliente.phone,
@@ -115,6 +136,10 @@ export class VerificarAccesoReservaAction {
       horaIngreso: fechaIngreso.toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }),
       duracionHoras,
       requiereCobroEfectivo: false,
+      siguienteAccion,
+      horaEntradaReal: entrada?.fechaHora || null,
+      horaSalidaReal: salida?.fechaHora || null,
+      movimientos: todosMovimientos,
     };
 
     if (reserva.estado === EstadoReserva.CANCELADA) {
@@ -153,13 +178,26 @@ export class VerificarAccesoReservaAction {
       };
     }
 
-    // Si la reserva ya está confirmada o en curso (Pagada vía QR o ya cobrada previamente)
+    // Si la reserva está actualmente en curso (vehículo adentro)
+    if (reserva.estado === EstadoReserva.EN_CURSO) {
+      return {
+        ...baseResponse,
+        valido: true,
+        mensaje: 'Vehículo dentro de las instalaciones. Listo para marcar EGRESO y liberar plaza.',
+        requiereCobroEfectivo: false,
+        estadoPago: 'COMPLETADO',
+        siguienteAccion: 'SALIDA',
+      };
+    }
+
+    // Si la reserva ya está confirmada (Pagada vía QR o ya cobrada previamente)
     return {
       ...baseResponse,
       valido: true,
       mensaje: 'Acceso autorizado. Reserva pagada y confirmada satisfactoriamente.',
       requiereCobroEfectivo: false,
       estadoPago: 'COMPLETADO',
+      siguienteAccion: 'ENTRADA',
     };
   }
 }

@@ -84,6 +84,18 @@ export type ReservacionConRelaciones = Reservacion & {
           };
         }
       >;
+      movimientos?: Array<{
+        id: string;
+        tipoMovimiento: 'ENTRADA' | 'SALIDA';
+        fechaHora: Date;
+        operadorId?: string | null;
+        notas?: string | null;
+        operador?: {
+          id: string;
+          firstName: string;
+          lastName: string;
+        } | null;
+      }>;
     }
   >;
 };
@@ -111,5 +123,12 @@ export abstract class ReservaRepository {
   abstract registrarPagoYConfirmar(
     id: string,
     data: RegistrarPagoData,
+  ): Promise<ReservacionConRelaciones>;
+  abstract registrarMovimiento(
+    reservacionId: string,
+    detalleReservacionId: string,
+    tipoMovimiento: 'ENTRADA' | 'SALIDA',
+    operadorId?: string | null,
+    notas?: string | null,
   ): Promise<ReservacionConRelaciones>;
 }

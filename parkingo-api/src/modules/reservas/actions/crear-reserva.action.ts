@@ -15,12 +15,15 @@ import {
   ParametrosEspacioEnsamblaje,
 } from '../domain/decorator/reserva-price.assembler.js';
 import { QrTokenUtil } from '../utils/qr-token.util.js';
+import { EspaciosRealtimeService } from '../../realtime/services/espacios-realtime.service.js';
+import { EspacioMapper } from '../../estacionamientos/mappers/espacio.mapper.js';
 
 @Injectable()
 export class CrearReservaAction {
   constructor(
     private readonly reservaRepo: ReservaRepository,
     private readonly prisma: PrismaService,
+    private readonly espaciosRealtimeService: EspaciosRealtimeService,
   ) {}
 
   async execute(
@@ -251,6 +254,32 @@ export class CrearReservaAction {
       metodoPago,
       detalles: detallesPersistencia,
     });
+
+    // Notificar por WebSocket la actualización del estado a RESERVADO en tiempo real
+    for (const det of reservacionCreada.detalles) {
+      if (det.espacioId) {
+        try {
+          const espacioActualizado = await this.prisma.espacio.findUnique({
+            where: { id: det.espacioId },
+            include: {
+              nivel: {
+                select: { codigo: true },
+              },
+            },
+          });
+          if (espacioActualizado) {
+            const espacioDto = EspacioMapper.toResponseDto(espacioActualizado);
+            this.espaciosRealtimeService.emitEspacioCambio(
+              'UPDATED',
+              dto.estacionamientoId,
+              espacioDto,
+            );
+          }
+        } catch (wsErr) {
+          // La notificación realtime es asíncrona y no interrumpe el flujo principal
+        }
+      }
+    }
 
     return ReservaMapper.toDto(reservacionCreada);
   }

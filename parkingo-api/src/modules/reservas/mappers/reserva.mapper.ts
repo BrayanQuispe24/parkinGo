@@ -19,6 +19,16 @@ export class ReservaMapper {
         }),
       );
 
+      const movimientosDto = (d.movimientos || []).map((m) => ({
+        id: m.id,
+        tipoMovimiento: m.tipoMovimiento,
+        fechaHora: m.fechaHora,
+        operadorNombre: m.operador
+          ? `${m.operador.firstName} ${m.operador.lastName}`.trim()
+          : null,
+        notas: m.notas || null,
+      }));
+
       return {
         id: d.id,
         espacioId: d.espacioId,
@@ -34,8 +44,13 @@ export class ReservaMapper {
         subtotal: d.subtotal,
         estado: d.estado,
         serviciosExtras: extrasDto,
+        movimientos: movimientosDto,
       };
     });
+
+    const todosMovimientos = detallesDto.flatMap((d) => d.movimientos || []);
+    const entrada = todosMovimientos.find((m) => m.tipoMovimiento === 'ENTRADA');
+    const salida = todosMovimientos.find((m) => m.tipoMovimiento === 'SALIDA');
 
     return {
       id: r.id,
@@ -63,6 +78,9 @@ export class ReservaMapper {
         ? `${r.operador.firstName} ${r.operador.lastName}`.trim()
         : null,
       detalles: detallesDto,
+      movimientos: todosMovimientos,
+      horaEntradaReal: entrada ? (entrada.fechaHora instanceof Date ? entrada.fechaHora.toISOString() : String(entrada.fechaHora)) : null,
+      horaSalidaReal: salida ? (salida.fechaHora instanceof Date ? salida.fechaHora.toISOString() : String(salida.fechaHora)) : null,
       fechaCreacion: r.fechaCreacion,
     };
   }

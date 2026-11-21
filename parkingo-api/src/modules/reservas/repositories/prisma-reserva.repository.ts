@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { EstadoReserva, EstadoDetalleReserva, EstadoPago } from '@prisma/client';
+import {
+  EstadoReserva,
+  EstadoDetalleReserva,
+  EstadoPago,
+  TipoMovimiento,
+  EstadoEspacio,
+} from '@prisma/client';
 import { PrismaService } from '../../../database/prisma/prisma.service.js';
 import {
   ReservaRepository,
@@ -72,6 +78,20 @@ export class PrismaReservaRepository implements ReservaRepository {
                 precio: true,
               },
             },
+          },
+        },
+        movimientos: {
+          include: {
+            operador: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+          orderBy: {
+            fechaHora: 'asc' as const,
           },
         },
       },
@@ -184,9 +204,17 @@ export class PrismaReservaRepository implements ReservaRepository {
             });
           }
         }
+
+        // 4. Actualizar estado del espacio físico a RESERVADO
+        if (detalleData.espacioId) {
+          await tx.espacio.update({
+            where: { id: detalleData.espacioId },
+            data: { estado: EstadoEspacio.RESERVADO },
+          });
+        }
       }
 
-      // 4. Retornar la boleta completa con todas sus relaciones
+      // 5. Retornar la boleta completa con todas sus relaciones
       const creada = await tx.reservacion.findUniqueOrThrow({
         where: { id: reservacion.id },
         include: this.includeRelaciones,
@@ -242,13 +270,28 @@ export class PrismaReservaRepository implements ReservaRepository {
 
   async cancelar(id: string): Promise<ReservacionConRelaciones> {
     return this.prisma.$transaction(async (tx) => {
-      // Cancelar detalles
+      // 1. Obtener detalles para liberar los espacios asociados
+      const detalles = await tx.detalleReservacion.findMany({
+        where: { reservacionId: id },
+        select: { espacioId: true },
+      });
+
+      for (const det of detalles) {
+        if (det.espacioId) {
+          await tx.espacio.update({
+            where: { id: det.espacioId },
+            data: { estado: EstadoEspacio.DISPONIBLE },
+          });
+        }
+      }
+
+      // 2. Cancelar detalles
       await tx.detalleReservacion.updateMany({
         where: { reservacionId: id },
         data: { estado: EstadoDetalleReserva.CANCELADO },
       });
 
-      // Cancelar boleta
+      // 3. Cancelar boleta
       const cancelada = await tx.reservacion.update({
         where: { id },
         data: { estado: EstadoReserva.CANCELADA },
@@ -286,6 +329,58 @@ export class PrismaReservaRepository implements ReservaRepository {
       });
 
       return confirmada as unknown as ReservacionConRelaciones;
+    });
+  }
+
+  async registrarMovimiento(
+    reservacionId: string,
+    detalleReservacionId: string,
+    tipoMovimiento: 'ENTRADA' | 'SALIDA',
+    operadorId?: string | null,
+    notas?: string | null,
+  ): Promise<ReservacionConRelaciones> {
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Obtener el detalle para conocer el espacioId asociado
+      const detalle = await tx.detalleReservacion.findUnique({
+        where: { id: detalleReservacionId },
+        select: { id: true, espacioId: true },
+      });
+
+      // 2. Crear el registro del movimiento
+      await tx.movimiento.create({
+        data: {
+          tipoMovimiento: tipoMovimiento as TipoMovimiento,
+          fechaHora: new Date(),
+          operadorId: operadorId || null,
+          detalleReservacionId,
+          notas: notas || null,
+        },
+      });
+
+      // 3. Determinar nuevos estados de la reserva y del espacio
+      const nuevoEstadoReserva =
+        tipoMovimiento === 'ENTRADA' ? EstadoReserva.EN_CURSO : EstadoReserva.COMPLETADA;
+      const nuevoEstadoEspacio =
+        tipoMovimiento === 'ENTRADA' ? EstadoEspacio.OCUPADO : EstadoEspacio.DISPONIBLE;
+
+      if (detalle?.espacioId) {
+        await tx.espacio.update({
+          where: { id: detalle.espacioId },
+          data: { estado: nuevoEstadoEspacio },
+        });
+      }
+
+      // 4. Actualizar estado de la reservación
+      const resActualizada = await tx.reservacion.update({
+        where: { id: reservacionId },
+        data: {
+          estado: nuevoEstadoReserva,
+          ...(operadorId ? { operadorId } : {}),
+        },
+        include: this.includeRelaciones,
+      });
+
+      return resActualizada as unknown as ReservacionConRelaciones;
     });
   }
 }

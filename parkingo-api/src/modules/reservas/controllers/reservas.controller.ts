@@ -36,8 +36,10 @@ import { CancelarReservaAction } from '../actions/cancelar-reserva.action.js';
 import { IniciarPagoReservaAction } from '../actions/iniciar-pago-reserva.action.js';
 import { ConfirmarPagoReservaAction } from '../actions/confirmar-pago-reserva.action.js';
 import { VerificarAccesoReservaAction } from '../actions/verificar-acceso-reserva.action.js';
+import { RegistrarMovimientoReservaAction } from '../actions/registrar-movimiento-reserva.action.js';
 import { IniciarPagoDto, ConfirmarPagoDto, InicioPagoResponseDto } from '../dto/pago.dto.js';
 import { VerificarAccesoDto, ResultadoVerificacionAccesoDto } from '../dto/verificar-acceso.dto.js';
+import { RegistrarMovimientoDto } from '../dto/registrar-movimiento.dto.js';
 
 @ApiTags('reservas')
 @ApiBearerAuth()
@@ -54,6 +56,7 @@ export class ReservasController {
     private readonly iniciarPagoAction: IniciarPagoReservaAction,
     private readonly confirmarPagoAction: ConfirmarPagoReservaAction,
     private readonly verificarAccesoAction: VerificarAccesoReservaAction,
+    private readonly registrarMovimientoAction: RegistrarMovimientoReservaAction,
   ) {}
 
   @Post('cotizar')
@@ -249,5 +252,28 @@ export class ReservasController {
     @Body() dto: VerificarAccesoDto,
   ): Promise<ResultadoVerificacionAccesoDto> {
     return this.verificarAccesoAction.execute(user, dto);
+  }
+
+  @Post('movimiento')
+  @Roles('PARKING_OPERATOR', 'HOST', 'PARKING_ADMIN', 'SUPER_ADMIN')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Registrar movimiento vehicular de Entrada o Salida por escaneo QR en Garita',
+    description:
+      'Registra el evento de auditoría de entrada (transiciona la reserva a EN_CURSO y el espacio a OCUPADO) o salida (transiciona a COMPLETADA y libera el espacio a DISPONIBLE).',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Movimiento vehicular registrado y boleta actualizada',
+    type: BoletaReservaResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Estado incompatible o movimiento inválido' })
+  @ApiResponse({ status: 403, description: 'No autorizado para operar este estacionamiento' })
+  @ApiResponse({ status: 404, description: 'Reserva o espacio no encontrado' })
+  async registrarMovimiento(
+    @CurrentUser() user: { id?: string; userId?: string; role?: string; roleName?: string },
+    @Body() dto: RegistrarMovimientoDto,
+  ): Promise<BoletaReservaResponseDto> {
+    return this.registrarMovimientoAction.execute(user, dto);
   }
 }

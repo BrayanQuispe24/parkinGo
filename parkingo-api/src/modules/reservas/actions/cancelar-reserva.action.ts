@@ -5,13 +5,20 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { EstadoReserva } from '@prisma/client';
+import { PrismaService } from '../../../database/prisma/prisma.service.js';
 import { ReservaRepository } from '../repositories/reserva.repository.js';
 import { BoletaReservaResponseDto } from '../dto/reserva-response.dto.js';
 import { ReservaMapper } from '../mappers/reserva.mapper.js';
+import { EspaciosRealtimeService } from '../../realtime/services/espacios-realtime.service.js';
+import { EspacioMapper } from '../../estacionamientos/mappers/espacio.mapper.js';
 
 @Injectable()
 export class CancelarReservaAction {
-  constructor(private readonly reservaRepo: ReservaRepository) {}
+  constructor(
+    private readonly reservaRepo: ReservaRepository,
+    private readonly prisma: PrismaService,
+    private readonly espaciosRealtimeService: EspaciosRealtimeService,
+  ) {}
 
   async execute(
     id: string,
@@ -46,6 +53,33 @@ export class CancelarReservaAction {
     }
 
     const cancelada = await this.reservaRepo.cancelar(id);
+
+    // Notificar por WebSocket la liberación del espacio a DISPONIBLE en tiempo real
+    for (const det of reserva.detalles) {
+      if (det.espacioId) {
+        try {
+          const espacioActualizado = await this.prisma.espacio.findUnique({
+            where: { id: det.espacioId },
+            include: {
+              nivel: {
+                select: { codigo: true },
+              },
+            },
+          });
+          if (espacioActualizado) {
+            const espacioDto = EspacioMapper.toResponseDto(espacioActualizado);
+            this.espaciosRealtimeService.emitEspacioCambio(
+              'UPDATED',
+              reserva.estacionamientoId,
+              espacioDto,
+            );
+          }
+        } catch (wsErr) {
+          // La notificación realtime es asíncrona y no interrumpe el flujo principal
+        }
+      }
+    }
+
     return ReservaMapper.toDto(cancelada);
   }
 }

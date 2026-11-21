@@ -1,0 +1,34 @@
+PORT=3001
+
+# ==========================================
+# DIRECCIONES FRONTEND PERMITIDAS (CORS)
+# ==========================================
+# Direcciones separadas por coma que el backend autoriza para interactuar con la API
+FRONTEND_ORIGINS="http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174"
+
+# Environment variables declared in this file are NOT automatically loaded by Prisma.
+# Please add `import "dotenv/config";` to your `prisma7.config.ts` file, or use the Prisma CLI with Bun
+# to load environment variables from .env files: https://pris.ly/prisma-config-env-vars.
+
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
+# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+
+DATABASE_URL="postgresql://postgres:6305913@localhost:5432/parkin-go-db?schema=public"
+# Al final del archivo .env añade esto:
+JWT_SECRET="MiSuperSecretoSeguro123!"
+
+# ==========================================
+# CONFIGURACIÓN DE CORREO SALIENTE (GMAIL / SMTP)
+# ==========================================
+# Si usas Gmail:
+# 1. Ve a https://myaccount.google.com/apppasswords
+# 2. Genera una contraseña de aplicación (16 caracteres)
+# 3. Colócala en SMTP_PASS (sin espacios)
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT=465
+SMTP_USER="brayansabinoquispearce2021@gmail.com"
+SMTP_PASS="spvb uupt vtpk udre"
+PARKINGO_MAIL_FROM="ParkinGo <brayansabinoquispearce2021@gmail.com>"
+
+# Alternativa: Si prefieres Resend con API Key
+# RESEND_API_KEY="re_..."

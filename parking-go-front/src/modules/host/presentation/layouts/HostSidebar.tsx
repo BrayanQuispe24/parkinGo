@@ -125,11 +125,6 @@ export const HostSidebar: React.FC<HostSidebarProps> = ({
                 >
                     <i className="fa-solid fa-warehouse"></i>
                     <span>Mi Cochera & Garaje</span>
-                    {!collapsed && (
-                        <span className="badge badge-success" style={{ marginLeft: 'auto', fontSize: '0.7rem' }}>
-                            1 Espacio
-                        </span>
-                    )}
                 </Link>
 
                 <Link
@@ -140,11 +135,6 @@ export const HostSidebar: React.FC<HostSidebarProps> = ({
                 >
                     <i className="fa-solid fa-building"></i>
                     <span>Mi Empresa / Propiedad</span>
-                    {!collapsed && (
-                        <span className="badge badge-success" style={{ marginLeft: 'auto', fontSize: '0.65rem' }}>
-                            1 Max
-                        </span>
-                    )}
                 </Link>
 
                 <div className="nav-section-label">Gestión de Reservas C2C</div>
@@ -157,21 +147,6 @@ export const HostSidebar: React.FC<HostSidebarProps> = ({
                 >
                     <i className="fa-solid fa-calendar-check"></i>
                     <span>Reservas Recibidas</span>
-                    {!collapsed && (
-                        <span
-                            style={{
-                                marginLeft: 'auto',
-                                background: '#E6F4EA',
-                                color: '#006D36',
-                                padding: '0.15rem 0.45rem',
-                                borderRadius: '12px',
-                                fontSize: '0.68rem',
-                                fontWeight: 700,
-                            }}
-                        >
-                            En Vivo
-                        </span>
-                    )}
                 </Link>
 
                 <a

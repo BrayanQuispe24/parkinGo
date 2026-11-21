@@ -78,5 +78,38 @@ export class ResultadoVerificacionAccesoDto {
 
   @ApiPropertyOptional({ description: 'Indica si el operador debe cobrar dinero físico en garita' })
   requiereCobroEfectivo?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Acción siguiente sugerida para el operador: ENTRADA si ingresa, SALIDA si egresa',
+    enum: ['ENTRADA', 'SALIDA'],
+  })
+  siguienteAccion?: 'ENTRADA' | 'SALIDA' | null;
+
+  @ApiPropertyOptional({ description: 'Hora real registrada de entrada si ya ingresó' })
+  horaEntradaReal?: string | null;
+
+  @ApiPropertyOptional({ description: 'Hora real registrada de salida si ya egresó' })
+  horaSalidaReal?: string | null;
+
+  @ApiPropertyOptional({ description: 'ID del detalle de reservación primario para registrar el movimiento' })
+  detalleReservacionId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Historial de movimientos reales registrados',
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: {
+        tipoMovimiento: { type: 'string', enum: ['ENTRADA', 'SALIDA'] },
+        fechaHora: { type: 'string' },
+        operadorNombre: { type: 'string' },
+      },
+    },
+  })
+  movimientos?: Array<{
+    tipoMovimiento: 'ENTRADA' | 'SALIDA';
+    fechaHora: string;
+    operadorNombre?: string | null;
+  }>;
 }
 

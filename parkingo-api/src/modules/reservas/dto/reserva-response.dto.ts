@@ -21,6 +21,23 @@ export class ServicioExtraResponseDto {
   subtotal!: number;
 }
 
+export class MovimientoResponseDto {
+  @ApiProperty({ example: 'mov-123-uuid' })
+  id!: string;
+
+  @ApiProperty({ enum: ['ENTRADA', 'SALIDA'], example: 'ENTRADA' })
+  tipoMovimiento!: 'ENTRADA' | 'SALIDA';
+
+  @ApiProperty({ example: '2026-11-18T14:15:00.000Z' })
+  fechaHora!: Date;
+
+  @ApiPropertyOptional({ example: 'Operador Garita' })
+  operadorNombre?: string | null;
+
+  @ApiPropertyOptional({ example: 'Entrada sin observaciones' })
+  notas?: string | null;
+}
+
 export class DetalleReservaResponseDto {
   @ApiProperty({ example: 'det-123-uuid' })
   id!: string;
@@ -57,6 +74,9 @@ export class DetalleReservaResponseDto {
 
   @ApiProperty({ type: [ServicioExtraResponseDto] })
   serviciosExtras!: ServicioExtraResponseDto[];
+
+  @ApiPropertyOptional({ type: [MovimientoResponseDto] })
+  movimientos?: MovimientoResponseDto[];
 }
 
 export class BoletaReservaResponseDto {
@@ -128,6 +148,15 @@ export class BoletaReservaResponseDto {
 
   @ApiProperty({ type: [DetalleReservaResponseDto] })
   detalles!: DetalleReservaResponseDto[];
+
+  @ApiPropertyOptional({ type: [MovimientoResponseDto] })
+  movimientos?: MovimientoResponseDto[];
+
+  @ApiPropertyOptional({ example: '2026-11-18T14:15:00.000Z' })
+  horaEntradaReal?: string | null;
+
+  @ApiPropertyOptional({ example: '2026-11-18T16:20:00.000Z' })
+  horaSalidaReal?: string | null;
 
   @ApiProperty({ example: '2026-10-28T10:00:00.000Z' })
   fechaCreacion!: Date;

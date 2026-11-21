@@ -239,7 +239,11 @@ export const DriverDashboardPage = () => {
         <DriverLayout
             activeView={activeView}
             onSelectView={setActiveView}
-            hasActiveBooking={Boolean(activeBooking)}
+            hasActiveBooking={Boolean(
+                activeBooking &&
+                activeBooking.boletaOriginal?.estado !== 'COMPLETADA' &&
+                activeBooking.boletaOriginal?.estado !== 'CANCELADA',
+            )}
         >
             {/* Feedback Toast Notifier */}
             {toastMessage && (
@@ -337,6 +341,11 @@ export const DriverDashboardPage = () => {
                     booking={activeBooking}
                     onFinishBooking={handleFinishBooking}
                     onGoToSearch={() => setActiveView('mapa-busqueda')}
+                    onGoToReview={(parkingId) => {
+                        setSelectedParkingBookingId(parkingId);
+                        setActiveView('calificar');
+                    }}
+                    onGoToHistory={() => setActiveView('mis-reservas')}
                     onPayWithQr={() => {
                         if (activeBooking?.boletaOriginal) {
                             setPendingQrReserva(activeBooking.boletaOriginal);

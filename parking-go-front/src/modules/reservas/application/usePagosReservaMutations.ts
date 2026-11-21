@@ -1,7 +1,7 @@
 // src/modules/reservas/application/usePagosReservaMutations.ts
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { parkingoApi } from '../../../core/api/parkingoApi';
-import type { BoletaReserva } from '../../driver/domain/DriverBooking';
+import type { BoletaReserva, MovimientoReserva } from '../../driver/domain/DriverBooking';
 import { DRIVER_KEYS } from '../../driver/application/useDriverQueries';
 
 export interface IniciarPagoPayload {
@@ -51,6 +51,11 @@ export interface ResultadoVerificacionAcceso {
   horaIngreso?: string;
   duracionHoras?: number;
   requiereCobroEfectivo?: boolean;
+  siguienteAccion?: 'ENTRADA' | 'SALIDA' | null;
+  horaEntradaReal?: string | null;
+  horaSalidaReal?: string | null;
+  detalleReservacionId?: string;
+  movimientos?: MovimientoReserva[];
 }
 
 export const useIniciarPagoMutation = () => {
@@ -104,6 +109,34 @@ export const useVerificarAccesoMutation = () => {
         },
       );
       return response.data;
+    },
+  });
+};
+
+export interface RegistrarMovimientoPayload {
+  token?: string;
+  codigoReserva?: string;
+  reservaId?: string;
+  detalleReservacionId?: string;
+  tipoMovimiento: 'ENTRADA' | 'SALIDA';
+  notas?: string;
+}
+
+export const useRegistrarMovimientoMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: RegistrarMovimientoPayload): Promise<BoletaReserva> => {
+      const response = await parkingoApi.post<BoletaReserva>('/reservas/movimiento', payload);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reservas'] });
+      queryClient.invalidateQueries({ queryKey: DRIVER_KEYS.activeBooking() });
+      queryClient.invalidateQueries({ queryKey: DRIVER_KEYS.bookingsHistory() });
+      queryClient.invalidateQueries({ queryKey: DRIVER_KEYS.boletas() });
+      queryClient.invalidateQueries({ queryKey: ['espacios'] });
+      queryClient.invalidateQueries({ queryKey: ['estacionamientos'] });
     },
   });
 };

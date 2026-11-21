@@ -9,6 +9,7 @@ import { CancelarReservaAction } from './actions/cancelar-reserva.action.js';
 import { IniciarPagoReservaAction } from './actions/iniciar-pago-reserva.action.js';
 import { ConfirmarPagoReservaAction } from './actions/confirmar-pago-reserva.action.js';
 import { VerificarAccesoReservaAction } from './actions/verificar-acceso-reserva.action.js';
+import { RegistrarMovimientoReservaAction } from './actions/registrar-movimiento-reserva.action.js';
 import { EfectivoPaymentStrategy } from './strategies/efectivo-payment.strategy.js';
 import { QrPaymentStrategy } from './strategies/qr-payment.strategy.js';
 import { PaymentStrategyResolver } from './strategies/payment-strategy.resolver.js';
@@ -27,6 +28,7 @@ import { PrismaReservaRepository } from './repositories/prisma-reserva.repositor
     IniciarPagoReservaAction,
     ConfirmarPagoReservaAction,
     VerificarAccesoReservaAction,
+    RegistrarMovimientoReservaAction,
     EfectivoPaymentStrategy,
     QrPaymentStrategy,
     PaymentStrategyResolver,

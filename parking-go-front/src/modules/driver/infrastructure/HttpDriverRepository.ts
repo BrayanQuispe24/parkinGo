@@ -167,6 +167,9 @@ export class HttpDriverRepository implements DriverRepository {
                       ? 'COMPLETED'
                       : 'ACTIVE',
             qrCodeText: b.qrToken,
+            horaEntradaReal: b.horaEntradaReal || null,
+            horaSalidaReal: b.horaSalidaReal || null,
+            movimientos: b.movimientos || [],
             createdAt: b.fechaCreacion,
             boletaOriginal: b,
         };
@@ -203,15 +206,28 @@ export class HttpDriverRepository implements DriverRepository {
                 b.estado === 'CONFIRMADA' ||
                 b.estado === 'EN_CURSO',
         );
-        return activa ? HttpDriverRepository.mapBoletaToDriverBooking(activa) : null;
+        if (activa) {
+            return HttpDriverRepository.mapBoletaToDriverBooking(activa);
+        }
+
+        // Si no hay activa en curso, verificar si hay una recién COMPLETADA (últimos 10 minutos)
+        // para mostrar la liquidación y comprobante finalizado al conductor
+        const recientementeCompletada = boletas.find((b) => {
+            if (b.estado !== 'COMPLETADA') return false;
+            const horaSalida = b.horaSalidaReal || b.movimientos?.find((m) => m.tipoMovimiento === 'SALIDA')?.fechaHora;
+            if (horaSalida) {
+                const diffMs = Date.now() - new Date(horaSalida).getTime();
+                return diffMs < 10 * 60 * 1000;
+            }
+            return false;
+        });
+
+        return recientementeCompletada ? HttpDriverRepository.mapBoletaToDriverBooking(recientementeCompletada) : null;
     }
 
     async getBookingsHistory(): Promise<DriverBooking[]> {
         const boletas = await this.getMisReservas();
-        const historicas = boletas.filter(
-            (b) => b.estado === 'COMPLETADA' || b.estado === 'CANCELADA',
-        );
-        return historicas.map((b) => HttpDriverRepository.mapBoletaToDriverBooking(b));
+        return boletas.map((b) => HttpDriverRepository.mapBoletaToDriverBooking(b));
     }
 
     async createBooking(payload: CreateBookingPayload): Promise<DriverBooking> {

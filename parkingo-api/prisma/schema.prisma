@@ -78,6 +78,7 @@ model User {
   tenants               Tenant[]
   reservacionesCliente  Reservacion[]             @relation("ClienteReservaciones")
   reservacionesOperador Reservacion[]             @relation("OperadorReservaciones")
+  movimientosOperados   Movimiento[]              @relation("OperadorMovimientos")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -487,6 +488,7 @@ model DetalleReservacion {
   tarifa                Tarifa?                @relation(fields: [tarifaId], references: [id], onDelete: SetNull)
 
   serviciosExtras       DetalleServicioExtra[]
+  movimientos           Movimiento[]
 
   createdAt             DateTime               @default(now()) @map("created_at")
   updatedAt             DateTime               @updatedAt @map("updated_at")
@@ -531,5 +533,31 @@ model Pago {
 
   @@index([reservacionId])
   @@map("pagos")
+}
+
+enum TipoMovimiento {
+  ENTRADA
+  SALIDA
+}
+
+model Movimiento {
+  id                   String             @id @default(uuid())
+  tipoMovimiento       TipoMovimiento     @map("tipo_movimiento")
+  fechaHora            DateTime           @default(now()) @map("fecha_hora")
+
+  operadorId           String?            @map("operador_id")
+  operador             User?              @relation("OperadorMovimientos", fields: [operadorId], references: [id], onDelete: SetNull)
+
+  detalleReservacionId String             @map("detalle_reservacion_id")
+  detalleReservacion   DetalleReservacion @relation(fields: [detalleReservacionId], references: [id], onDelete: Cascade)
+
+  notas                String?
+
+  createdAt            DateTime           @default(now()) @map("created_at")
+
+  @@index([detalleReservacionId])
+  @@index([operadorId])
+  @@index([tipoMovimiento])
+  @@map("movimientos")
 }
 

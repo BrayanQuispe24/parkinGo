@@ -9,6 +9,14 @@ export type EstadoReserva =
 
 export type BookingStatus = 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | EstadoReserva;
 
+export interface MovimientoReserva {
+    id: string;
+    tipoMovimiento: 'ENTRADA' | 'SALIDA';
+    fechaHora: string;
+    operadorNombre?: string | null;
+    notas?: string | null;
+}
+
 export interface ServicioExtraContratado {
     id?: string;
     servicioExtraId: string;
@@ -31,6 +39,7 @@ export interface DetalleBoletaEspacio {
     subtotal: number;
     estado?: string;
     serviciosExtras: ServicioExtraContratado[];
+    movimientos?: MovimientoReserva[];
 }
 
 export interface BoletaReserva {
@@ -57,6 +66,9 @@ export interface BoletaReserva {
         fechaPago?: string | null;
     }>;
     detalles: DetalleBoletaEspacio[];
+    movimientos?: MovimientoReserva[];
+    horaEntradaReal?: string | null;
+    horaSalidaReal?: string | null;
     fechaCreacion: string;
 }
 
@@ -134,6 +146,9 @@ export interface DriverBooking {
     status: BookingStatus;
     qrCodeText: string;
     paymentMethod?: 'EFECTIVO' | 'QR';
+    horaEntradaReal?: string | null;
+    horaSalidaReal?: string | null;
+    movimientos?: MovimientoReserva[];
     createdAt: string;
     boletaOriginal?: BoletaReserva;
 }

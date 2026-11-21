@@ -25,6 +25,7 @@ import type {
 } from '../../domain/Croquis';
 import { pxToMeters } from '../../domain/Croquis';
 import type { EspacioModel } from '../../domain/Espacio';
+import type { NivelModel } from '../../domain/Nivel';
 
 import { CroquisToolbar } from './croquis/CroquisToolbar';
 import { CroquisGridBackground } from './croquis/CroquisGridBackground';
@@ -44,6 +45,9 @@ export interface TenantCroquisPanelProps {
   onGoToEspacios?: () => void;
 }
 
+const EMPTY_NIVELES: NivelModel[] = [];
+const EMPTY_ESPACIOS: EspacioModel[] = [];
+
 export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
   onGoToNiveles,
 }) => {
@@ -51,7 +55,8 @@ export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
   const isHost = user?.role === 'HOST' || user?.role === 'anfitrion';
   const { data: miEstacionamiento } = useMiEstacionamientoQuery();
   useEspaciosRealtimeSync(miEstacionamiento?.id);
-  const { data: niveles = [], isLoading: isLoadingNiveles, refetch: refetchNiveles } = useMisNivelesQuery();
+  const { data: nivelesData, isLoading: isLoadingNiveles, refetch: refetchNiveles } = useMisNivelesQuery();
+  const niveles = nivelesData ?? EMPTY_NIVELES;
   const [selectedNivelId, setSelectedNivelId] = useState<string>('');
 
   // Seleccionar automáticamente el primer nivel disponible
@@ -63,10 +68,11 @@ export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
 
   // Carga de espacios del nivel seleccionado
   const {
-    data: espacios = [],
+    data: espaciosData,
     refetch: refetchEspacios,
     isFetching: isFetchingEspacios,
   } = useMisEspaciosQuery(selectedNivelId || undefined);
+  const espacios = espaciosData ?? EMPTY_ESPACIOS;
 
   // Carga del croquis persistido del nivel seleccionado
   const {
@@ -93,6 +99,11 @@ export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
     height: 620,
   });
 
+  const stageDimensionsRef = useRef(stageDimensions);
+  stageDimensionsRef.current = stageDimensions;
+  const canvasDimensionsRef = useRef(canvasDimensions);
+  canvasDimensionsRef.current = canvasDimensions;
+
   // Zustand editor store
   const {
     modo,
@@ -108,7 +119,6 @@ export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
     fondoOpacidad,
     isFondoModalOpen,
     setSelectedNodeId,
-    setStageScale,
     setStagePosition,
     setIsFullscreen,
     setIsDimensionModalOpen,
@@ -120,36 +130,39 @@ export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
   const transformerRef = useRef<Konva.Transformer>(null);
   const hasInitializedCenter = useRef(false);
 
-  // Función para centrar el grid en el visor
+  // Función para centrar el grid en el visor (sin re-crearse en cada render)
   const centerGrid = useCallback(
     (fitToView = false) => {
-      if (stageDimensions.width <= 0 || stageDimensions.height <= 0) return;
+      const sDim = stageDimensionsRef.current;
+      const cDim = canvasDimensionsRef.current;
+      if (sDim.width <= 0 || sDim.height <= 0) return;
       let targetScale = useCroquisEditorStore.getState().stageScale;
       if (fitToView) {
         const padding = 60;
-        const scaleX = (stageDimensions.width - padding) / canvasDimensions.width;
-        const scaleY = (stageDimensions.height - padding) / canvasDimensions.height;
+        const scaleX = (sDim.width - padding) / cDim.width;
+        const scaleY = (sDim.height - padding) / cDim.height;
         targetScale = Math.min(1, Math.max(0.35, Number(Math.min(scaleX, scaleY).toFixed(2))));
-        setStageScale(targetScale);
+        useCroquisEditorStore.getState().setStageScale(targetScale);
       }
-      const centerX = Math.round((stageDimensions.width - canvasDimensions.width * targetScale) / 2);
-      const centerY = Math.round((stageDimensions.height - canvasDimensions.height * targetScale) / 2);
-      setStagePosition({ x: centerX, y: centerY });
+      const centerX = Math.round((sDim.width - cDim.width * targetScale) / 2);
+      const centerY = Math.round((sDim.height - cDim.height * targetScale) / 2);
+      useCroquisEditorStore.getState().setStagePosition({ x: centerX, y: centerY });
     },
-    [stageDimensions, canvasDimensions, setStageScale, setStagePosition]
+    []
   );
 
   // Zoom centrado hacia el punto medio del viewport
   const handleZoomDelta = useCallback(
     (delta: number) => {
+      const sDim = stageDimensionsRef.current;
       const currentScale = useCroquisEditorStore.getState().stageScale;
       const currentPos = useCroquisEditorStore.getState().stagePosition;
       const newScale = Math.min(2.5, Math.max(0.4, Number((currentScale + delta).toFixed(2))));
       if (newScale === currentScale) return;
 
       const viewportCenter = {
-        x: stageDimensions.width / 2,
-        y: stageDimensions.height / 2,
+        x: sDim.width / 2,
+        y: sDim.height / 2,
       };
 
       const mousePointTo = {
@@ -157,25 +170,27 @@ export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
         y: (viewportCenter.y - currentPos.y) / currentScale,
       };
 
-      setStageScale(newScale);
-      setStagePosition({
+      useCroquisEditorStore.getState().setStageScale(newScale);
+      useCroquisEditorStore.getState().setStagePosition({
         x: Math.round(viewportCenter.x - mousePointTo.x * newScale),
         y: Math.round(viewportCenter.y - mousePointTo.y * newScale),
       });
     },
-    [stageDimensions, setStageScale, setStagePosition]
+    []
   );
 
   // Restablecer vista al 100% de escala y centrar
   const handleReset100 = useCallback(() => {
+    const sDim = stageDimensionsRef.current;
+    const cDim = canvasDimensionsRef.current;
     const targetScale = 1.0;
-    setStageScale(targetScale);
-    const centerX = Math.round((stageDimensions.width - canvasDimensions.width * targetScale) / 2);
-    const centerY = Math.round((stageDimensions.height - canvasDimensions.height * targetScale) / 2);
-    setStagePosition({ x: centerX, y: centerY });
-  }, [stageDimensions, canvasDimensions, setStageScale, setStagePosition]);
+    useCroquisEditorStore.getState().setStageScale(targetScale);
+    const centerX = Math.round((sDim.width - cDim.width * targetScale) / 2);
+    const centerY = Math.round((sDim.height - cDim.height * targetScale) / 2);
+    useCroquisEditorStore.getState().setStagePosition({ x: centerX, y: centerY });
+  }, []);
 
-  // ResizeObserver para adaptar el Stage fluidamente al contenedor (en modo normal o fullscreen)
+  // ResizeObserver para adaptar el Stage fluidamente al contenedor
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -183,10 +198,11 @@ export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
     const updateSize = () => {
       const rect = el.getBoundingClientRect();
       if (rect.width > 0 && rect.height > 0) {
-        setStageDimensions({
-          width: Math.floor(rect.width),
-          height: Math.floor(rect.height),
-        });
+        const newW = Math.floor(rect.width);
+        const newH = Math.floor(rect.height);
+        setStageDimensions((prev) =>
+          prev.width === newW && prev.height === newH ? prev : { width: newW, height: newH }
+        );
       }
     };
 
@@ -208,7 +224,7 @@ export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
       hasInitializedCenter.current = true;
       centerGrid(true);
     }
-  }, [stageDimensions, canvasDimensions, centerGrid]);
+  }, [stageDimensions.width, stageDimensions.height, centerGrid]);
 
   // Re-centrar únicamente cuando el estado de pantalla completa realmente cambia
   const lastFullscreenRef = useRef<boolean>(isFullscreen);
@@ -219,7 +235,7 @@ export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
         setTimeout(() => centerGrid(true), 60);
       }
     }
-  }, [isFullscreen, stageDimensions, centerGrid]);
+  }, [isFullscreen, stageDimensions.width, stageDimensions.height, centerGrid]);
 
   // Centrar automáticamente únicamente cuando cambia el nivel seleccionado
   const lastNivelIdRef = useRef<string | null>(selectedNivelId || null);
@@ -230,7 +246,7 @@ export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
         centerGrid(true);
       }
     }
-  }, [selectedNivelId, stageDimensions, centerGrid]);
+  }, [selectedNivelId, stageDimensions.width, stageDimensions.height, centerGrid]);
 
   // Desplazamiento reactivo de nodo seleccionado (con flechas o controles visuales)
   const handleNudgeSelected = useCallback(
@@ -312,23 +328,35 @@ export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
     handleNudgeSelected,
   ]);
 
-  // Sincronizar nodos locales al cargar croquis remoto o al cambiar de nivel
+  // Sincronizar nodos locales al cargar croquis remoto o al cambiar de nivel (guardado y estabilizado)
   useEffect(() => {
     if (croquisRemoto) {
-      setFondoConfig({
-        fondoTipo: croquisRemoto.fondoTipo || 'PLANO',
-        fondoImagenUrl: croquisRemoto.fondoImagenUrl || null,
-        fondoOpacidad: croquisRemoto.fondoOpacidad ?? 0.4,
-      });
+      const targetFondoTipo = croquisRemoto.fondoTipo || 'PLANO';
+      const targetFondoUrl = croquisRemoto.fondoImagenUrl || null;
+      const targetFondoOpacidad = croquisRemoto.fondoOpacidad ?? 0.4;
+
+      const currentStore = useCroquisEditorStore.getState();
+      if (
+        currentStore.fondoTipo !== targetFondoTipo ||
+        currentStore.fondoImagenUrl !== targetFondoUrl ||
+        currentStore.fondoOpacidad !== targetFondoOpacidad
+      ) {
+        setFondoConfig({
+          fondoTipo: targetFondoTipo,
+          fondoImagenUrl: targetFondoUrl,
+          fondoOpacidad: targetFondoOpacidad,
+        });
+      }
 
       if (croquisRemoto.contenido) {
         const contenido = croquisRemoto.contenido as CroquisCanvasContent;
-        setCanvasDimensions({
-          width: contenido.anchoLienzo || croquisRemoto.anchoLienzo || 1600,
-          height: contenido.altoLienzo || croquisRemoto.altoLienzo || 1000,
-        });
+        const targetW = contenido.anchoLienzo || croquisRemoto.anchoLienzo || 1600;
+        const targetH = contenido.altoLienzo || croquisRemoto.altoLienzo || 1000;
 
-        // Actualizar los estados de los espacios en el croquis según los datos más recientes del backend
+        setCanvasDimensions((prev) =>
+          prev.width === targetW && prev.height === targetH ? prev : { width: targetW, height: targetH }
+        );
+
         const nodosActualizados = (contenido.nodos || []).map((nodo) => {
           if (nodo.tipo === 'ESPACIO') {
             const espacioActual = espacios.find((e) => e.id === nodo.espacioId);
@@ -346,19 +374,33 @@ export const TenantCroquisPanel: React.FC<TenantCroquisPanelProps> = ({
 
         setNodos(nodosActualizados);
       } else {
-        setNodos([]);
-        setCanvasDimensions({ width: 1600, height: 1000 });
+        setNodos((prev) => (prev.length === 0 ? prev : []));
+        setCanvasDimensions((prev) =>
+          prev.width === 1600 && prev.height === 1000 ? prev : { width: 1600, height: 1000 }
+        );
       }
     } else {
-      setNodos([]);
-      setCanvasDimensions({ width: 1600, height: 1000 });
-      setFondoConfig({
-        fondoTipo: 'PLANO',
-        fondoImagenUrl: null,
-        fondoOpacidad: 0.4,
-      });
+      setNodos((prev) => (prev.length === 0 ? prev : []));
+      setCanvasDimensions((prev) =>
+        prev.width === 1600 && prev.height === 1000 ? prev : { width: 1600, height: 1000 }
+      );
+      const currentStore = useCroquisEditorStore.getState();
+      if (
+        currentStore.fondoTipo !== 'PLANO' ||
+        currentStore.fondoImagenUrl !== null ||
+        currentStore.fondoOpacidad !== 0.4
+      ) {
+        setFondoConfig({
+          fondoTipo: 'PLANO',
+          fondoImagenUrl: null,
+          fondoOpacidad: 0.4,
+        });
+      }
     }
-    setSelectedNodeId(null);
+
+    if (useCroquisEditorStore.getState().selectedNodeId !== null) {
+      setSelectedNodeId(null);
+    }
   }, [croquisRemoto, espacios, setSelectedNodeId, setFondoConfig]);
 
   // Actualizar el Transformer de Konva cuando cambia el nodo seleccionado
