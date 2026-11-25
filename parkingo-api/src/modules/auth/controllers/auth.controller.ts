@@ -22,7 +22,7 @@ import { VerifyOtpDto } from '../dto/verify-otp.dto.js';
 
 import type { UploadedDocumentFile } from '../strategies/verification/user-verification-strategy.interface.js';
 
-@ApiTags('authentication')
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
     constructor(
@@ -35,10 +35,11 @@ export class AuthController {
     @ApiOperation({
         summary: 'Registrar un nuevo usuario',
         description:
-            'Crea un nuevo usuario público con rol HOST, PARKING_ADMIN o DRIVER. Si el rol es HOST o PARKING_ADMIN, es obligatorio adjuntar documentación en PDF.',
+            'Crea un nuevo usuario público con rol HOST, PARKING_ADMIN o DRIVER. Si el rol es HOST o PARKING_ADMIN, es obligatorio adjuntar documentación de verificación en PDF.',
     })
     @ApiResponse({ status: 201, description: 'Usuario registrado exitosamente. Requiere verificación OTP.' })
     @ApiResponse({ status: 400, description: 'Datos inválidos, dominio falso o falta de PDF requerido.' })
+    @ApiResponse({ status: 409, description: 'El correo electrónico o número de documento ya está registrado.' })
     @ApiConsumes('multipart/form-data', 'application/json')
     @ApiBody({ type: RegisterAuthDto })
     @Throttle({ default: { limit: 5, ttl: 60000 } })
@@ -54,7 +55,7 @@ export class AuthController {
 
     @ApiOperation({ summary: 'Iniciar sesión', description: 'Permite a un usuario autenticarse y obtener un token JWT.' })
     @ApiResponse({ status: 200, description: 'Login exitoso, retorna el token JWT.' })
-    @ApiResponse({ status: 401, description: 'Credenciales inválidas.' })
+    @ApiResponse({ status: 401, description: 'Credenciales inválidas o cuenta no verificada.' })
     @ApiBody({ type: LoginAuthDto })
     @Throttle({ default: { limit: 5, ttl: 60000 } })
     @HttpCode(HttpStatus.OK)
@@ -83,6 +84,7 @@ export class AuthController {
     })
     @ApiResponse({ status: 200, description: 'Nuevo código OTP enviado exitosamente.' })
     @ApiResponse({ status: 400, description: 'Enfriamiento activo o cuenta ya verificada.' })
+    @ApiResponse({ status: 429, description: 'Demasiadas solicitudes. Espere el tiempo de enfriamiento (cooldown) de 60 segundos.' })
     @ApiBody({ type: ResendOtpDto })
     @Throttle({ default: { limit: 2, ttl: 60000 } })
     @HttpCode(HttpStatus.OK)

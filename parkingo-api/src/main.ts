@@ -95,12 +95,37 @@ async function bootstrap() {
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
 
-  // Configuración de Swagger
+  // Configuración de Swagger / OpenAPI
   const config = new DocumentBuilder()
     .setTitle('ParkinGo API')
-    .setDescription('Documentación de los endpoints de la API de ParkinGo')
+    .setDescription(
+      'Documentación interactiva de la API modular de ParkinGo. Incluye gestión de usuarios, roles, empresas/tenants, parqueos, reservas con patrones GoF (Decorator y Strategy) y auditoría.',
+    )
     .setVersion('1.0')
-    .addBearerAuth() // Permite probar endpoints protegidos por JWT en la UI
+    .addBearerAuth({
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+      name: 'Authorization',
+      description: 'Ingrese su token JWT sin el prefijo Bearer',
+      in: 'header',
+    })
+    .addTag('Auth', 'Autenticación, registro, despacho de OTP y verificación')
+    .addTag('Usuarios', 'Gestión de usuarios y operadores')
+    .addTag('Roles', 'Administración de roles y permisos del sistema')
+    .addTag('Tenants', 'Registro y administración de empresas anfitrionas')
+    .addTag('Estacionamientos', 'Gestión de parqueos, galerías fotográficas y catálogos públicos')
+    .addTag('Admin Estacionamientos', 'Supervisión y aprobación de solicitudes de estacionamientos')
+    .addTag('Croquis', 'Diseño arquitectónico y planos interactivos de niveles de estacionamiento')
+    .addTag('Espacios', 'Administración de boxes y plazas de estacionamiento')
+    .addTag('Niveles', 'Pisos y niveles de parqueo')
+    .addTag('Tarifas', 'Esquema de tarifas por modalidad')
+    .addTag('Servicios Extras', 'Servicios adicionales configurables (lavado, carga, etc.)')
+    .addTag('Vehículos', 'Gestión de vehículos de conductores')
+    .addTag('Reservas', 'Cotización dinámica, boletas, pagos y control de acceso en garita')
+    .addTag('Calificaciones', 'Reseñas y valoraciones de usuarios sobre estacionamientos')
+    .addTag('Reportes', 'KPIs, métricas financieras y analíticas del sistema')
+    .addTag('Configuración', 'Términos, condiciones y parámetros del sistema')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, documentFactory);

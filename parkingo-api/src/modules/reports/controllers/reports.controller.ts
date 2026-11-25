@@ -6,7 +6,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../../auth/guards/roles.guard.js';
 import { Roles } from '../../auth/decorators/roles.decorator.js';
 
-@ApiTags('Reportes y Analítica')
+@ApiTags('Reportes')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('reports')
@@ -18,6 +18,8 @@ export class ReportsController {
         description: 'Retorna KPIs consolidados, series mensuales y estado del sistema. Exclusivo para SUPER_ADMIN y GENERAL_ADMIN.',
     })
     @ApiResponse({ status: 200, description: 'Métricas analíticas obtenidas exitosamente.' })
+    @ApiResponse({ status: 401, description: 'No autenticado o token JWT inválido.' })
+    @ApiResponse({ status: 403, description: 'Acceso denegado. Exclusivo para SUPER_ADMIN y GENERAL_ADMIN.' })
     @Roles('SUPER_ADMIN', 'GENERAL_ADMIN')
     @Get('general')
     @HttpCode(HttpStatus.OK)

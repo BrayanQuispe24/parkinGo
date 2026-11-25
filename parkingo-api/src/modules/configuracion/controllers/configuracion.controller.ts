@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, ParseUUIDPipe } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { GetTerminosCondicionesAction } from '../actions/get-terminos-condiciones.action.js';
 import { CreateTerminoCondicionAction } from '../actions/create-termino-condicion.action.js';
 import { UpdateTerminoCondicionAction } from '../actions/update-termino-condicion.action.js';
@@ -11,7 +11,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../../auth/guards/roles.guard.js';
 import { Roles } from '../../auth/decorators/roles.decorator.js';
 
-@ApiTags('Configuración del Sistema')
+@ApiTags('Configuración')
 @Controller(['configuracion', 'settings'])
 export class ConfiguracionController {
     constructor(
@@ -34,6 +34,9 @@ export class ConfiguracionController {
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Crear un nuevo término y condición (Solo Admins)' })
     @ApiResponse({ status: 201, description: 'Término creado exitosamente', type: TerminoCondicionResponseDto })
+    @ApiResponse({ status: 400, description: 'Datos de validación inválidos.' })
+    @ApiResponse({ status: 401, description: 'No autenticado o token JWT inválido.' })
+    @ApiResponse({ status: 403, description: 'Acceso denegado. Exclusivo para administradores.' })
     async createTerminoCondicion(@Body() dto: CreateTerminoCondicionDto): Promise<TerminoCondicionResponseDto> {
         return this.createTerminoCondicionAction.execute(dto);
     }
@@ -43,9 +46,14 @@ export class ConfiguracionController {
     @Roles('SUPER_ADMIN', 'GENERAL_ADMIN')
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Actualizar un término y condición existente (Solo Admins)' })
+    @ApiParam({ name: 'id', description: 'UUID del término y condición a modificar', type: 'string' })
     @ApiResponse({ status: 200, description: 'Término actualizado', type: TerminoCondicionResponseDto })
+    @ApiResponse({ status: 400, description: 'UUID o payload inválido.' })
+    @ApiResponse({ status: 401, description: 'No autenticado o token JWT inválido.' })
+    @ApiResponse({ status: 403, description: 'Acceso denegado. Exclusivo para administradores.' })
+    @ApiResponse({ status: 404, description: 'Término y condición no encontrado.' })
     async updateTerminoCondicion(
-        @Param('id') id: string,
+        @Param('id', ParseUUIDPipe) id: string,
         @Body() dto: UpdateTerminoCondicionDto,
     ): Promise<TerminoCondicionResponseDto> {
         return this.updateTerminoCondicionAction.execute(id, dto);
@@ -56,8 +64,13 @@ export class ConfiguracionController {
     @Roles('SUPER_ADMIN', 'GENERAL_ADMIN')
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Eliminar un término y condición (Solo Admins)' })
+    @ApiParam({ name: 'id', description: 'UUID del término y condición a eliminar', type: 'string' })
     @ApiResponse({ status: 200, description: 'Término eliminado', type: TerminoCondicionResponseDto })
-    async deleteTerminoCondicion(@Param('id') id: string): Promise<TerminoCondicionResponseDto> {
+    @ApiResponse({ status: 400, description: 'UUID inválido.' })
+    @ApiResponse({ status: 401, description: 'No autenticado o token JWT inválido.' })
+    @ApiResponse({ status: 403, description: 'Acceso denegado. Exclusivo para administradores.' })
+    @ApiResponse({ status: 404, description: 'Término y condición no encontrado.' })
+    async deleteTerminoCondicion(@Param('id', ParseUUIDPipe) id: string): Promise<TerminoCondicionResponseDto> {
         return this.deleteTerminoCondicionAction.execute(id);
     }
 }

@@ -27,7 +27,7 @@ import { GetCalificacionesTenantAction } from '../actions/get-calificaciones-ten
 import { GetCalificacionesByEstacionamientoAction } from '../actions/get-calificaciones-by-estacionamiento.action.js';
 import { GetMisCalificacionesAction } from '../actions/get-mis-calificaciones.action.js';
 
-@ApiTags('calificaciones')
+@ApiTags('Calificaciones')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('calificaciones')

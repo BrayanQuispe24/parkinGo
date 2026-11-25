@@ -28,7 +28,7 @@ import { GetMisVehiculosAction } from '../actions/get-mis-vehiculos.action.js';
 import { SetVehiculoPredeterminadoAction } from '../actions/set-vehiculo-predeterminado.action.js';
 import { EliminarVehiculoAction } from '../actions/eliminar-vehiculo.action.js';
 
-@ApiTags('vehiculos')
+@ApiTags('Vehículos')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('vehiculos')

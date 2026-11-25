@@ -29,7 +29,7 @@ import { GetOperadoresDisponiblesAction } from '../actions/get-operadores-dispon
 import { AsignarOperadoresAction } from '../actions/asignar-operadores.action.js';
 import { DesasignarOperadorAction } from '../actions/desasignar-operador.action.js';
 
-@ApiTags('Estacionamientos - Operadores')
+@ApiTags('Estacionamientos')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('estacionamientos')

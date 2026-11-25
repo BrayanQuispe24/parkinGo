@@ -24,7 +24,7 @@ import { HorarioResponseDto } from '../dto/estacionamiento-response.dto.js';
 import { GetTenantHorariosAction } from '../actions/get-tenant-horarios.action.js';
 import { ActualizarTenantHorariosAction } from '../actions/actualizar-tenant-horarios.action.js';
 
-@ApiTags('Tenant Horarios')
+@ApiTags('Estacionamientos')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('tenants/:tenantId/horarios')

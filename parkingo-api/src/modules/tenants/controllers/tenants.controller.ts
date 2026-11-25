@@ -57,6 +57,8 @@ export class TenantsController {
       'Exclusivo para Administrador de Parqueo (PARKING_ADMIN) y Anfitriones Particulares (HOST). Para Anfitriones rige un límite estricto de máximo 1 empresa/propiedad.',
   })
   @ApiResponse({ status: 201, description: 'Empresa registrada exitosamente.', type: TenantResponseDto })
+  @ApiResponse({ status: 400, description: 'Datos de validación del tenant inválidos.' })
+  @ApiResponse({ status: 401, description: 'No autenticado o token JWT inválido.' })
   @ApiResponse({ status: 403, description: 'No autorizado o límite de 1 empresa alcanzado para el rol Anfitrión.' })
   @ApiResponse({ status: 409, description: 'NIT ya registrado en el sistema.' })
   @Roles('PARKING_ADMIN', 'HOST')

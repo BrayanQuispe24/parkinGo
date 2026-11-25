@@ -41,7 +41,7 @@ import { IniciarPagoDto, ConfirmarPagoDto, InicioPagoResponseDto } from '../dto/
 import { VerificarAccesoDto, ResultadoVerificacionAccesoDto } from '../dto/verificar-acceso.dto.js';
 import { RegistrarMovimientoDto } from '../dto/registrar-movimiento.dto.js';
 
-@ApiTags('reservas')
+@ApiTags('Reservas')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('reservas')

@@ -2,7 +2,7 @@
   "$schema": "parkingo-backend-architecture-graph",
   "version": "1.0.0",
   "description": "Grafo de arquitectura y dependencias de parkingo-api para navegación y cambios quirúrgicos sin sobrecosto de tokens.",
-  "lastUpdated": "2026-11-16",
+  "lastUpdated": "2026-11-25",
   "meta": {
     "framework": "NestJS",
     "orm": "Prisma",
